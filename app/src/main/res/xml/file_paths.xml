@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 文件页「打开」用：把真实路径暴露成 content:// 给别的应用读 -->
+<paths>
+    <root-path name="root" path="/" />
+    <external-path name="external" path="/" />
+</paths>

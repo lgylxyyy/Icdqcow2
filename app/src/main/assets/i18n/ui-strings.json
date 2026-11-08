@@ -1,0 +1,4244 @@
+{
+  "version": 1,
+  "note": "App 界面文案表。新增语言：在 languages 里加一条 {code,label}，再给每条字符串补上同名的语言键即可，不用改 Kotlin。{0} {1} 是占位符。",
+  "languages": [
+    {
+      "code": "zh",
+      "label": "简体中文"
+    },
+    {
+      "code": "en",
+      "label": "English"
+    }
+  ],
+  "strings": {
+    "common.back": {
+      "zh": "返回",
+      "en": "Back"
+    },
+    "common.home": {
+      "zh": "主页",
+      "en": "Home"
+    },
+    "common.files": {
+      "zh": "文件",
+      "en": "Files"
+    },
+    "file.card": {
+      "zh": "当前操作的文件：{0}",
+      "en": "Current file: {0}"
+    },
+    "file.pathUnknown": {
+      "zh": "路径未知",
+      "en": "Path unknown"
+    },
+    "file.openFailed": {
+      "zh": "没有能打开这个文件夹的应用",
+      "en": "No app can open this folder"
+    },
+    "file.privateDir": {
+      "zh": "应用私有目录，文件管理器进不去",
+      "en": "App-private folder; the file manager cannot open it"
+    },
+    "name.dup": {
+      "zh": "{0} （{1}）",
+      "en": "{0} ({1})"
+    },
+    "common.settings": {
+      "zh": "设置",
+      "en": "Settings"
+    },
+    "common.rest": {
+      "zh": "剩余",
+      "en": "rest"
+    },
+    "common.remove": {
+      "zh": "删除",
+      "en": "Remove"
+    },
+    "common.done": {
+      "zh": "完成",
+      "en": "Done"
+    },
+    "home.title": {
+      "zh": "主页",
+      "en": "Home"
+    },
+    "home.currentImage": {
+      "zh": "当前镜像",
+      "en": "Current image"
+    },
+    "home.currentImageSummary": {
+      "zh": "{0}.qcow2 · 管理分区",
+      "en": "{0}.qcow2 · Manage partitions"
+    },
+    "home.currentImageNone": {
+      "zh": "未选择镜像",
+      "en": "No image selected"
+    },
+    "home.setup": {
+      "zh": "全流程装机",
+      "en": "Guided setup"
+    },
+    "home.setupSummary": {
+      "zh": "建盘、分区、格式化、部署、引导",
+      "en": "Create, partition, format, deploy, boot"
+    },
+    "home.console": {
+      "zh": "控制台",
+      "en": "Console"
+    },
+    "home.consoleSummary": {
+      "zh": "命令调试与错误定位",
+      "en": "Command debugging and error lookup"
+    },
+    "home.sec.disk": {
+      "zh": "磁盘与分区",
+      "en": "Disk and partitions"
+    },
+    "home.create": {
+      "zh": "创建磁盘",
+      "en": "Create disk"
+    },
+    "home.createSummary": {
+      "zh": "新建 qcow2 镜像",
+      "en": "New qcow2 image"
+    },
+    "home.parts": {
+      "zh": "分区管理",
+      "en": "Partitions"
+    },
+    "home.partsSummary": {
+      "zh": "查看分区表",
+      "en": "View partition table"
+    },
+    "dep.pickDisk": {
+      "zh": "选择镜像文件",
+      "en": "Image file"
+    },
+    "dep.needDisk": {
+      "zh": "先选一个磁盘镜像",
+      "en": "Choose a disk image first"
+    },
+    "dep.noTable": {
+      "zh": "这个镜像还没有分区表，先去分区管理建表",
+      "en": "This image has no partition table yet; create one in Partition manager"
+    },
+    "dep.layout": {
+      "zh": "磁盘布局",
+      "en": "Disk layout"
+    },
+    "dep.barHint": {
+      "zh": "点一块分区作为安装目标",
+      "en": "Tap a partition to deploy into"
+    },
+    "dep.freeTap": {
+      "zh": "这里是未分配空间，先建分区再点它",
+      "en": "This is unallocated space - create a partition first"
+    },
+    "dep.target": {
+      "zh": "目标分区",
+      "en": "Target partition"
+    },
+    "dep.targetNone": {
+      "zh": "还没选（点上面的长条）",
+      "en": "Not selected (tap the bar above)"
+    },
+    "dep.check": {
+      "zh": "大小校验",
+      "en": "Space check"
+    },
+    "dep.partSize": {
+      "zh": "目标分区",
+      "en": "Target partition"
+    },
+    "dep.partFree": {
+      "zh": "分区可用",
+      "en": "Free in partition"
+    },
+    "dep.hostFree": {
+      "zh": "手机剩余",
+      "en": "Free on phone"
+    },
+    "dep.need": {
+      "zh": "映像展开大小",
+      "en": "Expanded size"
+    },
+    "dep.needUnknown": {
+      "zh": "选映像后可见",
+      "en": "Choose an image to see"
+    },
+    "dep.partSmall": {
+      "zh": "分区太小：至少要 {0}",
+      "en": "Partition too small: needs at least {0}"
+    },
+    "dep.hostSmall": {
+      "zh": "手机空间不足：至少要 {0}",
+      "en": "Not enough room on the phone: needs at least {0}"
+    },
+    "dep.wim": {
+      "zh": "映像文件",
+      "en": "Windows image"
+    },
+    "dep.wimNone": {
+      "zh": "还没选（.wim / .esd / .iso）",
+      "en": "Not chosen (.wim / .esd / .iso)"
+    },
+    "dep.wimInfo": {
+      "zh": "{0} 个映像 · 展开约 {1}",
+      "en": "{0} image(s) · about {1} expanded"
+    },
+    "dep.wimBad": {
+      "zh": "读不出这个映像（不是 WIM/ESD/ISO？）",
+      "en": "Cannot read this image (not WIM/ESD/ISO?)"
+    },
+    "pt.table": {
+      "zh": "分区表",
+      "en": "Partition table"
+    },
+    "pt.tableValue": {
+      "zh": "{0} · {1}",
+      "en": "{0} · {1}"
+    },
+    "dep.index": {
+      "zh": "选择 Windows 版本",
+      "en": "Choose Windows edition"
+    },
+    "dep.indexArch": {
+      "zh": "{0}（{1}）",
+      "en": "{0} ({1})"
+    },
+    "dep.indexItem": {
+      "zh": "{0}. {1}",
+      "en": "{0}. {1}"
+    },
+    "dep.line": {
+      "zh": "{0}：{1}",
+      "en": "{0}: {1}"
+    },
+    "dep.on": {
+      "zh": "开",
+      "en": "On"
+    },
+    "dep.off": {
+      "zh": "关",
+      "en": "Off"
+    },
+    "dep.version": {
+      "zh": "Windows 版本",
+      "en": "Windows version"
+    },
+    "dep.needWim": {
+      "zh": "请选择 ISO/WIM/ESD",
+      "en": "Choose an ISO/WIM/ESD first"
+    },
+    "depRun.title": {
+      "zh": "正在释放",
+      "en": "Deploying"
+    },
+    "depRun.rename": {
+      "zh": "重命名分区",
+      "en": "Rename partition"
+    },
+    "depRun.apply": {
+      "zh": "写入系统",
+      "en": "Write the system"
+    },
+    "depRun.rec": {
+      "zh": "写入恢复分区",
+      "en": "Write recovery"
+    },
+    "depRun.boot": {
+      "zh": "写入引导",
+      "en": "Write boot files"
+    },
+    "depRun.eta": {
+      "zh": "约剩 {0}",
+      "en": "about {0} left"
+    },
+    "depRun.etaCalc": {
+      "zh": "正在估算…",
+      "en": "estimating…"
+    },
+    "depRun.done": {
+      "zh": "全部完成",
+      "en": "All done"
+    },
+    "depRun.cancelBody": {
+      "zh": "中止会留下一个写了一半的系统盘。要继续释放点「取消」，要离开就点「退出」。",
+      "en": "Aborting leaves a half-written system disk. Tap Cancel to keep going, Quit to leave."
+    },
+    "dep.archUnknown": {
+      "zh": "判不出这个映像的架构：装完可能起不来（建议换一份 ISO）",
+      "en": "Architecture of this image cannot be determined - it may not boot (consider another ISO)"
+    },
+    "dep.winreAskTitle": {
+      "zh": "没有可用的 Windows RE",
+      "en": "No usable Windows RE"
+    },
+    "dep.winreAskBody": {
+      "zh": "当前所选映像不包含 Windows RE，也没有手动指定 winre.wim。",
+      "en": "The selected image has no Windows RE and no winre.wim was picked."
+    },
+    "dep.winreAskGo": {
+      "zh": "知道了",
+      "en": "Got it"
+    },
+    "dep.winreForce": {
+      "zh": "WinRE 检测没成功（工具出错），仍按这份文件尝试",
+      "en": "WinRE check failed (tool error) - trying this file anyway"
+    },
+    "dep.winreWarn": {
+      "zh": "WinRE 检测失败（{0}）：开恢复分区可能失败",
+      "en": "WinRE check failed ({0}): recovery may fail"
+    },
+    "dep.prepBusy": {
+      "zh": "正在准备映像（从 ISO 抽取 install.wim）…",
+      "en": "Preparing the image (extracting install.wim from the ISO)…"
+    },
+    "dep.winreNote": {
+      "zh": "当前所选映像不包含 Windows RE：请手动选择包含 Winre.wim 的映像文件或关闭创建 WinRE 恢复环境",
+      "en": "This image has no Windows RE: pick a file containing Winre.wim, or turn off creating the WinRE recovery environment"
+    },
+    "dep.winrePick": {
+      "zh": "手动选择 WinRE 恢复文件",
+      "en": "Choose a WinRE file manually"
+    },
+    "dep.winreScope": {
+      "zh": "支持 ISO / WIM / ESD / 裸 winre.wim",
+      "en": "ISO, WIM, ESD or a bare winre.wim"
+    },
+    "dep.winreCur": {
+      "zh": "当前使用",
+      "en": "In use"
+    },
+    "dep.winreFollow": {
+      "zh": "跟随映像：{0} · {1}",
+      "en": "From the image: {0} · {1}"
+    },
+    "dep.winreChecking": {
+      "zh": "正在检查…",
+      "en": "Checking…"
+    },
+    "dep.winreMissing": {
+      "zh": "当前选中的文件不包含 Windows RE 镜像：取消勾选恢复分区，或选一份含 WinRE 的映像",
+      "en": "The selected file has no Windows RE: uncheck recovery, or pick an image that has it"
+    },
+    "dep.winreBad": {
+      "zh": "这个文件里没有 Windows RE（Winre.wim）",
+      "en": "No Windows RE (Winre.wim) in this file"
+    },
+    "dep.bit32Block": {
+      "zh": "GPT 只能装 64 位：换 x64 映像，或把这张盘建成 MBR（MBR 支持 32 位和 64 位）",
+      "en": "GPT only takes 64-bit: pick an x64 image or make this disk MBR (MBR supports both)"
+    },
+    "dep.bit32": {
+      "zh": "这是 32 位 Windows：UEFI 固件起不来（位数必须匹配），请用 MBR 分区表",
+      "en": "This is 32-bit Windows: UEFI firmware cannot boot it — use an MBR disk"
+    },
+    "depRun.bootFail": {
+      "zh": "引导自检有 {0} 项必需未过（去「引导自检」看明细）",
+      "en": "Boot self-check: {0} required item(s) failed (see Boot check)"
+    },
+    "depRun.bootOk": {
+      "zh": "引导自检通过",
+      "en": "Boot self-check passed"
+    },
+    "depRun.back": {
+      "zh": "返回",
+      "en": "Back"
+    },
+    "dep.pickInner": {
+      "zh": "选择映像",
+      "en": "Choose the image"
+    },
+    "dep.innerItem": {
+      "zh": "{0}（{1} 个映像）",
+      "en": "{0} ({1} images)"
+    },
+    "dep.iso": {
+      "zh": "ISO 先解出映像",
+      "en": "Extract from ISO first"
+    },
+    "dep.isoNote": {
+      "zh": "这版工具端还不能直读 ISO：先解出 install.wim（多占 {0}），灌完删掉",
+      "en": "This build cannot read ISOs directly: install.wim is extracted first (extra {0}) and deleted afterwards"
+    },
+    "dep.indexMeta": {
+      "zh": "{0} · build {1} · {2}",
+      "en": "{0} · build {1} · {2}"
+    },
+    "dep.cantTarget": {
+      "zh": "这块不能装系统（ESP / 保留 / 恢复分区）",
+      "en": "Cannot deploy here (ESP / reserved / recovery)"
+    },
+    "dep.boot": {
+      "zh": "写入引导",
+      "en": "Write boot files"
+    },
+    "dep.bootHint": {
+      "zh": "用内置模板生成 BCD（BIOS / UEFI 自动）",
+      "en": "Build a BCD from the built-in template (BIOS / UEFI)"
+    },
+    "dep.rec": {
+      "zh": "创建 WinRE 恢复环境",
+      "en": "Create WinRE recovery environment"
+    },
+    "dep.recHint": {
+      "zh": "把 WinRE 填进独立恢复分区",
+      "en": "Put WinRE into the recovery partition"
+    },
+    "dep.recSys": {
+      "zh": "没有独立恢复分区：WinRE 写进系统分区",
+      "en": "No recovery partition: WinRE goes into the system partition"
+    },
+    "dep.recScript": {
+      "zh": "创建开启恢复分区脚本",
+      "en": "Create the enable-recovery script"
+    },
+    "dep.recScriptHint": {
+      "zh": "首次开机自动启用 WinRE",
+      "en": "Enable WinRE on first boot"
+    },
+    "dep.scriptWhere": {
+      "zh": "脚本写到 {0}",
+      "en": "Script goes to {0}"
+    },
+    "dep.checkMissTitle": {
+      "zh": "缺分区",
+      "en": "Missing partition"
+    },
+    "dep.checkMissBody": {
+      "zh": "没找到{0}，引导写不进去。仍然继续释放？",
+      "en": "No {0} found, so boot files cannot be written. Deploy anyway?"
+    },
+    "dep.etaMin": {
+      "zh": "约剩 {0} 分钟",
+      "en": "about {0} min left"
+    },
+    "dep.stepBoot": {
+      "zh": "引导写完：{0}",
+      "en": "Boot files written: {0}"
+    },
+    "dep.stepRec": {
+      "zh": "恢复分区写完：{0}",
+      "en": "Recovery written: {0}"
+    },
+    "dep.format": {
+      "zh": "释放前格式化分区",
+      "en": "Format the partition first"
+    },
+    "dep.start": {
+      "zh": "开始释放",
+      "en": "Deploy"
+    },
+    "dep.busy": {
+      "zh": "正在释放…（大映像要几分钟）",
+      "en": "Deploying… (large images take minutes)"
+    },
+    "dep.done": {
+      "zh": "已释放到 {0}",
+      "en": "Deployed to {0}"
+    },
+    "dep.confirmTitle": {
+      "zh": "确认释放",
+      "en": "Confirm deploy"
+    },
+    "dep.confirmBody": {
+      "zh": "{0} 会被格式化后写入映像，里面的数据全部丢失。",
+      "en": "{0} will be formatted and overwritten; all data inside is lost."
+    },
+    "home.exportTable": {
+      "zh": "导出分区表",
+      "en": "Export partition table"
+    },
+    "home.exportTableSummary": {
+      "zh": "把分区表存成文件，不含数据",
+      "en": "Save the table as a file; data not included"
+    },
+    "ptx.title": {
+      "zh": "导出分区表",
+      "en": "Export partition table"
+    },
+    "ptx.image": {
+      "zh": "选择镜像文件",
+      "en": "Image file"
+    },
+    "ptx.table": {
+      "zh": "分区表",
+      "en": "Partition table"
+    },
+    "ptx.tableValue": {
+      "zh": "{0} · {1} 块分区",
+      "en": "{0} · {1} partitions"
+    },
+    "ptx.need": {
+      "zh": "最少需要",
+      "en": "Needs at least"
+    },
+    "ptx.needValue": {
+      "zh": "{0} GB 的盘",
+      "en": "{0} GB disk"
+    },
+    "ptx.none": {
+      "zh": "这张盘还没有分区表",
+      "en": "This image has no partition table yet"
+    },
+    "ptx.bad": {
+      "zh": "这不是本应用导出的分区表文件",
+      "en": "Not a partition table file from this app"
+    },
+    "ptx.noData": {
+      "zh": "只导出分区表，分区里的数据不包含在内",
+      "en": "Only the table is exported; partition data is not included"
+    },
+    "ptx.save": {
+      "zh": "保存到…",
+      "en": "Save to…"
+    },
+    "ptx.saved": {
+      "zh": "已保存 {0}",
+      "en": "Saved {0}"
+    },
+    "ptx.saveFail": {
+      "zh": "保存失败",
+      "en": "Save failed"
+    },
+    "ptx.ext": {
+      "zh": "parttable.json",
+      "en": "parttable.json"
+    },
+    "home.format": {
+      "zh": "格式化",
+      "en": "Format"
+    },
+    "home.formatSummary": {
+      "zh": "NTFS / FAT32",
+      "en": "NTFS / FAT32"
+    },
+    "home.clone": {
+      "zh": "克隆镜像",
+      "en": "Clone image"
+    },
+    "home.cloneSummary": {
+      "zh": "整盘扇区复制",
+      "en": "Whole-disk sector copy"
+    },
+    "home.sec.deploy": {
+      "zh": "系统部署",
+      "en": "Deployment"
+    },
+    "home.deploy": {
+      "zh": "释放镜像",
+      "en": "Apply image"
+    },
+    "home.deploySummary": {
+      "zh": "ISO / ESD 部署",
+      "en": "Deploy ISO / ESD"
+    },
+    "home.import": {
+      "zh": "导入文件",
+      "en": "Import file"
+    },
+    "home.importSummary": {
+      "zh": "写入镜像",
+      "en": "Write into image"
+    },
+    "home.export": {
+      "zh": "导出文件",
+      "en": "Export file"
+    },
+    "home.exportSummary": {
+      "zh": "导出到本机",
+      "en": "Export to this device"
+    },
+    "home.browse": {
+      "zh": "浏览文件",
+      "en": "Browse files"
+    },
+    "home.browseSummary": {
+      "zh": "镜像内目录",
+      "en": "Directories in image"
+    },
+    "home.sec.boot": {
+      "zh": "引导与恢复",
+      "en": "Boot and recovery"
+    },
+    "home.bootRepair": {
+      "zh": "引导修复",
+      "en": "Boot repair"
+    },
+    "home.bootRepairSummary": {
+      "zh": "MBR / VBR / BCD",
+      "en": "MBR / VBR / BCD"
+    },
+    "home.bootCheck": {
+      "zh": "引导自检",
+      "en": "Boot check"
+    },
+    "home.bootCheckSummary": {
+      "zh": "启动链校验",
+      "en": "Verify boot chain"
+    },
+    "home.winre": {
+      "zh": "写入 WinRE",
+      "en": "Write WinRE"
+    },
+    "home.winreSummary": {
+      "zh": "恢复环境（默认关闭）",
+      "en": "Recovery environment (off by default)"
+    },
+    "home.verify": {
+      "zh": "镜像自检",
+      "en": "Image check"
+    },
+    "home.verifySummary": {
+      "zh": "qcow2 结构校验",
+      "en": "qcow2 structure check"
+    },
+    "home.sec.maint": {
+      "zh": "维护",
+      "en": "Maintenance"
+    },
+    "home.errors": {
+      "zh": "错误码手册",
+      "en": "Error codes"
+    },
+    "home.errorsSummary": {
+      "zh": "错误码与处置",
+      "en": "Codes and handling"
+    },
+    "home.logs": {
+      "zh": "导出日志",
+      "en": "Export log"
+    },
+    "home.logsSummary": {
+      "zh": "诊断日志打包",
+      "en": "Diagnostic log bundle"
+    },
+    "settings.title": {
+      "zh": "设置",
+      "en": "Settings"
+    },
+    "settings.sec.appearance": {
+      "zh": "外观",
+      "en": "Appearance"
+    },
+    "settings.theme.system": {
+      "zh": "跟随系统",
+      "en": "Follow system"
+    },
+    "settings.theme.systemSummary": {
+      "zh": "随系统深色设置切换",
+      "en": "Track the system dark mode setting"
+    },
+    "settings.theme.light": {
+      "zh": "浅色",
+      "en": "Light"
+    },
+    "settings.theme.lightSummary": {
+      "zh": "始终使用浅色",
+      "en": "Always light"
+    },
+    "settings.theme.dark": {
+      "zh": "深色",
+      "en": "Dark"
+    },
+    "settings.theme.darkSummary": {
+      "zh": "始终使用深色",
+      "en": "Always dark"
+    },
+    "settings.sec.effects": {
+      "zh": "特效",
+      "en": "Effects"
+    },
+    "settings.effects": {
+      "zh": "渐变与液态玻璃导航栏",
+      "en": "Top gradient and glass navigation bar"
+    },
+    "settings.effects.on": {
+      "zh": "顶部渐隐，底部玻璃胶囊",
+      "en": "Top fade, glass pill navigation bar"
+    },
+    "settings.effects.off": {
+      "zh": "顶部不渐隐，底部通栏导航",
+      "en": "No top fade, full-width navigation bar"
+    },
+    "settings.effects.unsupported": {
+      "zh": "需要 Android 13 及以上",
+      "en": "Requires Android 13 or later"
+    },
+    "settings.sec.language": {
+      "zh": "语言",
+      "en": "Language"
+    },
+    "settings.lang.system": {
+      "zh": "跟随系统",
+      "en": "Follow system"
+    },
+    "settings.lang.systemSummary": {
+      "zh": "系统语言为中文时显示中文",
+      "en": "Chinese when the system language is Chinese"
+    },
+    "settings.sec.files": {
+      "zh": "文件操作",
+      "en": "File operations"
+    },
+    "settings.confirmDelete": {
+      "zh": "删除前确认",
+      "en": "Confirm before delete"
+    },
+    "settings.confirmDeleteSummary": {
+      "zh": "删除与递归删除二次确认",
+      "en": "Confirm delete and recursive delete"
+    },
+    "settings.showHidden": {
+      "zh": "显示隐藏文件",
+      "en": "Show hidden files"
+    },
+    "settings.showHiddenSummary": {
+      "zh": "带隐藏或系统属性的条目",
+      "en": "Entries with hidden or system attributes"
+    },
+    "settings.showTrashSummary": {
+      "zh": "系统回收站里还没清掉的删除文件（30 天内可还原）",
+      "en": "Deleted files still in the system trash (restorable for 30 days)"
+    },
+    "settings.delTrash": {
+      "zh": "删除时移入系统回收站",
+      "en": "Move deleted files to system trash"
+    },
+    "settings.delTrashSummary": {
+      "zh": "可还原；仅内部存储里的文件，IMG 内仍直接删除",
+      "en": "Restorable; shared storage only, files inside images are deleted directly"
+    },
+    "settings.conflict": {
+      "zh": "同名冲突",
+      "en": "Name conflicts"
+    },
+    "settings.conflictAuto": {
+      "zh": "重名自动加 (1)",
+      "en": "Auto-number duplicates"
+    },
+    "settings.conflictAutoOn": {
+      "zh": "开：自动顺延成 xxx (1)、xxx (2)……",
+      "en": "On: auto-number as xxx (1), xxx (2)…"
+    },
+    "settings.conflictAutoOff": {
+      "zh": "关：遇到重名弹窗问（覆盖 / 保留两个 / 跳过）",
+      "en": "Off: ask on conflict (overwrite / keep both / skip)"
+    },
+    "conflict.title": {
+      "zh": "同名文件",
+      "en": "Name conflict"
+    },
+    "conflict.summary": {
+      "zh": "目标位置已经有「{0}」",
+      "en": "“{0}” already exists there"
+    },
+    "conflict.overwrite": {
+      "zh": "覆盖（用新的替换）",
+      "en": "Overwrite"
+    },
+    "conflict.keepBoth": {
+      "zh": "两个都保留（改名加 (1)）",
+      "en": "Keep both (add (1))"
+    },
+    "conflict.skip": {
+      "zh": "跳过这个文件",
+      "en": "Skip this file"
+    },
+    "conflict.remember": {
+      "zh": "后续同名文件都这样处理",
+      "en": "Do this for the rest"
+    },
+    "settings.conflictSummary": {
+      "zh": "默认跳过",
+      "en": "Skip by default"
+    },
+    "settings.sec.diag": {
+      "zh": "诊断",
+      "en": "Diagnostics"
+    },
+    "settings.logLevel": {
+      "zh": "日志级别",
+      "en": "Log level"
+    },
+    "settings.logLevelSummary": {
+      "zh": "ERROR / WARN / INFO / DEBUG",
+      "en": "ERROR / WARN / INFO / DEBUG"
+    },
+    "settings.exportLog": {
+      "zh": "导出诊断日志",
+      "en": "Export diagnostic log"
+    },
+    "settings.exportLogSummary": {
+      "zh": "最近一次失败的事件尾部",
+      "en": "Tail of the most recent failure"
+    },
+    "settings.errBook": {
+      "zh": "错误码手册",
+      "en": "Error codes"
+    },
+    "settings.errBookSummary": {
+      "zh": "全部错误码与处置",
+      "en": "All codes and handling"
+    },
+    "settings.sec.about": {
+      "zh": "关于",
+      "en": "About"
+    },
+    "settings.version": {
+      "zh": "版本",
+      "en": "Version"
+    },
+    "settings.versionSummary": {
+      "zh": "0.1.0 · arm64-v8a",
+      "en": "0.1.0 · arm64-v8a"
+    },
+    "settings.toolVersion": {
+      "zh": "工具版本",
+      "en": "Tool version"
+    },
+    "settings.toolVersionSummary": {
+      "zh": "imgtool 2026.10.23 · 47 条命令",
+      "en": "imgtool 2026.10.23 · 47 commands"
+    },
+    "settings.license": {
+      "zh": "开源许可证",
+      "en": "Licenses"
+    },
+    "settings.licenseSummary": {
+      "zh": "GPL-2.0+ / LGPL-2.1+ / Apache-2.0",
+      "en": "GPL-2.0+ / LGPL-2.1+ / Apache-2.0"
+    },
+    "settings.privacy": {
+      "zh": "隐私",
+      "en": "Privacy"
+    },
+    "settings.privacySummary": {
+      "zh": "不联网、不上传数据",
+      "en": "No network access, no data uploads"
+    },
+    "create.title": {
+      "zh": "创建磁盘",
+      "en": "Create disk"
+    },
+    "create.defaultName": {
+      "zh": "虚拟磁盘",
+      "en": "Virtual disk"
+    },
+    "create.sec.location": {
+      "zh": "保存位置",
+      "en": "Save location"
+    },
+    "create.save.default": {
+      "zh": "默认路径",
+      "en": "Default path"
+    },
+    "create.save.custom": {
+      "zh": "自定义路径",
+      "en": "Custom path"
+    },
+    "create.noFolder": {
+      "zh": "未选择文件夹",
+      "en": "No folder selected"
+    },
+    "create.sec.name": {
+      "zh": "镜像名",
+      "en": "Image name"
+    },
+    "create.nameHint": {
+      "zh": "必填，1–32 个字符，可用字母、数字、- 和 _",
+      "en": "Required, 1–32 characters: letters, digits, - and _"
+    },
+    "create.err.name": {
+      "zh": "请先填写镜像名",
+      "en": "Enter an image name first"
+    },
+    "create.err.size": {
+      "zh": "容量需在 {0}–{1} GB 之间",
+      "en": "Capacity must be {0}–{1} GB"
+    },
+    "create.sec.capacity": {
+      "zh": "容量",
+      "en": "Capacity"
+    },
+    "create.capacityHint": {
+      "zh": "{0}–{1} GB",
+      "en": "{0}–{1} GB"
+    },
+    "create.capacityMinShort": {
+      "zh": "至少 {0} GB",
+      "en": "At least {0} GB"
+    },
+    "create.sec.type": {
+      "zh": "磁盘类型",
+      "en": "Disk type"
+    },
+    "create.type.gpt": {
+      "zh": "GPT（UEFI）",
+      "en": "GPT (UEFI)"
+    },
+    "create.type.gptSummary": {
+      "zh": "UEFI 启动：ESP + MSR + Windows 分区",
+      "en": "UEFI boot: ESP, MSR and Windows partitions"
+    },
+    "create.type.mbr": {
+      "zh": "MBR（BIOS）",
+      "en": "MBR (BIOS)"
+    },
+    "create.type.mbrSummary": {
+      "zh": "BIOS 启动：系统保留 128 MB（Bootmgr）+ Windows 分区；最多 4 个主分区",
+      "en": "BIOS boot: system reserved 128 MB (bootmgr) + Windows partition; up to 4 primary partitions"
+    },
+    "create.type.blank": {
+      "zh": "空盘",
+      "en": "Blank disk"
+    },
+    "create.type.apply": {
+      "zh": "应用分区表",
+      "en": "Apply a table"
+    },
+    "create.type.applySummary": {
+      "zh": "按文件里的分区表建盘（不含数据）",
+      "en": "Build the disk from a table file (no data)"
+    },
+    "create.pt.row": {
+      "zh": "分区表文件",
+      "en": "Table file"
+    },
+    "create.pt.pickHint": {
+      "zh": "点一下选分区表文件",
+      "en": "Tap to choose a table file"
+    },
+    "create.pt.info": {
+      "zh": "{0} · {1} 块分区",
+      "en": "{0} · {1} partitions"
+    },
+    "create.pt.need": {
+      "zh": "至少 {0} GB",
+      "en": "at least {0} GB"
+    },
+    "create.pt.bad": {
+      "zh": "这个文件不是分区表",
+      "en": "This file is not a partition table"
+    },
+    "create.pt.note": {
+      "zh": "只复用分区表；建出来的分区是空的",
+      "en": "Only the table is reused; the partitions will be empty"
+    },
+    "create.toast.applied": {
+      "zh": "已按分区表建好 {0}",
+      "en": "Built {0} from the table"
+    },
+    "create.type.blankSummary": {
+      "zh": "仅 qcow2 头，无分区表",
+      "en": "qcow2 header only, no partition table"
+    },
+    "create.sec.plan": {
+      "zh": "分区",
+      "en": "Partitions"
+    },
+    "create.plan.row": {
+      "zh": "分区设置",
+      "en": "Partition settings"
+    },
+    "create.plan.blank": {
+      "zh": "空盘：无分区表",
+      "en": "Blank disk: no partition table"
+    },
+    "create.plan.empty": {
+      "zh": "仅写分区表",
+      "en": "Partition table only"
+    },
+    "create.plan.single": {
+      "zh": "整盘一个分区",
+      "en": "One partition for the whole disk"
+    },
+    "create.plan.windows": {
+      "zh": "ESP {0} · MSR {1} · Windows {2}",
+      "en": "ESP {0} · MSR {1} · Windows {2}"
+    },
+    "create.plan.mbr": {
+      "zh": "系统保留 {0} MB · Windows 其余",
+      "en": "System reserved {0} MB · Windows rest"
+    },
+    "create.plan.withExtras": {
+      "zh": "{0} · 额外 {1} 个",
+      "en": "{0} · {1} extra"
+    },
+    "create.action": {
+      "zh": "创建磁盘",
+      "en": "Create disk"
+    },
+    "create.action.busy": {
+      "zh": "正在创建…",
+      "en": "Creating…"
+    },
+    "create.action.formatting": {
+      "zh": "正在格式化…",
+      "en": "Formatting…"
+    },
+    "create.note.nameExists": {
+      "zh": "同名镜像已存在",
+      "en": "An image with this name already exists"
+    },
+    "create.note.planOver": {
+      "zh": "分区总量超过磁盘容量",
+      "en": "Partitions exceed disk capacity"
+    },
+    "create.note.dirBad": {
+      "zh": "保存目录不可写",
+      "en": "Save directory is not writable"
+    },
+    "create.note.failed": {
+      "zh": "创建失败：{0}",
+      "en": "Failed: {0}"
+    },
+    "create.toast.created": {
+      "zh": "已创建 {0} · {1}GB",
+      "en": "Created {0} · {1}GB"
+    },
+    "create.toast.createdWarn": {
+      "zh": "已创建 {0} · {1}",
+      "en": "Created {0} · {1}"
+    },
+    "create.toast.extraMissing": {
+      "zh": "额外分区未写入",
+      "en": "Extra partitions were not written"
+    },
+    "create.toast.pickNoPath": {
+      "zh": "该位置无法映射为路径",
+      "en": "This location cannot be mapped to a path"
+    },
+    "create.toast.pickUnwritable": {
+      "zh": "该文件夹不可写",
+      "en": "This folder is not writable"
+    },
+    "create.toast.picked": {
+      "zh": "保存位置：{0}",
+      "en": "Save location: {0}"
+    },
+    "create.toast.needPermission": {
+      "zh": "请先开启「所有文件访问」权限",
+      "en": "Grant \"All files access\" first"
+    },
+    "plan.title": {
+      "zh": "分区设置",
+      "en": "Partition settings"
+    },
+    "plan.sec.layout": {
+      "zh": "布局",
+      "en": "Layout"
+    },
+    "plan.layout.windows": {
+      "zh": "Windows 标准",
+      "en": "Windows standard"
+    },
+    "plan.layout.windowsSummary": {
+      "zh": "ESP、MSR、Windows 分区",
+      "en": "ESP, MSR and Windows partitions"
+    },
+    "plan.layout.windowsSummaryMbr": {
+      "zh": "系统保留 {0}（Bootmgr）+ Windows 分区",
+      "en": "System reserved {0} (bootmgr) + Windows partition"
+    },
+    "plan.layout.single": {
+      "zh": "单分区",
+      "en": "Single partition"
+    },
+    "plan.layout.singleSummary": {
+      "zh": "整盘一个分区",
+      "en": "One partition for the whole disk"
+    },
+    "plan.layout.singleSummaryMbr": {
+      "zh": "整盘一个活动主分区",
+      "en": "One active primary partition for the whole disk"
+    },
+    "plan.layout.empty": {
+      "zh": "无分区",
+      "en": "No partitions"
+    },
+    "plan.layout.emptySummary": {
+      "zh": "仅写分区表",
+      "en": "Partition table only"
+    },
+    "plan.layout.emptySummaryMbr": {
+      "zh": "仅写分区表，不建任何分区",
+      "en": "Partition table only, no partitions"
+    },
+    "plan.esp": {
+      "zh": "ESP 引导分区",
+      "en": "EFI system partition"
+    },
+    "plan.espHint": {
+      "zh": "128–1024 MB",
+      "en": "128–1024 MB"
+    },
+    "plan.msr": {
+      "zh": "MSR 保留分区",
+      "en": "Microsoft reserved partition"
+    },
+    "plan.msrHint": {
+      "zh": "固定 16 MB",
+      "en": "Fixed at 16 MB"
+    },
+    "plan.rec": {
+      "zh": "恢复分区",
+      "en": "Recovery partition"
+    },
+    "plan.recHint": {
+      "zh": "0 表示不创建；512–2048 MB",
+      "en": "0 = none; 512–2048 MB"
+    },
+    "plan.win": {
+      "zh": "Windows 分区",
+      "en": "Windows partition"
+    },
+    "plan.winHint": {
+      "zh": "0 表示占满剩余空间；最小 128 MB（同普通 NTFS）",
+      "en": "0 = use all remaining space; minimum 128 MB (same as other NTFS)"
+    },
+    "plan.sys": {
+      "zh": "系统保留分区（MBR）",
+      "en": "System reserved partition (MBR)"
+    },
+    "plan.sysHint": {
+      "zh": "128–1024 MB；Windows 分区自动占满剩余",
+      "en": "128–1024 MB; the Windows partition takes the rest"
+    },
+    "plan.sec.extra": {
+      "zh": "额外分区",
+      "en": "Extra partitions"
+    },
+    "plan.extra.title": {
+      "zh": "额外分区 {0}",
+      "en": "Extra partition {0}"
+    },
+    "plan.extra.hint": {
+      "zh": "不小于 128 MB，且不超过剩余空间",
+      "en": "At least 128 MB and within free space"
+    },
+    "plan.add": {
+      "zh": "添加分区",
+      "en": "Add partition"
+    },
+    "plan.add.free": {
+      "zh": "可用剩余空间 {0}",
+      "en": "{0} available"
+    },
+    "plan.add.none": {
+      "zh": "剩余空间不足",
+      "en": "Not enough free space"
+    },
+    "plan.alloc": {
+      "zh": "已分配 {0} / 容量 {1}",
+      "en": "Allocated {0} of {1}"
+    },
+    "plan.free": {
+      "zh": "未分配 {0}",
+      "en": "{0} unallocated"
+    },
+    "plan.unallocAll": {
+      "zh": "全部容量已分配",
+      "en": "Fully allocated"
+    },
+    "plan.filled": {
+      "zh": "容量 {0} · 已全部分配，Windows 占 {1}",
+      "en": "Capacity {0} · fully allocated, Windows takes {1}"
+    },
+    "plan.win.fillsRest": {
+      "zh": "占满剩余 · {0}",
+      "en": "Fills rest · {0}"
+    },
+    "plan.add.fromWin": {
+      "zh": "最多可从 Windows 划出 {0}",
+      "en": "Up to {0} from Windows"
+    },
+    "plan.blank.title": {
+      "zh": "空盘无分区表",
+      "en": "Blank disk, no partition table"
+    },
+    "plan.blank.desc": {
+      "zh": "空盘只写入 qcow2 头。切换到 GPT 或 MBR 后可设置分区。",
+      "en": "A blank disk contains only a qcow2 header. Switch to GPT or MBR to configure partitions."
+    },
+    "plan.outOfRange": {
+      "zh": "超出范围",
+      "en": "Out of range"
+    },
+    "plan.note.winDisk": {
+      "zh": "Windows 布局建议容量不小于 20 GB",
+      "en": "Windows layout works best with at least 20 GB"
+    },
+    "common.cancel": {
+      "zh": "取消",
+      "en": "Cancel"
+    },
+    "common.confirm": {
+      "zh": "确定",
+      "en": "OK"
+    },
+    "cmp.title": {
+      "zh": "压缩镜像",
+      "en": "Compact image"
+    },
+    "cmp.source": {
+      "zh": "源镜像",
+      "en": "Source image"
+    },
+    "cmp.disk": {
+      "zh": "磁盘",
+      "en": "Disk"
+    },
+    "cmp.output": {
+      "zh": "输出文件",
+      "en": "Output file"
+    },
+    "cmp.outputSummary": {
+      "zh": "和源镜像放在同一目录",
+      "en": "Saved next to the source image"
+    },
+    "cmp.verify": {
+      "zh": "完成后校验",
+      "en": "Verify after copy"
+    },
+    "cmp.verifyOn": {
+      "zh": "回读校验容量、分区表和抽样块；慢一点，能确认没写坏",
+      "en": "Read back size, partition table and sample blocks"
+    },
+    "cmp.verifyOff": {
+      "zh": "不校验（不建议）",
+      "en": "No verification (not recommended)"
+    },
+    "cmp.note": {
+      "zh": "只重写已分配的数据块，所以体积会变小；虚拟容量和分区布局不变。源镜像不会被修改或删除。",
+      "en": "Only allocated blocks are rewritten, so the file shrinks; capacity and layout stay the same. The source image is never modified."
+    },
+    "cmp.action": {
+      "zh": "开始压缩",
+      "en": "Compact"
+    },
+    "cmp.busy": {
+      "zh": "正在压缩…",
+      "en": "Compacting…"
+    },
+    "cmp.ok": {
+      "zh": "压缩完成：{0} → {1}",
+      "en": "Compacted: {0} → {1}"
+    },
+    "cmp.noImage": {
+      "zh": "请先选择镜像",
+      "en": "Pick an image first"
+    },
+    "lbl.entry": {
+      "zh": "修改卷标",
+      "en": "Change volume label"
+    },
+    "lbl.entrySummary": {
+      "zh": "只改卷标，不动分区里的文件",
+      "en": "Changes the label only; files are untouched"
+    },
+    "lbl.pick": {
+      "zh": "选择分区",
+      "en": "Pick a partition"
+    },
+    "lbl.title": {
+      "zh": "卷标",
+      "en": "Volume label"
+    },
+    "lbl.hint": {
+      "zh": "NTFS 最多 32 个字符（支持中文）；FAT32 最多 11 个字符，自动转大写",
+      "en": "NTFS: up to 32 characters; FAT32: up to 11, uppercased automatically"
+    },
+    "lbl.ok": {
+      "zh": "卷标已改为 {0}",
+      "en": "Label set to {0}"
+    },
+    "lbl.cleared": {
+      "zh": "已清除卷标",
+      "en": "Label cleared"
+    },
+    "lbl.fatEmpty": {
+      "zh": "FAT32 不能留空；要“无卷标”请写 NO NAME",
+      "en": "FAT32 needs a label; use NO NAME for none"
+    },
+    "fmt.title": {
+      "zh": "格式化",
+      "en": "Format"
+    },
+    "fmt.disk": {
+      "zh": "磁盘",
+      "en": "Disk"
+    },
+    "fmt.diskSize": {
+      "zh": "容量 {0}，实际占用 {1}",
+      "en": "Capacity {0}, {1} on disk"
+    },
+    "fmt.scanning": {
+      "zh": "正在读取分区信息…",
+      "en": "Reading partition details…"
+    },
+    "fmt.partUsage": {
+      "zh": "已用 {0} / {1}",
+      "en": "{0} used of {1}"
+    },
+    "fmt.partEmpty": {
+      "zh": "无文件系统",
+      "en": "No file system"
+    },
+    "fmt.partUnreadable": {
+      "zh": "读取失败",
+      "en": "Unreadable"
+    },
+    "fmt.winSystem": {
+      "zh": "Windows 系统",
+      "en": "Windows system"
+    },
+    "fmt.ntfsOverhead": {
+      "zh": "空 NTFS 卷也会占 60 MB 以上：$LogFile 日志、$MFT 位图这些元数据是格式化时就建好的，不是你放的文件。",
+      "en": "An empty NTFS volume already uses 60 MB+: its $LogFile, $MFT and bitmaps are created at format time, not by your files."
+    },
+    "fmt.labelValue": {
+      "zh": "卷标 {0}",
+      "en": "label {0}"
+    },
+    "fmt.noImage": {
+      "zh": "请先选择镜像",
+      "en": "Pick an image first"
+    },
+    "fmt.noParts": {
+      "zh": "这个镜像还没有可格式化的分区",
+      "en": "This image has no partitions to format"
+    },
+    "fmt.target": {
+      "zh": "目标分区",
+      "en": "Target partition"
+    },
+    "fmt.targetName": {
+      "zh": "分区 {0}",
+      "en": "Partition {0}"
+    },
+    "fmt.fs": {
+      "zh": "文件系统",
+      "en": "File system"
+    },
+    "fmt.fs.ntfs": {
+      "zh": "用于 Windows 系统盘或数据盘，支持大于 4 GB 的文件",
+      "en": "For Windows system or data volumes; supports files over 4 GB"
+    },
+    "fmt.fs.fat32": {
+      "zh": "用于 UEFI 启动分区（ESP）；单个文件最大 4 GB",
+      "en": "For the UEFI boot partition (ESP); 4 GB file limit"
+    },
+    "fmt.label": {
+      "zh": "卷标",
+      "en": "Volume label"
+    },
+    "fmt.labelHint": {
+      "zh": "可留空；FAT32 最多 11 个字符",
+      "en": "Optional; FAT32 allows 11 characters"
+    },
+    "fmt.cluster": {
+      "zh": "簇大小",
+      "en": "Cluster size"
+    },
+    "fmt.clusterAuto": {
+      "zh": "自动（按分区大小）",
+      "en": "Automatic"
+    },
+    "fmt.quick": {
+      "zh": "快速格式化",
+      "en": "Quick format"
+    },
+    "fmt.quick.on": {
+      "zh": "只重建文件系统结构，几秒完成",
+      "en": "Rebuild the file system only, takes seconds"
+    },
+    "fmt.quick.off": {
+      "zh": "逐扇区写零，慢很多",
+      "en": "Zero-fill every sector, much slower"
+    },
+    "fmt.slowWarn": {
+      "zh": "完全格式化要把整块分区写零，几十 GB 会跑很久，工具端可能超时。",
+      "en": "A full format zero-fills the whole partition — tens of GB will take a long time and may time out."
+    },
+    "fmt.danger": {
+      "zh": "格式化会清空该分区全部数据，且不可撤销。",
+      "en": "Formatting erases everything on this partition and cannot be undone."
+    },
+    "fmt.action": {
+      "zh": "格式化 {0}",
+      "en": "Format {0}"
+    },
+    "fmt.busy": {
+      "zh": "正在格式化…",
+      "en": "Formatting…"
+    },
+    "fmt.confirm.title": {
+      "zh": "确认格式化",
+      "en": "Confirm format"
+    },
+    "fmt.confirm.body": {
+      "zh": "分区 {0} 上的数据将被全部清除，无法恢复。",
+      "en": "All data on partition {0} will be erased. This cannot be undone."
+    },
+    "fmt.confirm.ack": {
+      "zh": "确认格式化",
+      "en": "Erase and format"
+    },
+    "fmt.ok": {
+      "zh": "已格式化 {0}（{1}）",
+      "en": "Formatted {0} ({1})"
+    },
+    "fmt.err.target": {
+      "zh": "请先选择要格式化的分区",
+      "en": "Select a partition to format first"
+    },
+    "part.active": {
+      "zh": "活动",
+      "en": "active"
+    },
+    "part.logical": {
+      "zh": "逻辑",
+      "en": "logical"
+    },
+    "role.esp": {
+      "zh": "ESP 引导分区",
+      "en": "ESP"
+    },
+    "role.msr": {
+      "zh": "MSR 保留分区",
+      "en": "MSR"
+    },
+    "role.win": {
+      "zh": "Windows 数据分区",
+      "en": "Windows data"
+    },
+    "role.rec": {
+      "zh": "恢复分区",
+      "en": "Recovery"
+    },
+    "role.sys": {
+      "zh": "系统保留分区",
+      "en": "System reserved"
+    },
+    "role.ext": {
+      "zh": "扩展分区",
+      "en": "Extended"
+    },
+    "role.fat": {
+      "zh": "FAT 分区",
+      "en": "FAT volume"
+    },
+    "role.other": {
+      "zh": "其它",
+      "en": "Other"
+    },
+    "plan.mbr.win": {
+      "zh": "系统保留 {0} · Windows {1}",
+      "en": "System reserved {0} · Windows {1}"
+    },
+    "plan.mbr.winUnsupported": {
+      "zh": "工具端本版还不能指定 MBR 的 Windows 大小，暂按吃满剩余处理",
+      "en": "This build of the backend cannot size the MBR Windows partition yet"
+    },
+    "plan.extra.logical": {
+      "zh": "额外分区 {0}（逻辑）",
+      "en": "Extra {0} (logical)"
+    },
+    "plan.extra.logicalNote": {
+      "zh": "额外分区会作为逻辑分区建在扩展分区里",
+      "en": "Extras are created as logical volumes inside the extended partition"
+    },
+    "plan.notCreate.tpl": {
+      "zh": "不创建{0}",
+      "en": "Do not create {0}"
+    },
+    "plan.notCreated": {
+      "zh": "不创建",
+      "en": "None"
+    },
+    "plan.fillRest": {
+      "zh": "剩余空间",
+      "en": "Remaining"
+    },
+    "plan.dialog.min": {
+      "zh": "最小",
+      "en": "Min"
+    },
+    "plan.dialog.max": {
+      "zh": "最大",
+      "en": "Max"
+    },
+    "plan.dialog.invalid": {
+      "zh": "请输入 {0}–{1} MB 之间的数值",
+      "en": "Enter a value between {0} and {1} MB"
+    },
+    "plan.adjusted": {
+      "zh": "已自动调整：{0}",
+      "en": "Adjusted: {0}"
+    },
+    "plan.listSep": {
+      "zh": "、",
+      "en": ", "
+    },
+    "plan.capacityTooSmall": {
+      "zh": "容量不足，请增大磁盘容量",
+      "en": "Capacity is too low. Increase the disk size."
+    },
+    "plan.deletePart": {
+      "zh": "删除分区",
+      "en": "Delete partition"
+    },
+    "plan.sec.necessary": {
+      "zh": "必要分区",
+      "en": "Required partitions"
+    },
+    "plan.sec.format": {
+      "zh": "格式化",
+      "en": "Format"
+    },
+    "plan.formatAfter": {
+      "zh": "执行格式化",
+      "en": "Format partitions"
+    },
+    "plan.formatAfterHint": {
+      "zh": "按分区类型建立文件系统",
+      "en": "Builds a file system per partition type"
+    },
+    "plan.dialog.default": {
+      "zh": "默认",
+      "en": "Default"
+    },
+    "plan.unit": {
+      "zh": "单位",
+      "en": "Unit"
+    },
+    "error.size": {
+      "zh": "尺寸超出范围（{0}–{1} MB）",
+      "en": "Size out of range ({0}–{1} MB)"
+    },
+    "error.sizeMin": {
+      "zh": "最小 {0}",
+      "en": "Minimum {0}"
+    },
+    "error.nospace": {
+      "zh": "空间不足（可用 {0}）",
+      "en": "Not enough space ({0} available)"
+    },
+    "error.needSpace": {
+      "zh": "空间不足（至少要 {0}）",
+      "en": "Not enough space (needs at least {0})"
+    },
+    "error.arg": {
+      "zh": "参数不合法：{0}",
+      "en": "Invalid argument: {0}"
+    },
+    "error.generic": {
+      "zh": "失败：{0}",
+      "en": "Failed: {0}"
+    },
+    "error.notable": {
+      "zh": "该镜像还没有分区表",
+      "en": "This image has no partition table"
+    },
+    "parts.container": {
+      "zh": "扩展分区",
+      "en": "Extended partition"
+    },
+    "parts.containerSummary": {
+      "zh": "占位容器，里面放逻辑卷；占一个主分区槽",
+      "en": "Placeholder container for logical volumes; uses one primary slot"
+    },
+    "parts.containerWithCount": {
+      "zh": "扩展分区（{0} 个逻辑卷）",
+      "en": "Extended partition ({0} logical volumes)"
+    },
+    "parts.slots": {
+      "zh": "主分区 {0}/4 · 逻辑卷 {1} 个",
+      "en": "{0}/4 primary slots used, {1} logical volumes"
+    },
+    "parts.deleteBodyLogical": {
+      "zh": "逻辑卷 L{0}（{1}）会被删除，里面的数据无法恢复。",
+      "en": "Logical volume L{0} ({1}) will be removed; its data cannot be recovered."
+    },
+    "parts.deleteBodyContainer": {
+      "zh": "扩展分区（{0}）会被删除。",
+      "en": "The extended partition ({0}) will be removed."
+    },
+    "parts.rollback": {
+      "zh": "逻辑卷没建成功，已把临时建的扩展分区删掉",
+      "en": "Logical volume failed; the temporary extended partition was removed"
+    },
+    "plan.logical": {
+      "zh": "逻辑分区",
+      "en": "Logical partitions"
+    },
+    "plan.logicalOn": {
+      "zh": "分区都放进扩展分区，不占主槽",
+      "en": "Partitions go into the extended one; no primary slots used"
+    },
+    "plan.logicalSwitch": {
+      "zh": "支持逻辑分区",
+      "en": "Support logical partitions"
+    },
+    "plan.logicalOff": {
+      "zh": "只建主分区，最多 4 个",
+      "en": "Primary only, up to 4"
+    },
+    "plan.logicalLimit": {
+      "zh": "关掉「支持逻辑分区」后最多 2 个额外分区",
+      "en": "With logical partitions off, at most 2 extras"
+    },
+    "settings.historyCount": {
+      "zh": "历史文件显示数量",
+      "en": "History entries shown"
+    },
+    "settings.historyCountSummary": {
+      "zh": "当前显示 {0} 条",
+      "en": "Showing {0}"
+    },
+    "history.none": {
+      "zh": "不显示",
+      "en": "Hidden"
+    },
+    "history.count": {
+      "zh": "{0} 条",
+      "en": "{0}"
+    },
+    "history.title": {
+      "zh": "最近使用",
+      "en": "Recent"
+    },
+    "history.empty": {
+      "zh": "还没有用过的镜像",
+      "en": "No images yet"
+    },
+    "pick.title": {
+      "zh": "选择镜像",
+      "en": "Choose an image"
+    },
+    "pick.pick": {
+      "zh": "选择镜像文件",
+      "en": "Pick an image file"
+    },
+    "pick.change": {
+      "zh": "换一个镜像",
+      "en": "Change image"
+    },
+    "settings.secPerm": {
+      "zh": "权限",
+      "en": "Permissions"
+    },
+    "settings.permTitle": {
+      "zh": "管理所有文件",
+      "en": "All files access"
+    },
+    "settings.permGranted": {
+      "zh": "已授权。读取其它应用创建的镜像（虚拟机等）需要它；授权后要重启应用才生效。",
+      "en": "Granted. Needed to read images created by other apps; an app restart is required after granting."
+    },
+    "settings.permMissing": {
+      "zh": "未授权。没有它时，别的应用（虚拟机、下载器）创建的镜像会打不开。",
+      "en": "Not granted. Without it, images created by other apps cannot be opened."
+    },
+    "settings.permGrant": {
+      "zh": "去授权",
+      "en": "Grant"
+    },
+    "perm.dlgTitle": {
+      "zh": "需要「管理所有文件」权限",
+      "en": "All-files access required"
+    },
+    "perm.dlgBody": {
+      "zh": "镜像要走真实路径读写。没有这个权限，虚拟机等其它应用创建的镜像打不开，分区也改不了。",
+      "en": "Images are accessed through real paths. Without this permission, images created by other apps cannot be opened or modified."
+    },
+    "perm.manual": {
+      "zh": "没跳过去就手动开：设置 → 应用 → 应用管理 → 本应用 → 权限 → 所有文件访问（管理所有文件）",
+      "en": "If it did not open: Settings → Apps → App management → this app → Permissions → All files access"
+    },
+    "perm.dlgGo": {
+      "zh": "去授权",
+      "en": "Grant"
+    },
+    "perm.dlgLater": {
+      "zh": "以后再说",
+      "en": "Later"
+    },
+    "parts.noRead": {
+      "zh": "系统没给读权限：请到设置里打开「管理所有文件」，然后重启应用",
+      "en": "No read permission: enable All files access in Settings, then restart the app"
+    },
+    "parts.permTitle": {
+      "zh": "需要「管理所有文件」权限",
+      "en": "All-files access required"
+    },
+    "parts.permBody": {
+      "zh": "读取和修改镜像要走宿主真实路径。没这个权限时，别的应用（比如虚拟机）创建的镜像会打不开。",
+      "en": "Reading and writing images needs real host paths. Without this permission, images created by other apps (e.g. a VM) cannot be opened."
+    },
+    "parts.permRestart": {
+      "zh": "权限已授予，但系统要重启应用才会给它真实的目录访问权。",
+      "en": "Access granted — Android needs an app restart before it takes effect."
+    },
+    "parts.permRestartAction": {
+      "zh": "立即重启",
+      "en": "Restart now"
+    },
+    "parts.permAction": {
+      "zh": "去授权",
+      "en": "Grant access"
+    },
+    "plan.addPrimary": {
+      "zh": "创建主分区",
+      "en": "Create primary partition"
+    },
+    "plan.addPrimaryHint": {
+      "zh": "占一个主表项（MBR 最多 4 个）",
+      "en": "Uses one of MBR's 4 primary entries"
+    },
+    "plan.addExtended": {
+      "zh": "创建扩展分区",
+      "en": "Create extended partition"
+    },
+    "plan.addExtendedHint": {
+      "zh": "占一个主表项；里面的逻辑卷不占主表项，一个盘只能有一个",
+      "en": "Uses one primary entry; logical volumes inside do not. Only one per disk."
+    },
+    "plan.suggestExtended": {
+      "zh": "这是最后一个主分区槽了。建议改建「扩展分区」，否则之后无法再加分区。",
+      "en": "This is the last primary slot. Consider creating an extended partition instead, otherwise no more partitions can be added."
+    },
+    "plan.logicalTitle": {
+      "zh": "逻辑分区 {0}",
+      "en": "Logical {0}"
+    },
+    "plan.extTitle": {
+      "zh": "扩展分区",
+      "en": "Extended partition"
+    },
+    "plan.extSummary": {
+      "zh": "占一个主表项，里面放逻辑卷",
+      "en": "Holds logical volumes; uses one primary entry"
+    },
+    "plan.addLogical": {
+      "zh": "添加逻辑分区",
+      "en": "Add logical volume"
+    },
+    "parts.actionTitle": {
+      "zh": "分区操作",
+      "en": "Partition actions"
+    },
+    "parts.format": {
+      "zh": "格式化",
+      "en": "Format"
+    },
+    "parts.msrNoLabel": {
+      "zh": "Windows 保留分区没有文件系统",
+      "en": "Windows reserved partition has no file system"
+    },
+    "parts.extNoFormat": {
+      "zh": "扩展分区只是占位，不存放文件",
+      "en": "The extended partition is a placeholder; it holds no files"
+    },
+    "parts.pendingWait": {
+      "zh": "这块还没保存，请点待保存队列里的那条",
+      "en": "Not saved yet - use the pending item in the queue"
+    },
+    "parts.labelQueued": {
+      "zh": "卷标已写进待保存的操作",
+      "en": "Label saved into the pending operation"
+    },
+    "parts.needFormat": {
+      "zh": "无法执行此操作，请先执行格式化",
+      "en": "Cannot do this yet - format the partition first"
+    },
+    "parts.msrNoFormat": {
+      "zh": "Windows 保留分区不需要格式化",
+      "en": "Windows reserved partition is never formatted"
+    },
+    "parts.newLogical": {
+      "zh": "创建逻辑分区",
+      "en": "New logical volume"
+    },
+    "parts.unformatted": {
+      "zh": "未分配",
+      "en": "Unallocated"
+    },
+    "err.open": {
+      "zh": "打不开镜像文件（路径不对、没权限，或文件被占用）",
+      "en": "Cannot open the image (bad path, no permission, or file in use)"
+    },
+    "err.qcOpen": {
+      "zh": "这不是有效的 qcow2 镜像（文件头不对）",
+      "en": "Not a valid qcow2 image (bad header)"
+    },
+    "err.imgFormat": {
+      "zh": "镜像格式不对，或版本太高不受支持",
+      "en": "Unsupported image format or version"
+    },
+    "err.hostOpen": {
+      "zh": "无法创建/写入这台手机上的文件（目录不存在或没权限）",
+      "en": "Cannot create or write the file on this device"
+    },
+    "err.hostNoSpace": {
+      "zh": "手机存储空间不够",
+      "en": "Not enough free space on this device"
+    },
+    "err.partWrite": {
+      "zh": "写分区表失败",
+      "en": "Failed to write the partition table"
+    },
+    "err.partRead": {
+      "zh": "这个镜像里没有可读的分区表（空盘或表损坏）",
+      "en": "No readable partition table in this image"
+    },
+    "err.partJson": {
+      "zh": "分区表读出来了但转换失败，这是工具端的 bug",
+      "en": "Partition table read OK but serialization failed (tool bug)"
+    },
+    "err.fsBad": {
+      "zh": "这个分区不是预期的文件系统（可能没格式化）",
+      "en": "This partition is not the expected file system"
+    },
+    "err.ntfsFormat": {
+      "zh": "NTFS 格式化失败",
+      "en": "NTFS formatting failed"
+    },
+    "err.fatPut": {
+      "zh": "写入 FAT32 分区失败",
+      "en": "Writing to the FAT32 partition failed"
+    },
+    "err.fatMount": {
+      "zh": "挂载 FAT32 分区失败",
+      "en": "Failed to mount the FAT32 partition"
+    },
+    "err.fatLs": {
+      "zh": "读取目录失败（路径不对或卷有问题）",
+      "en": "Failed to read the directory"
+    },
+    "err.entryNotFound": {
+      "zh": "分区里没有这个文件/目录",
+      "en": "No such file or directory in the partition"
+    },
+    "err.srcNotFound": {
+      "zh": "找不到源文件",
+      "en": "Source file not found"
+    },
+    "err.cloneCopy": {
+      "zh": "复制数据时出错（结果已删除，源镜像没动）",
+      "en": "Copy failed (result removed, source untouched)"
+    },
+    "err.cloneVerify": {
+      "zh": "复制后校验不通过（结果已删除，源镜像没动）",
+      "en": "Verification failed (result removed, source untouched)"
+    },
+    "err.labelWrite": {
+      "zh": "写卷标失败",
+      "en": "Failed to write the volume label"
+    },
+    "err.labelBad": {
+      "zh": "卷标不合法：FAT32 只能用英文和数字",
+      "en": "Invalid label: FAT32 allows 11 ASCII characters"
+    },
+    "err.labelSkipped": {
+      "zh": "分区已格式化，卷标没写上（不影响使用）",
+      "en": "Partition formatted; the label was not written (harmless)"
+    },
+    "err.cancelled": {
+      "zh": "操作已取消",
+      "en": "Cancelled"
+    },
+    "err.notFound": {
+      "zh": "这个版本的工具不支持该命令",
+      "en": "This tool build does not support that command"
+    },
+    "err.feature": {
+      "zh": "需要的功能没编进这个版本的工具（例如 NTFS 支持）",
+      "en": "A required feature is missing from this tool build"
+    },
+    "err.listFail": {
+      "zh": "读取命令表失败",
+      "en": "Failed to read the command table"
+    },
+    "err.jni": {
+      "zh": "调用底层工具失败（JNI 出错）",
+      "en": "Native call failed (JNI error)"
+    },
+    "err.unknown": {
+      "zh": "未知错误（错误码 {0}）",
+      "en": "Unknown error ({0})"
+    },
+    "err.failed": {
+      "zh": "操作失败：{0}",
+      "en": "Failed: {0}"
+    },
+    "purpose.title": {
+      "zh": "选择用途",
+      "en": "Choose purpose"
+    },
+    "purpose.esp": {
+      "zh": "ESP 引导分区（FAT32）",
+      "en": "ESP boot (FAT32)"
+    },
+    "purpose.ntfs": {
+      "zh": "NTFS 数据分区",
+      "en": "NTFS data"
+    },
+    "purpose.sys": {
+      "zh": "系统保留分区（活动，NTFS）",
+      "en": "System reserved (active, NTFS)"
+    },
+    "purpose.msr": {
+      "zh": "Windows 保留分区（16 MB，不格式化）",
+      "en": "Windows reserved partition (16 MB, not formatted)"
+    },
+    "purpose.rec": {
+      "zh": "恢复分区（NTFS）",
+      "en": "Recovery (NTFS)"
+    },
+    "purpose.none": {
+      "zh": "建立空分区（无文件系统）",
+      "en": "Empty partition (no file system)"
+    },
+    "purpose.espExists": {
+      "zh": "本盘已有 ESP，一个盘只能有一个",
+      "en": "This disk already has an ESP"
+    },
+    "purpose.formatFailed": {
+      "zh": "分区已创建，但格式化失败：{0}",
+      "en": "Partition created, but formatting failed: {0}"
+    },
+    "parts.pickImage": {
+      "zh": "选择镜像文件",
+      "en": "Pick an image file"
+    },
+    "parts.imageField": {
+      "zh": "镜像",
+      "en": "Image"
+    },
+    "parts.none": {
+      "zh": "未选择",
+      "en": "Not selected"
+    },
+    "parts.useCurrent": {
+      "zh": "用当前镜像（{0}）",
+      "en": "Use current image ({0})"
+    },
+    "parts.notQcow2": {
+      "zh": "只能选 .qcow2 文件",
+      "en": "Only .qcow2 files are supported"
+    },
+    "parts.badImage": {
+      "zh": "打不开这个镜像：{0}",
+      "en": "Cannot open this image: {0}"
+    },
+    "parts.noLabel": {
+      "zh": "无卷标",
+      "en": "No label"
+    },
+    "parts.usedLine": {
+      "zh": "已用 {0}",
+      "en": "{0} used"
+    },
+    "parts.layoutTitle": {
+      "zh": "磁盘布局",
+      "en": "Disk layout"
+    },
+    "parts.barHint": {
+      "zh": "点未分配区新建分区；点分区格式化、改卷标或删除",
+      "en": "Tap unallocated space to add a partition; tap a partition to format, relabel or delete"
+    },
+    "parts.free": {
+      "zh": "未分配",
+      "en": "Unallocated"
+    },
+    "parts.emptyTable": {
+      "zh": "这张表还没分区：点上面的长条新建",
+      "en": "No partitions yet - tap the bar above to add one"
+    },
+    "parts.typeTitle": {
+      "zh": "分区类型",
+      "en": "Partition type"
+    },
+    "parts.logical": {
+      "zh": "逻辑分区",
+      "en": "Logical partition"
+    },
+    "parts.logicalOn": {
+      "zh": "逻辑卷建在扩展分区里，不占主分区槽",
+      "en": "Logical volumes live in the extended partition; no primary slot used"
+    },
+    "parts.logicalOff": {
+      "zh": "只建主分区（最多 4 个）",
+      "en": "Primary only (max 4)"
+    },
+    "parts.hasContainer": {
+      "zh": "已有扩展分区：新分区都会放进里面当逻辑卷",
+      "en": "An extended partition exists — new partitions go inside it as logical volumes"
+    },
+    "parts.slotsFull": {
+      "zh": "主分区已满（4 个）且没有扩展分区：先删一个分区，或改用 GPT",
+      "en": "All 4 primary slots are used with no extended partition — delete one, or use GPT"
+    },
+    "parts.delete": {
+      "zh": "删除分区",
+      "en": "Delete partition"
+    },
+    "parts.deleteBody": {
+      "zh": "分区 #{0}（{1}）会被删除，里面的数据无法恢复。",
+      "en": "Partition #{0} ({1}) will be removed; its data cannot be recovered."
+    },
+    "parts.deleteContainer": {
+      "zh": "扩展分区里还有 {0} 块逻辑分区，先删掉它们。",
+      "en": "The extended partition still holds {0} logical volumes — delete them first."
+    },
+    "parts.deleted": {
+      "zh": "已删除分区 #{0}",
+      "en": "Deleted partition #{0}"
+    },
+    "parts.new": {
+      "zh": "新建分区",
+      "en": "New partition"
+    },
+    "parts.newHint": {
+      "zh": "追加在未分配空间里，不会移动已有分区",
+      "en": "Appended to unallocated space; existing partitions are not moved"
+    },
+    "parts.resize": {
+      "zh": "调整大小",
+      "en": "Resize"
+    },
+    "parts.resizeHint": {
+      "zh": "只改待保存里的这一块；保存前随便改，镜像还没动",
+      "en": "Resizes the pending partition only; nothing is written until you save"
+    },
+    "parts.createdLogical": {
+      "zh": "已创建逻辑分区 #{0}",
+      "en": "Created logical volume #{0}"
+    },
+    "parts.containerCreated": {
+      "zh": "已建扩展分区，逻辑分区放在里面",
+      "en": "Extended partition created; logical volumes go inside it"
+    },
+    "parts.created": {
+      "zh": "已创建分区 #{0}",
+      "en": "Created partition #{0}"
+    },
+    "parts.table": {
+      "zh": "分区表",
+      "en": "Partition table"
+    },
+    "parts.loading": {
+      "zh": "正在读取分区表…",
+      "en": "Reading partition table…"
+    },
+    "parts.list": {
+      "zh": "分区",
+      "en": "Partitions"
+    },
+    "parts.sizeBad": {
+      "zh": "请输入不小于 128 MB 的数值",
+      "en": "Enter a value of at least 128 MB"
+    },
+    "draft.title": {
+      "zh": "待保存（{0}）",
+      "en": "Pending ({0})"
+    },
+    "draft.hint": {
+      "zh": "这些改动还没写入镜像，按「保存」才生效。点任意一条可以撤销。",
+      "en": "These changes are not on the image yet — press Save to apply. Tap one to undo."
+    },
+    "draft.pendingTitle": {
+      "zh": "待保存的改动",
+      "en": "Pending change"
+    },
+    "draft.pendingTag": {
+      "zh": "待保存",
+      "en": "Pending"
+    },
+    "draft.undo": {
+      "zh": "点一下撤销",
+      "en": "Tap to undo"
+    },
+    "draft.undoAction": {
+      "zh": "撤销",
+      "en": "Undo"
+    },
+    "draft.noResize": {
+      "zh": "这条改动没有大小可调",
+      "en": "This change has no size to adjust"
+    },
+    "draft.noLabel": {
+      "zh": "这条改动里没有文件系统",
+      "en": "This change has no file system"
+    },
+    "draft.partName": {
+      "zh": "分区",
+      "en": "Partition"
+    },
+    "draft.add": {
+      "zh": "＋ 新建{0} · {1}",
+      "en": "+ New {0} · {1}"
+    },
+    "draft.addLogical": {
+      "zh": "＋ 新建逻辑卷 · {0}",
+      "en": "+ New logical volume · {0}"
+    },
+    "draft.addExt": {
+      "zh": "＋ 新建扩展分区 · {0}",
+      "en": "+ New extended partition · {0}"
+    },
+    "draft.remove": {
+      "zh": "－ 删除{0} · {1}",
+      "en": "− Delete {0} · {1}"
+    },
+    "draft.format": {
+      "zh": "格式化 {0} → {1}",
+      "en": "Format {0} → {1}"
+    },
+    "draft.cancelAdd": {
+      "zh": "这个{0}还没写入镜像，撤销后就不建了。",
+      "en": "This partition was never created — undoing removes it from the plan."
+    },
+    "draft.cancelAddLogical": {
+      "zh": "这个逻辑卷（{0}）还没写入镜像，撤销后就不建了。",
+      "en": "This logical volume ({0}) was never created — undoing removes it from the plan."
+    },
+    "draft.save": {
+      "zh": "保存",
+      "en": "Save"
+    },
+    "draft.saveN": {
+      "zh": "保存 {0} 项",
+      "en": "Save {0} changes"
+    },
+    "draft.discard": {
+      "zh": "恢复原布局",
+      "en": "Reset layout"
+    },
+    "draft.discarded": {
+      "zh": "已恢复原布局，改动没有写入镜像",
+      "en": "Layout reset — nothing was written"
+    },
+    "draft.dropped": {
+      "zh": "已撤销一条改动",
+      "en": "Change removed from the plan"
+    },
+    "draft.nothing": {
+      "zh": "没有待保存的改动",
+      "en": "Nothing to save"
+    },
+    "draft.queued": {
+      "zh": "已加入待保存",
+      "en": "Added to pending"
+    },
+    "draft.saving": {
+      "zh": "正在保存 {0}/{1}…",
+      "en": "Saving {0}/{1}…"
+    },
+    "draft.saved": {
+      "zh": "已保存 {0} 项改动",
+      "en": "Saved {0} changes"
+    },
+    "draft.saveFailed": {
+      "zh": "没做完的改动还留在待保存里",
+      "en": "The unfinished changes are still pending"
+    },
+    "draft.noContainer": {
+      "zh": "没有扩展分区，逻辑卷放不进去：先建一个扩展分区",
+      "en": "No extended partition for logical volumes — create one first"
+    },
+    "parts.winReserved": {
+      "zh": "Windows 保留分区",
+      "en": "Windows reserved"
+    },
+    "parts.saveChanges": {
+      "zh": "保存修改",
+      "en": "Save changes"
+    },
+    "parts.saveHint": {
+      "zh": "点未分配区新建；改动要保存才写入",
+      "en": "Tap free space to add; save to apply"
+    },
+    "parts.noSpace": {
+      "zh": "没有可用的未分配空间",
+      "en": "No unallocated space left"
+    },
+    "draft.titleEmpty": {
+      "zh": "待保存",
+      "en": "Pending"
+    },
+    "draft.discardHint": {
+      "zh": "清空上面所有改动",
+      "en": "Clear all pending changes"
+    },
+    "draft.discardBody": {
+      "zh": "会丢掉这 {0} 条改动；镜像一个字节都没写过，盘上不会变。",
+      "en": "Discards these {0} pending changes. Nothing has been written to the image yet."
+    },
+    "draft.undoTitle": {
+      "zh": "撤销这条改动",
+      "en": "Undo this change"
+    },
+    "purpose.primary": {
+      "zh": "主分区（NTFS）",
+      "en": "Primary partition (NTFS)"
+    },
+    "purpose.winPrimary": {
+      "zh": "Windows 系统分区（NTFS）",
+      "en": "Windows system partition (NTFS)"
+    },
+    "purpose.logical": {
+      "zh": "逻辑分区（NTFS）",
+      "en": "Logical partition (NTFS)"
+    },
+    "purpose.msrWin": {
+      "zh": "Windows 保留分区（16 MB）",
+      "en": "Windows reserved partition (16 MB)"
+    },
+    "parts.needBoot": {
+      "zh": "建议第一块建系统保留分区（0x27）",
+      "en": "Create the 0x27 reserved partition first"
+    },
+    "parts.needWin": {
+      "zh": "第二块应放 Windows 分区（NTFS）",
+      "en": "The 2nd partition should be the Windows one (NTFS)"
+    },
+    "parts.needEsp": {
+      "zh": "缺 ESP，请在最前方建",
+      "en": "No ESP yet — create it at the front"
+    },
+    "draft.addEsp": {
+      "zh": "＋ ESP + Windows 保留分区 · {0}",
+      "en": "+ ESP + Windows reserved · {0}"
+    },
+    "draft.fsEspPair": {
+      "zh": "FAT32 + Windows 保留分区",
+      "en": "FAT32 + Windows reserved"
+    },
+    "purpose.espPair": {
+      "zh": "ESP + Windows 保留分区（FAT32）",
+      "en": "ESP + Windows reserved (FAT32)"
+    },
+    "purpose.espPairHint": {
+      "zh": "成对，只放磁盘最前方",
+      "en": "A pair, front of disk only"
+    },
+    "parts.noAtLba": {
+      "zh": "工具端不支持指定位置，这次没写入",
+      "en": "Backend cannot place there; nothing written"
+    },
+    "parts.delEspPair": {
+      "zh": "ESP 和保留分区一起删除",
+      "en": "ESP and reserved are removed together"
+    },
+    "parts.needFront": {
+      "zh": "最前方只有 {0}，不够 144 MB",
+      "en": "Front has only {0}, needs 144 MB"
+    },
+    "parts.regionSmall": {
+      "zh": "这块只有 {0}，放不下 128 MB",
+      "en": "Only {0} here; 128 MB minimum"
+    },
+    "parts.alreadyQueued": {
+      "zh": "这条已经在待保存里了",
+      "en": "Already in the pending list"
+    },
+    "plan.extraLabel": {
+      "zh": "额外分区",
+      "en": "Extra partition"
+    },
+    "plan.extRowSummary": {
+      "zh": "{0} 个逻辑分区",
+      "en": "{0} logical volumes"
+    },
+    "plan.extDeleteTitle": {
+      "zh": "删除扩展分区",
+      "en": "Delete extended partition"
+    },
+    "plan.extDeleteBody": {
+      "zh": "连同里面 {0} 个逻辑分区一起删掉",
+      "en": "Also removes its {0} logical volumes"
+    },
+    "files.partTitle": {
+      "zh": "分区 {0}",
+      "en": "Partition {0}"
+    },
+    "files.partSub": {
+      "zh": "{0} · 已用 {1} / {2}",
+      "en": "{0} · {1} used of {2}"
+    },
+    "files.noFs": {
+      "zh": "没有文件系统（未格式化）",
+      "en": "No filesystem (not formatted)"
+    },
+    "files.pickVol": {
+      "zh": "选择一个分区",
+      "en": "Choose a partition"
+    },
+    "files.needDisk": {
+      "zh": "先选一个磁盘镜像",
+      "en": "Pick a disk image first"
+    },
+    "files.loading": {
+      "zh": "正在读取…",
+      "en": "Reading…"
+    },
+    "files.empty": {
+      "zh": "这个目录是空的",
+      "en": "This folder is empty"
+    },
+    "files.emptyTrashHidden": {
+      "zh": "这里只有回收站文件（已隐藏）",
+      "en": "Only trashed files here (hidden)"
+    },
+    "files.up": {
+      "zh": "上一级",
+      "en": "Up one level"
+    },
+    "files.root": {
+      "zh": "根目录",
+      "en": "Root"
+    },
+    "files.more": {
+      "zh": "加载更多（还有 {0} 项）",
+      "en": "Load more ({0} left)"
+    },
+    "files.total": {
+      "zh": "共 {0} 项",
+      "en": "{0} items"
+    },
+    "files.readonly": {
+      "zh": "该路径是只读路径，无法执行该操作",
+      "en": "This path is read-only; the action is not available"
+    },
+    "files.readonlyHere": {
+      "zh": "这个位置是只读的，写不进去",
+      "en": "This location is read-only"
+    },
+    "files.copyIntoSelf": {
+      "zh": "不能复制到自己里面",
+      "en": "Can't copy a folder into itself"
+    },
+    "files.trash": {
+      "zh": "回收站",
+      "en": "Trash"
+    },
+    "files.showTrash": {
+      "zh": "显示回收站文件",
+      "en": "Show trashed files"
+    },
+    "files.hideTrash": {
+      "zh": "隐藏回收站文件",
+      "en": "Hide trashed files"
+    },
+    "files.folder": {
+      "zh": "文件夹",
+      "en": "Folder"
+    },
+    "files.readFail": {
+      "zh": "这个目录读不出来",
+      "en": "Cannot read this folder"
+    },
+    "files.host": {
+      "zh": "本机",
+      "en": "This device"
+    },
+    "files.noImage": {
+      "zh": "没有打开的镜像",
+      "en": "No image opened"
+    },
+    "files.pickPlace": {
+      "zh": "选择位置",
+      "en": "Choose location"
+    },
+    "files.isoWim": {
+      "zh": "ISO / WIM 文件…",
+      "en": "ISO / WIM file…"
+    },
+    "files.copy": {
+      "zh": "复制",
+      "en": "Copy"
+    },
+    "files.cut": {
+      "zh": "剪切",
+      "en": "Cut"
+    },
+    "files.paste": {
+      "zh": "粘贴",
+      "en": "Paste"
+    },
+    "files.delete": {
+      "zh": "删除",
+      "en": "Delete"
+    },
+    "files.clip": {
+      "zh": "剪贴板 {0} 项",
+      "en": "Clipboard: {0}"
+    },
+    "files.clipEmpty": {
+      "zh": "剪贴板是空的",
+      "en": "Clipboard is empty"
+    },
+    "files.selected": {
+      "zh": "已选 {0}",
+      "en": "{0} selected"
+    },
+    "files.pickOne": {
+      "zh": "先选一项",
+      "en": "Select something first"
+    },
+    "files.doneN": {
+      "zh": "完成 {0} 项",
+      "en": "{0} done"
+    },
+    "files.doneSkip": {
+      "zh": "已完成 {0} 个文件 / 文件夹（跳过 {1} 个回收站文件）",
+      "en": "Done {0} item(s) (skipped {1} trashed file(s))"
+    },
+    "files.doneSkipName": {
+      "zh": "已完成 {0} 个（跳过 {1} 个重名文件）",
+      "en": "Done {0} item(s) (skipped {1} name clash(es))"
+    },
+    "files.delAsk": {
+      "zh": "删除 {0} 项？",
+      "en": "Delete {0} item(s)?"
+    },
+    "files.delWarn": {
+      "zh": "删除后不可恢复。",
+      "en": "This cannot be undone."
+    },
+    "files.delWarnTrash": {
+      "zh": "会移入回收站，30 天内可还原。",
+      "en": "Moved to trash; restorable for 30 days."
+    },
+    "files.trashed": {
+      "zh": "已移入回收站 {0} 个",
+      "en": "Moved {0} item(s) to trash"
+    },
+    "files.restore": {
+      "zh": "还原",
+      "en": "Restore"
+    },
+    "files.restored": {
+      "zh": "已还原",
+      "en": "Restored"
+    },
+    "files.working": {
+      "zh": "正在处理…",
+      "en": "Working…"
+    },
+    "files.title": {
+      "zh": "文件",
+      "en": "Files"
+    },
+    "files.goto": {
+      "zh": "跳到路径",
+      "en": "Go to path"
+    },
+    "files.gotoHint": {
+      "zh": "以 / 开头；也可以写 vm.qcow2!part3:/Windows",
+      "en": "Start with /; container paths like vm.qcow2!part3:/Windows also work"
+    },
+    "files.noneSelected": {
+      "zh": "未选择文件",
+      "en": "No file selected"
+    },
+    "files.counts": {
+      "zh": "{0} 个文件 · {1} 个文件夹",
+      "en": "{0} files · {1} folders"
+    },
+    "files.selSum": {
+      "zh": "共选择 {0} 个项目 · {1}",
+      "en": "{0} selected · {1}"
+    },
+    "files.copyToOther": {
+      "zh": "复制到另一栏",
+      "en": "Copy to other pane"
+    },
+    "files.moveToOther": {
+      "zh": "移动到另一栏",
+      "en": "Move to other pane"
+    },
+    "files.internal": {
+      "zh": "内部存储",
+      "en": "Internal storage"
+    },
+    "files.multi": {
+      "zh": "多选",
+      "en": "Multi-select"
+    },
+    "files.copyR": {
+      "zh": "复制到 >",
+      "en": "Copy to  >"
+    },
+    "files.copyL": {
+      "zh": "< 复制到",
+      "en": "<  Copy to"
+    },
+    "files.moveR": {
+      "zh": "移动到 >",
+      "en": "Move to  >"
+    },
+    "files.moveL": {
+      "zh": "< 移动到",
+      "en": "<  Move to"
+    },
+    "files.rename": {
+      "zh": "重命名",
+      "en": "Rename"
+    },
+    "files.noApp": {
+      "zh": "没有能打开它的应用",
+      "en": "No app can open this"
+    },
+    "files.noSuchDir": {
+      "zh": "目录不存在",
+      "en": "Directory not found"
+    },
+    "files.noAccess": {
+      "zh": "读不了这个目录（权限不足）",
+      "en": "Cannot read this folder (no permission)"
+    },
+    "sz.title": {
+      "zh": "Shizuku",
+      "en": "Shizuku"
+    },
+    "sz.off": {
+      "zh": "未运行（先启动 Shizuku）",
+      "en": "Not running (start Shizuku first)"
+    },
+    "sz.on": {
+      "zh": "已授权：可读系统目录",
+      "en": "Granted: system paths readable"
+    },
+    "sz.ask": {
+      "zh": "点这里授权",
+      "en": "Tap to grant"
+    },
+    "setup.title": {
+      "zh": "全流程装机",
+      "en": "Guided install"
+    },
+    "setup.stepHint": {
+      "zh": "第 {0} 步 / 共 {1} 步",
+      "en": "Step {0} of {1}"
+    },
+    "setup.pickExisting": {
+      "zh": "选择已有磁盘",
+      "en": "Use an existing disk"
+    },
+    "setup.pickExistingSummary": {
+      "zh": "打开一个 qcow2 继续装机",
+      "en": "Open a qcow2 and continue"
+    },
+    "setup.pickCreate": {
+      "zh": "创建新磁盘",
+      "en": "Create a new disk"
+    },
+    "setup.pickCreateSummary": {
+      "zh": "建盘时分区与格式化一并完成",
+      "en": "Partitions and formatting are done in one go"
+    },
+    "setup.flowTitle": {
+      "zh": "流程与注意事项",
+      "en": "Steps and notes"
+    },
+    "setup.flowBody": {
+      "zh": "① 选/建盘（分区+格式化已包含）\n② 释放系统映像（写引导、写 RE、引导检查都在这一步）\n③ 全盘检查\n\n释放会写入数据，中途别强退；检查是只读的，随时可退。",
+      "en": "1) Pick or create a disk (partitioning + formatting included)\n2) Apply the Windows image (boot files, RE and boot check happen here)\n3) Full disk check\n\nApplying writes data — don't force-quit mid-way. The final check is read-only."
+    },
+    "setup.exitTitle": {
+      "zh": "退出全流程装机？",
+      "en": "Leave guided install?"
+    },
+    "setup.exitBody": {
+      "zh": "已写入的分区与镜像不会回滚；未完成的步骤需要重新开始。",
+      "en": "Written partitions and images are not rolled back; unfinished steps must be restarted."
+    },
+    "setup.exitLeave": {
+      "zh": "退出",
+      "en": "Leave"
+    },
+    "setup.exitStay": {
+      "zh": "继续装机",
+      "en": "Keep going"
+    },
+    "plan.diskLayout": {
+      "zh": "磁盘布局",
+      "en": "Disk layout"
+    },
+    "check.title": {
+      "zh": "全盘检查",
+      "en": "Full disk check"
+    },
+    "check.allOk": {
+      "zh": "检查通过：系统与引导都正常",
+      "en": "All good: system and boot are fine"
+    },
+    "check.allBad": {
+      "zh": "发现问题，见下面明细",
+      "en": "Problems found, see details below"
+    },
+    "check.running": {
+      "zh": "正在检查…",
+      "en": "Checking…"
+    },
+    "check.fileName": {
+      "zh": "镜像文件",
+      "en": "Image file"
+    },
+    "check.fileSize": {
+      "zh": "文件大小",
+      "en": "File size"
+    },
+    "check.virtualSize": {
+      "zh": "虚拟容量",
+      "en": "Virtual size"
+    },
+    "check.partCount": {
+      "zh": "分区数",
+      "en": "Partitions"
+    },
+    "check.noFs": {
+      "zh": "未格式化",
+      "en": "No filesystem"
+    },
+    "check.windows": {
+      "zh": "Windows 系统",
+      "en": "Windows"
+    },
+    "check.kernel": {
+      "zh": "内核文件",
+      "en": "Kernel"
+    },
+    "check.re": {
+      "zh": "恢复环境",
+      "en": "Recovery"
+    },
+    "check.boot": {
+      "zh": "引导",
+      "en": "Boot"
+    },
+    "check.bootDetail": {
+      "zh": "引导明细",
+      "en": "Boot detail"
+    },
+    "check.ok": {
+      "zh": "正常",
+      "en": "OK"
+    },
+    "check.missing": {
+      "zh": "缺失",
+      "en": "Missing"
+    },
+    "check.none": {
+      "zh": "未创建",
+      "en": "Not created"
+    },
+    "check.fail": {
+      "zh": "异常",
+      "en": "Failed"
+    },
+    "check.bootFailList": {
+      "zh": "有 {0} 项未通过",
+      "en": "{0} item(s) failed"
+    },
+    "check.reload": {
+      "zh": "重新检查",
+      "en": "Re-check"
+    },
+    "check.done": {
+      "zh": "完成",
+      "en": "Done"
+    },
+    "check.noImage": {
+      "zh": "还没有选磁盘",
+      "en": "No disk selected"
+    },
+    "setup.nextLabel": {
+      "zh": "下一步",
+      "en": "Next"
+    },
+    "setup.exitKeep": {
+      "zh": "保存当前进度，下次接着做",
+      "en": "Keep my progress for next time"
+    },
+    "setup.exitRunning": {
+      "zh": "正在写入磁盘。现在返回会取消写入，已经写进去的数据可能损坏。",
+      "en": "A write is in progress. Leaving now cancels it and may corrupt data already written."
+    },
+    "setup.resumeOk": {
+      "zh": "已回到上次的步骤",
+      "en": "Resumed where you left off"
+    },
+    "home.sec.sys": {
+      "zh": "系统部署与引导",
+      "en": "Deploy & boot"
+    },
+    "home.selfCheck": {
+      "zh": "全量自检",
+      "en": "Full check"
+    },
+    "home.selfCheckSummary": {
+      "zh": "分区、Windows、恢复环境与引导一次查完，异常项可直接跳去修复",
+      "en": "Parts, Windows, recovery and boot in one pass — jump straight to a fix"
+    },
+    "fc.title": {
+      "zh": "全量自检",
+      "en": "Full check"
+    },
+    "fc.needImage": {
+      "zh": "先选择一个要检查的磁盘镜像",
+      "en": "Pick a disk image to check"
+    },
+    "fc.running": {
+      "zh": "正在检查…",
+      "en": "Checking…"
+    },
+    "fc.stageInfo": {
+      "zh": "正在读取镜像信息",
+      "en": "Reading image info"
+    },
+    "fc.stageParts": {
+      "zh": "正在读取分区表",
+      "en": "Reading partition table"
+    },
+    "fc.stageScan": {
+      "zh": "正在扫分区 {0}/{1}",
+      "en": "Scanning partition {0}/{1}"
+    },
+    "fc.stageWin": {
+      "zh": "正在检查 Windows",
+      "en": "Checking Windows"
+    },
+    "fc.stageBoot": {
+      "zh": "正在检查引导",
+      "en": "Checking boot"
+    },
+    "fc.secDisk": {
+      "zh": "磁盘与镜像",
+      "en": "Disk & image"
+    },
+    "fc.itemFile": {
+      "zh": "文件",
+      "en": "File"
+    },
+    "fc.itemSize": {
+      "zh": "文件大小",
+      "en": "File size"
+    },
+    "fc.itemVirtual": {
+      "zh": "虚拟大小",
+      "en": "Virtual size"
+    },
+    "fc.itemTable": {
+      "zh": "分区表",
+      "en": "Partition table"
+    },
+    "fc.itemTableType": {
+      "zh": "分区表类型",
+      "en": "Table type"
+    },
+    "fc.noTable": {
+      "zh": "还没有分区表",
+      "en": "No partition table"
+    },
+    "fc.itemPartCount": {
+      "zh": "分区数",
+      "en": "Partitions"
+    },
+    "fc.itemTail": {
+      "zh": "末尾未分配",
+      "en": "Unallocated tail"
+    },
+    "fc.itemStruct": {
+      "zh": "结构",
+      "en": "Structure"
+    },
+    "fc.structOk": {
+      "zh": "正常",
+      "en": "OK"
+    },
+    "fc.structOverlap": {
+      "zh": "分区重叠",
+      "en": "Overlapping partitions"
+    },
+    "fc.structOob": {
+      "zh": "分区越界",
+      "en": "Partition out of range"
+    },
+    "fc.structBoth": {
+      "zh": "重叠 + 越界",
+      "en": "Overlap + out of range"
+    },
+    "fc.secParts": {
+      "zh": "分区",
+      "en": "Partitions"
+    },
+    "fc.partTitle": {
+      "zh": "#{0} · {1}",
+      "en": "#{0} · {1}"
+    },
+    "fc.partSub": {
+      "zh": "{0} · {1} · 已用 {2} / {3}",
+      "en": "{0} · {1} · {2} used of {3}"
+    },
+    "fc.noFs": {
+      "zh": "无文件系统",
+      "en": "No file system"
+    },
+    "fc.roleEsp": {
+      "zh": "EFI 分区",
+      "en": "EFI partition"
+    },
+    "fc.roleMsr": {
+      "zh": "MSR",
+      "en": "MSR"
+    },
+    "fc.roleRec": {
+      "zh": "恢复分区",
+      "en": "Recovery partition"
+    },
+    "fc.roleWin": {
+      "zh": "Windows",
+      "en": "Windows"
+    },
+    "fc.roleExt": {
+      "zh": "扩展分区",
+      "en": "Extended"
+    },
+    "fc.roleLogical": {
+      "zh": "逻辑分区",
+      "en": "Logical"
+    },
+    "fc.roleData": {
+      "zh": "数据",
+      "en": "Data"
+    },
+    "fc.secWin": {
+      "zh": "Windows",
+      "en": "Windows"
+    },
+    "fc.winNone": {
+      "zh": "没有找到 Windows 分区",
+      "en": "No Windows partition found"
+    },
+    "fc.winSys": {
+      "zh": "系统分区 #{0}",
+      "en": "System partition #{0}"
+    },
+    "fc.winLoader": {
+      "zh": "引导程序（winload）",
+      "en": "Boot loader (winload)"
+    },
+    "fc.winKernel": {
+      "zh": "内核（ntoskrnl）",
+      "en": "Kernel (ntoskrnl)"
+    },
+    "fc.winBootmgr": {
+      "zh": "bootmgr",
+      "en": "bootmgr"
+    },
+    "fc.secRe": {
+      "zh": "恢复环境",
+      "en": "Recovery environment"
+    },
+    "fc.reNone": {
+      "zh": "未配置恢复环境",
+      "en": "No recovery environment configured"
+    },
+    "fc.reNoneSummary": {
+      "zh": "没有恢复分区，不影响启动",
+      "en": "No recovery partition; boot is unaffected"
+    },
+    "fc.rePart": {
+      "zh": "恢复分区",
+      "en": "Recovery partition"
+    },
+    "fc.reWim": {
+      "zh": "WinRE 文件",
+      "en": "WinRE image"
+    },
+    "fc.reWimOk": {
+      "zh": "分区里有 winre.wim",
+      "en": "winre.wim present"
+    },
+    "fc.reWimInSys": {
+      "zh": "恢复分区里没有 WinRE（系统盘里有）",
+      "en": "Recovery partition has no WinRE (the system disk does)"
+    },
+    "fc.reWimNoBoth": {
+      "zh": "恢复分区里没有 WinRE",
+      "en": "Recovery partition has no WinRE"
+    },
+    "fc.reInSys": {
+      "zh": "WinRE 在系统盘（没有恢复分区）",
+      "en": "WinRE lives on the system disk (no recovery partition)"
+    },
+    "fc.reSdi": {
+      "zh": "boot.sdi",
+      "en": "boot.sdi"
+    },
+    "fc.reAgent": {
+      "zh": "ReAgent.xml",
+      "en": "ReAgent.xml"
+    },
+    "fc.secBoot": {
+      "zh": "引导",
+      "en": "Boot"
+    },
+    "fc.boot": {
+      "zh": "引导链",
+      "en": "Boot chain"
+    },
+    "fc.bootNone": {
+      "zh": "没有可显示的检查项",
+      "en": "No checks reported"
+    },
+    "fc.jumpBoot": {
+      "zh": "引导不通过，去修复",
+      "en": "Boot checks failed — open repair"
+    },
+    "fc.ok": {
+      "zh": "正常",
+      "en": "OK"
+    },
+    "fc.missing": {
+      "zh": "缺失",
+      "en": "Missing"
+    },
+    "fc.fix": {
+      "zh": "一键修复",
+      "en": "Fix all"
+    },
+    "fc.reload": {
+      "zh": "重新检查",
+      "en": "Re-check"
+    },
+    "fc.back": {
+      "zh": "返回",
+      "en": "Back"
+    },
+    "fc.done": {
+      "zh": "完成",
+      "en": "Done"
+    },
+    "fc.fixTitle": {
+      "zh": "一键修复",
+      "en": "One-click fix"
+    },
+    "fc.fixNone": {
+      "zh": "没有可以自动修复的项目",
+      "en": "Nothing can be fixed automatically"
+    },
+    "fc.fixIntro": {
+      "zh": "勾选要执行的修复；红色的项目有风险，默认不勾。",
+      "en": "Select the fixes to run. Red items are risky and start unchecked."
+    },
+    "fc.fixRisky": {
+      "zh": "高风险：会重写分区表",
+      "en": "Risky: rewrites the partition table"
+    },
+    "fc.fixRun": {
+      "zh": "开始修复",
+      "en": "Fix"
+    },
+    "fc.fixing": {
+      "zh": "正在修复…",
+      "en": "Fixing…"
+    },
+    "fc.fixingItem": {
+      "zh": "[{0}/{1}] {2}",
+      "en": "[{0}/{1}] {2}"
+    },
+    "fc.fixDone": {
+      "zh": "修复完成：{0} 项",
+      "en": "Done: {0} item(s)"
+    },
+    "fc.fixFail": {
+      "zh": "修复失败",
+      "en": "Fix failed"
+    },
+    "fc.fixPartial": {
+      "zh": "成功 {0} 项；失败：{1}",
+      "en": "{0} succeeded; failed: {1}"
+    },
+    "fc.sumOk": {
+      "zh": "一切正常，没有发现问题",
+      "en": "All good — no problems found"
+    },
+    "fc.sumBad": {
+      "zh": "发现 {0} 项问题",
+      "en": "{0} problem(s) found"
+    },
+    "fc.sumWarn": {
+      "zh": "{0} 项提示",
+      "en": "{0} notice(s)"
+    },
+    "fc.sumBadWarn": {
+      "zh": "发现 {0} 项问题、{1} 项提示",
+      "en": "{0} problem(s), {1} notice(s)"
+    },
+    "fx.reFill": {
+      "zh": "把系统盘的 WinRE 填进恢复分区",
+      "en": "Copy WinRE from the system disk into the recovery partition"
+    },
+    "fx.reFillDetail": {
+      "zh": "从系统分区抽出 winre.wim（和 boot.sdi）写进恢复分区",
+      "en": "Extracts winre.wim (and boot.sdi) from the system partition into the recovery partition"
+    },
+    "fx.bootUefi": {
+      "zh": "重建 UEFI 引导",
+      "en": "Rebuild UEFI boot"
+    },
+    "fx.bootUefiDetail": {
+      "zh": "重写 BCD 并重铺 ESP 上的引导文件",
+      "en": "Rewrites BCD and the boot files on the ESP"
+    },
+    "fx.bootBios": {
+      "zh": "重建 BIOS 引导",
+      "en": "Rebuild BIOS boot"
+    },
+    "fx.bootBiosDetail": {
+      "zh": "重写 MBR/VBR、写 bootmgr 并重建 BCD",
+      "en": "Rewrites MBR/VBR, installs bootmgr and rebuilds BCD"
+    },
+    "fx.table": {
+      "zh": "重排分区表",
+      "en": "Rebuild partition table"
+    },
+    "fx.tableDetail": {
+      "zh": "排序、丢掉重叠、裁到盘尾；只改表不动数据",
+      "en": "Sorts, drops overlaps and clamps to the disk end; rewrites the table only"
+    },
+    "br.title": {
+      "zh": "引导修复",
+      "en": "Boot repair"
+    },
+    "br.needImage": {
+      "zh": "先选择一个磁盘镜像",
+      "en": "Pick a disk image first"
+    },
+    "br.noTable": {
+      "zh": "这张盘没有分区表",
+      "en": "This disk has no partition table"
+    },
+    "br.noSys": {
+      "zh": "没找到 Windows 分区，先释放镜像",
+      "en": "No Windows partition — deploy an image first"
+    },
+    "br.diag": {
+      "zh": "诊断",
+      "en": "Diagnosis"
+    },
+    "br.mode": {
+      "zh": "引导方式",
+      "en": "Boot mode"
+    },
+    "br.modeUefi": {
+      "zh": "UEFI",
+      "en": "UEFI"
+    },
+    "br.modeUefi32": {
+      "zh": "UEFI（32 位）",
+      "en": "UEFI (32-bit)"
+    },
+    "br.modeBios": {
+      "zh": "BIOS",
+      "en": "BIOS"
+    },
+    "br.sysPart": {
+      "zh": "系统分区",
+      "en": "System partition"
+    },
+    "br.espPart": {
+      "zh": "EFI 分区",
+      "en": "EFI partition"
+    },
+    "br.srPart": {
+      "zh": "系统保留",
+      "en": "System reserved"
+    },
+    "br.partValue": {
+      "zh": "#{0} · {1}",
+      "en": "#{0} · {1}"
+    },
+    "br.checks": {
+      "zh": "引导链检查",
+      "en": "Boot chain checks"
+    },
+    "br.diagOk": {
+      "zh": "引导链正常，不需要修复",
+      "en": "Boot chain is fine — no repair needed"
+    },
+    "br.uefiWhat": {
+      "zh": "会重写 BCD 与 ESP 上的引导文件。",
+      "en": "This rewrites BCD and the boot files on the ESP."
+    },
+    "br.biosWhat": {
+      "zh": "会重写 MBR/VBR 与 bootmgr，改动不可回滚。",
+      "en": "This rewrites MBR/VBR and bootmgr; it cannot be undone."
+    },
+    "br.action": {
+      "zh": "开始修复",
+      "en": "Repair"
+    },
+    "br.confirmTitle": {
+      "zh": "确认修复引导",
+      "en": "Repair boot?"
+    },
+    "br.confirmBody": {
+      "zh": "会改写分区上的引导文件与 BCD。改错需要重装系统。",
+      "en": "Boot files and BCD will be rewritten. A wrong choice may require reinstalling Windows."
+    },
+    "br.runOk": {
+      "zh": "修复完成",
+      "en": "Repair finished"
+    },
+    "br.runFail": {
+      "zh": "修复失败",
+      "en": "Repair failed"
+    },
+    "wr.title": {
+      "zh": "恢复环境",
+      "en": "Windows RE"
+    },
+    "wr.needImage": {
+      "zh": "先选择一个磁盘镜像",
+      "en": "Pick a disk image first"
+    },
+    "wr.secNow": {
+      "zh": "当前状态",
+      "en": "Current state"
+    },
+    "wr.part": {
+      "zh": "恢复分区",
+      "en": "Recovery partition"
+    },
+    "wr.partNone": {
+      "zh": "没有恢复分区",
+      "en": "No recovery partition"
+    },
+    "wr.partValue": {
+      "zh": "#{0} · {1}",
+      "en": "#{0} · {1}"
+    },
+    "wr.wim": {
+      "zh": "WinRE 文件",
+      "en": "WinRE image"
+    },
+    "wr.noRe": {
+      "zh": "未配置恢复环境",
+      "en": "Not configured"
+    },
+    "wr.inSys": {
+      "zh": "在系统盘（没进恢复分区）",
+      "en": "On the system disk (not in the recovery partition)"
+    },
+    "wr.sdi": {
+      "zh": "boot.sdi",
+      "en": "boot.sdi"
+    },
+    "wr.agent": {
+      "zh": "ReAgent.xml",
+      "en": "ReAgent.xml"
+    },
+    "wr.suggest": {
+      "zh": "恢复分区里没有 WinRE，建议写入一份（下面可以选来源）。",
+      "en": "The recovery partition has no WinRE. Consider writing one (pick a source below)."
+    },
+    "wr.needPart": {
+      "zh": "没有恢复分区，先去「分区管理」建一个。",
+      "en": "No recovery partition — create one in Partitions first."
+    },
+    "wr.goParts": {
+      "zh": "去分区管理",
+      "en": "Open partitions"
+    },
+    "wr.goPartsSummary": {
+      "zh": "建一个恢复分区（约 500 MB ~ 1 GB）",
+      "en": "Create a recovery partition (about 500 MB – 1 GB)"
+    },
+    "wr.secSrc": {
+      "zh": "WinRE 来源",
+      "en": "WinRE source"
+    },
+    "wr.srcSys": {
+      "zh": "系统盘里的 WinRE",
+      "en": "WinRE on the system disk"
+    },
+    "wr.srcSysSummaryOk": {
+      "zh": "找到了，可以搬进恢复分区",
+      "en": "Found — can be copied into the recovery partition"
+    },
+    "wr.srcSysSummaryNone": {
+      "zh": "系统盘里也没有",
+      "en": "Not on the system disk either"
+    },
+    "wr.srcFile": {
+      "zh": "选择一个文件",
+      "en": "Pick a file"
+    },
+    "wr.srcFileSummary": {
+      "zh": "ISO / WIM / ESD / 单个 winre.wim",
+      "en": "ISO / WIM / ESD / a bare winre.wim"
+    },
+    "wr.pickFile": {
+      "zh": "选择文件",
+      "en": "Choose file"
+    },
+    "wr.pickFileAgain": {
+      "zh": "重新选择文件",
+      "en": "Choose another file"
+    },
+    "wr.probeBusy": {
+      "zh": "正在查找 WinRE…",
+      "en": "Looking for WinRE…"
+    },
+    "wr.found": {
+      "zh": "找到：{0}（{1}）",
+      "en": "Found: {0} ({1})"
+    },
+    "wr.notFound": {
+      "zh": "这份文件里没有 WinRE",
+      "en": "No WinRE in this file"
+    },
+    "wr.probeFail": {
+      "zh": "没查成（文件可能不支持）",
+      "en": "Could not inspect this file"
+    },
+    "wr.body": {
+      "zh": "将自动更新 BCD 里的恢复项。",
+      "en": "The BCD recovery entry is updated automatically."
+    },
+    "wr.fill": {
+      "zh": "写入恢复分区",
+      "en": "Write to recovery partition"
+    },
+    "wr.ok": {
+      "zh": "写入完成",
+      "en": "Written"
+    },
+    "wr.fail": {
+      "zh": "写入失败",
+      "en": "Write failed"
+    },
+    "fc.secTable": {
+      "zh": "分区表",
+      "en": "Partition table"
+    },
+    "fc.rePartValue": {
+      "zh": "#{0} · {1}",
+      "en": "#{0} · {1}"
+    },
+    "wr.srcCur": {
+      "zh": "当前使用的 WinRE",
+      "en": "WinRE in use"
+    },
+    "wr.useSys": {
+      "zh": "系统盘 WinRE 文件",
+      "en": "WinRE file on the system disk"
+    },
+    "wr.noSource": {
+      "zh": "没找到 WinRE，请从其他盘选取",
+      "en": "No WinRE found — pick one from another disk"
+    },
+    "wr.secWrite": {
+      "zh": "写入设置",
+      "en": "Write settings"
+    },
+    "wr.target": {
+      "zh": "写入位置",
+      "en": "Destination"
+    },
+    "wr.targetRec": {
+      "zh": "恢复分区 #{0} · {1}",
+      "en": "Recovery partition #{0} · {1}"
+    },
+    "wr.targetSys": {
+      "zh": "系统盘 #{0}（Windows\\System32\\Recovery）",
+      "en": "System partition #{0} (Windows\\System32\\Recovery)"
+    },
+    "wr.toRec": {
+      "zh": "写入恢复分区",
+      "en": "Write to the recovery partition"
+    },
+    "wr.toSys": {
+      "zh": "写入系统分区",
+      "en": "Write to the system partition"
+    },
+    "wr.mbrOnlySys": {
+      "zh": "MBR 磁盘只能写进系统分区（GPT 才能用独立恢复分区）。",
+      "en": "MBR disks can only use the system partition; a dedicated recovery partition needs GPT."
+    },
+    "wr.write": {
+      "zh": "写入恢复环境",
+      "en": "Write recovery environment"
+    },
+    "wr.frameSys": {
+      "zh": "将写入系统分区",
+      "en": "Will write to the system partition"
+    },
+    "wr.frameRec": {
+      "zh": "将写入恢复分区",
+      "en": "Will write to the recovery partition"
+    },
+    "wr.rewrite": {
+      "zh": "重新写入 WinRE",
+      "en": "Write WinRE again"
+    },
+    "wr.rewriteSummary": {
+      "zh": "会重新选来源并覆盖现有 WinRE",
+      "en": "Pick a source and overwrite the current WinRE"
+    },
+    "wr.fixCfg": {
+      "zh": "修复 WinRE 启动配置",
+      "en": "Fix WinRE boot config"
+    },
+    "wr.fixCfgSummary": {
+      "zh": "补上缺的 boot.sdi 与 ReAgent.xml",
+      "en": "Adds the missing boot.sdi and ReAgent.xml"
+    },
+    "wr.script": {
+      "zh": "创建开启 WinRE 脚本",
+      "en": "Create the WinRE enable script"
+    },
+    "wr.wimNone": {
+      "zh": "未配置",
+      "en": "Not configured"
+    },
+    "wr.wimSysOnly": {
+      "zh": "系统盘里有 WinRE",
+      "en": "WinRE is on the system disk"
+    },
+    "wr.wimMiss": {
+      "zh": "缺失",
+      "en": "Missing"
+    },
+    "wr.wimMissSys": {
+      "zh": "缺失（系统盘里有，可写入）",
+      "en": "Missing (present on the system disk)"
+    },
+    "wr.writing": {
+      "zh": "正在写入…",
+      "en": "Writing…"
+    },
+    "bk.gptRead": {
+      "zh": "分区表可读",
+      "en": "Partition table readable"
+    },
+    "bk.gptPresent": {
+      "zh": "GPT 结构有效",
+      "en": "Valid GPT"
+    },
+    "bk.esp": {
+      "zh": "EFI 分区（FAT32）",
+      "en": "EFI partition (FAT32)"
+    },
+    "bk.espType": {
+      "zh": "EFI 分区类型",
+      "en": "EFI partition type"
+    },
+    "bk.espFat": {
+      "zh": "EFI 分区可读",
+      "en": "EFI partition readable"
+    },
+    "bk.bootmgfw": {
+      "zh": "启动管理器 bootmgfw.efi",
+      "en": "Boot manager bootmgfw.efi"
+    },
+    "bk.fallback": {
+      "zh": "回退入口 bootx64.efi",
+      "en": "Fallback bootx64.efi"
+    },
+    "bk.bcd": {
+      "zh": "BCD 存储",
+      "en": "BCD store"
+    },
+    "bk.mbrPresent": {
+      "zh": "MBR 结构有效",
+      "en": "Valid MBR"
+    },
+    "bk.active": {
+      "zh": "活动分区标记",
+      "en": "Active partition flag"
+    },
+    "bk.ntfsPart": {
+      "zh": "NTFS 引导分区",
+      "en": "NTFS boot partition"
+    },
+    "bk.chs": {
+      "zh": "分区表 CHS 合法",
+      "en": "Valid CHS values"
+    },
+    "bk.bootmgr": {
+      "zh": "bootmgr",
+      "en": "bootmgr"
+    },
+    "bk.bootBcd": {
+      "zh": "\\Boot\\BCD",
+      "en": "\\Boot\\BCD"
+    },
+    "bk.ntfsBoot": {
+      "zh": "$Boot 扇区",
+      "en": "$Boot sector"
+    },
+    "bk.code": {
+      "zh": "引导代码",
+      "en": "Boot code"
+    },
+    "bk.winload": {
+      "zh": "winload.exe",
+      "en": "winload.exe"
+    },
+    "bk.winloadEfi": {
+      "zh": "winload.efi",
+      "en": "winload.efi"
+    },
+    "br.stillBad": {
+      "zh": "修复跑完了，但复检还有未通过的项（见下面的清单）",
+      "en": "The repair ran, but some checks still fail (see the list below)"
+    },
+    "br.result": {
+      "zh": "修复结果",
+      "en": "Repair result"
+    },
+    "br.stepBoot": {
+      "zh": "重建引导（BCD + 引导文件）",
+      "en": "Rebuild boot (BCD + boot files)"
+    },
+    "br.stepFiles": {
+      "zh": "从系统分区补引导文件",
+      "en": "Copy boot files from the system partition"
+    },
+    "br.stepRe": {
+      "zh": "补齐恢复环境（WinRE）",
+      "en": "Fill in the recovery environment (WinRE)"
+    },
+    "files.readonlyTag": {
+      "zh": "只读",
+      "en": "Read-only"
+    },
+    "files.noLabel": {
+      "zh": "无卷标",
+      "en": "No label"
+    },
+    "files.partMeta": {
+      "zh": "已用 {0} / {1}",
+      "en": "{0} used / {1}"
+    },
+    "files.partRawMeta": {
+      "zh": "{0}（未格式化）",
+      "en": "{0} (not formatted)"
+    },
+    "files.partsLoading": {
+      "zh": "正在读取分区…",
+      "en": "Reading partitions…"
+    },
+    "files.partsEmpty": {
+      "zh": "这个镜像里没有分区",
+      "en": "This image has no partitions"
+    },
+    "files.pickWimIndex": {
+      "zh": "选择映像",
+      "en": "Pick an image"
+    },
+    "files.wimItem": {
+      "zh": "索引 {0} · {1}",
+      "en": "Index {0} · {1}"
+    },
+    "files.openInContainer": {
+      "zh": "镜像在只读容器里，先导出到手机再打开",
+      "en": "The image is inside a read-only container — export it first"
+    },
+    "files.zipTo": {
+      "zh": "压缩到…",
+      "en": "Compress to…"
+    },
+    "files.zipRunning": {
+      "zh": "正在压缩…",
+      "en": "Compressing…"
+    },
+    "files.zipDone": {
+      "zh": "已生成 {0}",
+      "en": "Created {0}"
+    },
+    "files.zipUnavailable": {
+      "zh": "当前工具版本还不支持创建压缩包",
+      "en": "This tool build cannot create archives yet"
+    },
+    "files.zipReadonly": {
+      "zh": "压缩包只能读，不能写入",
+      "en": "Archives are read-only"
+    },
+    "files.packTitle": {
+      "zh": "压缩成 {0}",
+      "en": "Compress to {0}"
+    },
+    "files.packFormat": {
+      "zh": "格式",
+      "en": "Format"
+    },
+    "files.packName": {
+      "zh": "文件名",
+      "en": "File name"
+    },
+    "files.packStart": {
+      "zh": "开始压缩",
+      "en": "Compress"
+    },
+    "files.props": {
+      "zh": "属性",
+      "en": "Properties"
+    },
+    "files.propsItems": {
+      "zh": "项数",
+      "en": "Items"
+    },
+    "files.propsSize": {
+      "zh": "总大小",
+      "en": "Total size"
+    },
+    "files.propsCounts": {
+      "zh": "{0} 个文件 · {1} 个文件夹",
+      "en": "{0} files · {1} folders"
+    },
+    "files.propsScanning": {
+      "zh": "统计中… 已扫描 {0} 项",
+      "en": "Counting… {0} scanned"
+    },
+    "files.propsTruncated": {
+      "zh": "太大，只统计了一部分",
+      "en": "Too large; only part was counted"
+    },
+    "files.propsStop": {
+      "zh": "停止",
+      "en": "Stop"
+    },
+    "files.extAsk": {
+      "zh": "后缀名被改了",
+      "en": "Extension changed"
+    },
+    "files.extBody": {
+      "zh": "把「{0}」改成「{1}」可能让文件打不开，确定吗？",
+      "en": "Changing \"{0}\" to \"{1}\" may make the file unopenable. Continue?"
+    },
+    "files.extYes": {
+      "zh": "仍然改名",
+      "en": "Rename anyway"
+    },
+    "files.purgeAsk": {
+      "zh": "彻底删除 {0} 项？",
+      "en": "Permanently delete {0} item(s)?"
+    },
+    "files.purgeWarn": {
+      "zh": "回收站里的项目会被彻底删除，无法还原。",
+      "en": "Items in trash will be permanently deleted."
+    },
+    "files.deleteForever": {
+      "zh": "彻底删除",
+      "en": "Delete permanently"
+    },
+    "files.trashDirWarn": {
+      "zh": "文件夹会整个移入回收站（含其中内容）。",
+      "en": "The folder and everything in it moves to trash."
+    },
+    "files.gotoBad": {
+      "zh": "路径格式不对，或目标不存在",
+      "en": "Bad path, or the target does not exist"
+    },
+    "files.gotoAbs": {
+      "zh": "路径要以 / 开头",
+      "en": "Path must start with /"
+    },
+    "files.upOne": {
+      "zh": "上一级",
+      "en": "Up one level"
+    },
+    "files.meta": {
+      "zh": "{0} · {1}",
+      "en": "{0} · {1}"
+    },
+    "files.partLabel": {
+      "zh": "分区 {0} · {1}",
+      "en": "Partition {0} · {1}"
+    },
+    "files.noPreview": {
+      "zh": "这里只能浏览和复制，不能直接打开",
+      "en": "You can browse and copy here, but not open files"
+    },
+    "files.emptyArchive": {
+      "zh": "空文件或损坏的压缩包",
+      "en": "Empty or damaged archive"
+    },
+    "err.archiveSrcContainer": {
+      "zh": "不能直接从压缩包 / ISO 里取文件打包，先导出到本地",
+      "en": "Cannot pack files straight out of an archive/ISO — export them first"
+    },
+    "files.propsAlloc": {
+      "zh": "占用空间",
+      "en": "On disk"
+    },
+    "err.errPathBad": {
+      "zh": "路径写法不对（或分区序号越界）",
+      "en": "Bad path (or partition index out of range)"
+    },
+    "err.errPathNotFound": {
+      "zh": "路径不存在",
+      "en": "Path not found"
+    },
+    "err.errPathDstNotFound": {
+      "zh": "目标路径不存在",
+      "en": "Destination path not found"
+    },
+    "err.errPathExistsFile": {
+      "zh": "同名位置已是一个文件",
+      "en": "A file with that name already exists"
+    },
+    "err.errPathFsBad": {
+      "zh": "这个分区不是 NTFS / FAT32",
+      "en": "Not an NTFS/FAT32 partition"
+    },
+    "err.errPathPartAmbiguous": {
+      "zh": "这张盘有多个分区，要写明是哪一个",
+      "en": "Multiple partitions — say which one"
+    },
+    "err.errPathReadonly": {
+      "zh": "目标是只读容器（ISO / WIM / 压缩包）",
+      "en": "Target is a read-only container (ISO/WIM/archive)"
+    },
+    "err.errCopyDstExists": {
+      "zh": "目标已有同名项",
+      "en": "Destination already has that name"
+    },
+    "err.errCopyDstConflict": {
+      "zh": "目标同名冲突",
+      "en": "Destination name conflict"
+    },
+    "err.errCopyUnsupported": {
+      "zh": "这种复制还不支持（比如整目录从包里搬）",
+      "en": "This copy is not supported (e.g. a whole folder out of an archive)"
+    },
+    "err.errCopySrcUnsupported": {
+      "zh": "这种来源还不支持",
+      "en": "This source is not supported"
+    },
+    "err.errCopyIntoSelf": {
+      "zh": "不能把文件夹复制到它自己里面",
+      "en": "Cannot copy a folder into itself"
+    },
+    "err.errCopyNoSpace": {
+      "zh": "目标空间不够",
+      "en": "Not enough space at the destination"
+    },
+    "err.errCopySameFile": {
+      "zh": "源和目标就是同一个文件",
+      "en": "Source and destination are the same file"
+    },
+    "err.errCopyVerifyFail": {
+      "zh": "复制后校验不一致",
+      "en": "Verification failed after copying"
+    },
+    "err.errCopyNameTooLong": {
+      "zh": "名字太长",
+      "en": "Name too long"
+    },
+    "err.errCopyFileTooBig": {
+      "zh": "这个文件对目标来说太大",
+      "en": "File too large for the destination"
+    },
+    "err.errMovePartial": {
+      "zh": "已复制成功，但删源失败（两份都还在）",
+      "en": "Copied, but the source could not be removed (both exist)"
+    },
+    "err.errMoveHostDeleteRefused": {
+      "zh": "删除手机上的文件要先确认",
+      "en": "Deleting a phone file needs confirmation"
+    },
+    "err.errMoveRefused": {
+      "zh": "这个移动被拒绝",
+      "en": "Move refused"
+    },
+    "err.errRmDirNotEmpty": {
+      "zh": "文件夹里还有东西",
+      "en": "Folder is not empty"
+    },
+    "err.errRmRootRefused": {
+      "zh": "不能删根目录",
+      "en": "Refusing to delete a root"
+    },
+    "err.errRmHostDeleteRefused": {
+      "zh": "删除手机上的文件要先确认",
+      "en": "Deleting a phone file needs confirmation"
+    },
+    "err.errRmRefused": {
+      "zh": "这个删除被拒绝",
+      "en": "Delete refused"
+    },
+    "err.errNameInvalid": {
+      "zh": "这个名字 Windows 不接受（非法字符 / 保留名）",
+      "en": "Windows rejects this name (invalid character or reserved name)"
+    },
+    "err.errArchiveNotFound": {
+      "zh": "找不到这个压缩包",
+      "en": "Archive not found"
+    },
+    "err.errArchiveOpenFail": {
+      "zh": "压缩包打不开",
+      "en": "Cannot open the archive"
+    },
+    "err.errArchiveReadFail": {
+      "zh": "压缩包读不出来",
+      "en": "Cannot read the archive"
+    },
+    "err.errArchiveEncrypted": {
+      "zh": "加密的压缩包不支持",
+      "en": "Encrypted archives are not supported"
+    },
+    "err.errArchiveExists": {
+      "zh": "同名压缩包已存在",
+      "en": "An archive with that name already exists"
+    },
+    "err.errArchiveFormatReadonly": {
+      "zh": "这种压缩包只能读，不能创建或写入",
+      "en": "This archive format is read-only"
+    },
+    "err.errArchiveEntryNotFound": {
+      "zh": "包里没有这个条目",
+      "en": "No such entry in the archive"
+    },
+    "err.errArchiveCreateFail": {
+      "zh": "创建压缩包失败",
+      "en": "Failed to create the archive"
+    },
+    "err.errArchiveWriteFail": {
+      "zh": "写入压缩包失败",
+      "en": "Failed to write the archive"
+    },
+    "err.errArchiveNameDup": {
+      "zh": "包里有重名条目",
+      "en": "Duplicate entry name in the archive"
+    },
+    "err.errIndexExpired": {
+      "zh": "包内索引过期，重新扫一遍",
+      "en": "Archive index expired — rescanning"
+    },
+    "err.errListTooBig": {
+      "zh": "目录太大，排不完",
+      "en": "Directory too large to sort"
+    },
+    "err.errDuFail": {
+      "zh": "统计失败",
+      "en": "Counting failed"
+    },
+    "err.errDuUnsupported": {
+      "zh": "这里不支持统计大小",
+      "en": "Size counting is not supported here"
+    },
+    "err.errCtlCancelled": {
+      "zh": "已取消",
+      "en": "Cancelled"
+    },
+    "wr.partAttr": {
+      "zh": "恢复分区属性",
+      "en": "Recovery partition attribute"
+    },
+    "wr.partAttrBad": {
+      "zh": "不是官方值（缺必需位），可一键修复",
+      "en": "Not the official value (required bit missing) — fixable"
+    },
+    "wr.partAttrFix": {
+      "zh": "修复恢复分区属性",
+      "en": "Fix the recovery partition attribute"
+    },
+    "wr.partAttrFixSummary": {
+      "zh": "改成 0x8000000000000001，不动分区内容",
+      "en": "Set it to 0x8000000000000001; partition contents untouched"
+    },
+    "fx.recAttr": {
+      "zh": "修复恢复分区属性",
+      "en": "Fix the recovery partition attribute"
+    },
+    "fx.recAttrDetail": {
+      "zh": "把 GPT 属性改回 0x8000000000000001（必需位 + 不分配盘符），不动分区内容",
+      "en": "Set the GPT attribute back to 0x8000000000000001 (required bit, no drive letter); contents untouched"
+    },
+    "err.errArchiveSolid": {
+      "zh": "这个 RAR 是 solid 压缩，当前读不了（换 zip / 7z 试试）",
+      "en": "This RAR is solid-compressed and cannot be read yet — try zip/7z"
+    },
+    "wim.idxRow": {
+      "zh": "索引 {0}",
+      "en": "Index {0}"
+    },
+    "wim.idxLoading": {
+      "zh": "正在读取映像索引…",
+      "en": "Reading image indexes…"
+    },
+    "wim.idxEmpty": {
+      "zh": "这个文件里没有映像",
+      "en": "No images in this file"
+    },
+    "wim.infoVersion": {
+      "zh": "Windows 版本",
+      "en": "Windows version"
+    },
+    "wim.infoArch": {
+      "zh": "位数",
+      "en": "Architecture"
+    },
+    "wim.infoSize": {
+      "zh": "映像大小",
+      "en": "Image size"
+    },
+    "wim.infoFiles": {
+      "zh": "文件 / 文件夹",
+      "en": "Files / folders"
+    },
+    "wim.infoLang": {
+      "zh": "语言",
+      "en": "Languages"
+    },
+    "wim.infoEdition": {
+      "zh": "版本标识",
+      "en": "Edition ID"
+    },
+    "wim.infoTitle": {
+      "zh": "映像信息",
+      "en": "Image info"
+    },
+    "wim.xmlRow": {
+      "zh": "XML 元数据",
+      "en": "XML metadata"
+    },
+    "wim.xmlSub": {
+      "zh": "wimlib 读到的映像信息",
+      "en": "Image info read by wimlib"
+    },
+    "files.search": {
+      "zh": "搜索",
+      "en": "Search"
+    },
+    "files.searchHint": {
+      "zh": "在当前文件夹里找…",
+      "en": "Find in this folder…"
+    },
+    "files.searchEmpty": {
+      "zh": "没有找到",
+      "en": "Nothing found"
+    },
+    "files.searching": {
+      "zh": "正在找…",
+      "en": "Searching…"
+    },
+    "files.searchLimit": {
+      "zh": "结果太多，只显示前 {0} 条",
+      "en": "Too many hits, showing first {0}"
+    },
+    "files.searchScope": {
+      "zh": "搜索范围：当前文件夹及子文件夹",
+      "en": "Scope: this folder and subfolders"
+    },
+    "files.extracting": {
+      "zh": "正在取出文件…",
+      "en": "Extracting…"
+    },
+    "files.openNoEditor": {
+      "zh": "容器里的文件只能\"拿出来看\"，改完不会写回去",
+      "en": "Files inside a container can be extracted and viewed; edits are not written back"
+    },
+    "ed.find": {
+      "zh": "查找替换",
+      "en": "Find & replace"
+    },
+    "ed.findOnly": {
+      "zh": "查找",
+      "en": "Find"
+    },
+    "ed.findHint": {
+      "zh": "要查找的内容",
+      "en": "Find what"
+    },
+    "ed.replaceHint": {
+      "zh": "替换成（可留空）",
+      "en": "Replace with (optional)"
+    },
+    "ed.next": {
+      "zh": "下一个",
+      "en": "Next"
+    },
+    "ed.prev": {
+      "zh": "上一个",
+      "en": "Previous"
+    },
+    "ed.replace": {
+      "zh": "替换",
+      "en": "Replace"
+    },
+    "ed.replaceAll": {
+      "zh": "全部替换",
+      "en": "Replace all"
+    },
+    "ed.noMatch": {
+      "zh": "没有找到",
+      "en": "Not found"
+    },
+    "ed.replaced": {
+      "zh": "已替换 {0} 处",
+      "en": "Replaced {0}"
+    },
+    "ed.selectAll": {
+      "zh": "全选",
+      "en": "Select all"
+    },
+    "ed.copy": {
+      "zh": "复制",
+      "en": "Copy"
+    },
+    "ed.paste": {
+      "zh": "粘贴",
+      "en": "Paste"
+    },
+    "ed.save": {
+      "zh": "保存",
+      "en": "Save"
+    },
+    "ed.saveTitle": {
+      "zh": "保存文件",
+      "en": "Save file"
+    },
+    "ed.saveTo": {
+      "zh": "将文件保存到",
+      "en": "Save the file to"
+    },
+    "ed.encoding": {
+      "zh": "编码",
+      "en": "Encoding"
+    },
+    "ed.saved": {
+      "zh": "已保存",
+      "en": "Saved"
+    },
+    "ed.saveFail": {
+      "zh": "保存失败：{0}",
+      "en": "Save failed: {0}"
+    },
+    "ed.wrap": {
+      "zh": "自动换行",
+      "en": "Word wrap"
+    },
+    "ed.lineNo": {
+      "zh": "显示行数",
+      "en": "Line numbers"
+    },
+    "ed.on": {
+      "zh": "开",
+      "en": "On"
+    },
+    "ed.off": {
+      "zh": "关",
+      "en": "Off"
+    },
+    "ed.loading": {
+      "zh": "正在打开…",
+      "en": "Opening…"
+    },
+    "ed.tooBig": {
+      "zh": "文件太大（{0}），先按只读打开",
+      "en": "File too large ({0}), opening read-only"
+    },
+    "ed.readOnly": {
+      "zh": "只读",
+      "en": "Read-only"
+    },
+    "ed.unsaved": {
+      "zh": "未保存的修改",
+      "en": "Unsaved changes"
+    },
+    "ed.discard": {
+      "zh": "放弃修改",
+      "en": "Discard"
+    },
+    "ed.discardAsk": {
+      "zh": "文件改过但没保存，确定退出？",
+      "en": "You have unsaved changes. Leave anyway?"
+    },
+    "ed.monoFail": {
+      "zh": "这个文件看着不像纯文本，强行打开可能是乱码",
+      "en": "This may not be plain text; it could look garbled"
+    },
+    "ed.copyDone": {
+      "zh": "已复制 {0} 个字符",
+      "en": "Copied {0} chars"
+    },
+    "ed.copyEmpty": {
+      "zh": "没有选中内容",
+      "en": "Nothing selected"
+    },
+    "ed.pasteEmpty": {
+      "zh": "剪贴板是空的",
+      "en": "Clipboard is empty"
+    },
+    "ed.lines": {
+      "zh": "共 {0} 行 · {1}",
+      "en": "{0} lines · {1}"
+    },
+    "ed.gutterNeedsNoWrap": {
+      "zh": "看行号需要先关掉自动换行",
+      "en": "Line numbers need word wrap off"
+    },
+    "files.progressCount": {
+      "zh": "{0} / {1} 项",
+      "en": "{0} / {1} items"
+    },
+    "files.restoreAsk": {
+      "zh": "要把它从回收站还原吗？",
+      "en": "Restore this file from the trash?"
+    },
+    "files.copying": {
+      "zh": "正在复制…",
+      "en": "Copying…"
+    },
+    "files.moving": {
+      "zh": "正在移动…",
+      "en": "Moving…"
+    },
+    "files.packing": {
+      "zh": "正在压缩…",
+      "en": "Compressing…"
+    },
+    "files.deleting": {
+      "zh": "正在删除…",
+      "en": "Deleting…"
+    },
+    "files.canceling": {
+      "zh": "正在取消…",
+      "en": "Cancelling…"
+    },
+    "pack.dstHost": {
+      "zh": "压缩包只能生成在手机目录里，把对面切到内部存储再试",
+      "en": "Archives can only be written to phone storage — switch the other pane to internal storage"
+    },
+    "pack.noPerm": {
+      "zh": "对面这个文件夹没有写入权限，换个位置再试",
+      "en": "No write permission in the target folder — pick another one"
+    },
+    "pack.extracting": {
+      "zh": "正在把只读的文件取出来…",
+      "en": "Extracting read-only items…"
+    },
+    "ed.undo": {
+      "zh": "撤销",
+      "en": "Undo"
+    },
+    "ed.redo": {
+      "zh": "重做",
+      "en": "Redo"
+    },
+    "ed.saveToHint": {
+      "zh": "这个是只读位置取出来的副本，保存需要挑一个可写的位置",
+      "en": "This copy came from a read-only place — pick a writable location to save it"
+    },
+    "files.saveBarLeft": {
+      "zh": "将文件保存到 →",
+      "en": "Save the file to →"
+    },
+    "files.saveBarRight": {
+      "zh": "← 将文件保存到",
+      "en": "← Save the file to"
+    },
+    "depRun.cancelTitle": {
+      "zh": "中止释放？",
+      "en": "Abort deployment?"
+    },
+    "depRun.quit": {
+      "zh": "退出",
+      "en": "Quit"
+    },
+    "depRun.cancelled": {
+      "zh": "已中止，页面已退出",
+      "en": "Aborted — left the page"
+    },
+    "depRun.abort": {
+      "zh": "中止释放",
+      "en": "Abort deployment"
+    },
+    "dep.keepOld": {
+      "zh": "把旧系统搬进 Windows.old",
+      "en": "Move the old system into Windows.old"
+    },
+    "dep.keepOldNote": {
+      "zh": "和 Windows 安装程序一样：先把 Windows / Program Files / Users 等搬进 Windows.old，再往里灌。不搬就绪会直接覆盖或失败。",
+      "en": "Like Windows Setup: move Windows / Program Files / Users into Windows.old first, then apply."
+    },
+    "dep.oldMoved": {
+      "zh": "旧系统已搬进 {0}",
+      "en": "Old system moved into {0}"
+    },
+    "dep.applyFailedOld": {
+      "zh": "目标分区里已经有系统文件（wimlib 返回 {0}）。勾选「把旧系统搬进 Windows.old」或打开「格式化」后重试。",
+      "en": "The target already has system files (wimlib returned {0}). Enable \"Move the old system into Windows.old\" or turn on \"Format\" and retry."
+    },
+    "depRun.old": {
+      "zh": "创建 Windows.old",
+      "en": "Create Windows.old"
+    },
+    "wr.partAttrOk": {
+      "zh": "必需分区 + 不分配盘符",
+      "en": "Required + no drive letter"
+    },
+    "dep.oldFail": {
+      "zh": "Windows.old 有 {0} 项没搬成（如 {1}）",
+      "en": "{0} item(s) could not be moved into Windows.old (e.g. {1})"
+    },
+    "dep.oldLeft": {
+      "zh": "还有 {0} 项没能搬进 Windows.old，先停下来，免得灌一半失败（可以手动删掉或改用格式化）",
+      "en": "{0} item(s) are still not in Windows.old — stopping before a half-written apply (delete them or use Format)"
+    },
+    "files.solid": {
+      "zh": "固实包",
+      "en": "solid"
+    },
+    "settings.licenseBody": {
+      "zh": "本应用使用以下开源组件：\n\n· Miuix (Apache-2.0) — 界面组件\n· sora-editor (LGPL-2.1) — 文本编辑器内核\n· UnRAR (UnRAR License) — RAR 解压（只读，不做压缩器）\n· libarchive (BSD-2) — zip/7z/tar 读写\n· wimlib (LGPL-2.1) — WIM/ESD 读写\n· ntfs-3g (GPL-2.0) — NTFS 读写\n· Shizuku API (Apache-2.0)\n\nUnRAR 版权：© Alexander Roshal。UnRAR 源码可自由分发，但不得用于实现 RAR 压缩器。",
+      "en": "This app uses these open-source components:\n\n· Miuix (Apache-2.0) — UI components\n· sora-editor (LGPL-2.1) — text editor core\n· UnRAR (UnRAR License) — RAR decompression (read-only, no compressor)\n· libarchive (BSD-2) — zip/7z/tar\n· wimlib (LGPL-2.1) — WIM/ESD\n· ntfs-3g (GPL-2.0) — NTFS\n· Shizuku API (Apache-2.0)\n\nUnRAR © Alexander Roshal. UnRAR source may be freely distributed, but must not be used to create a RAR compressor."
+    },
+    "files.extracted": {
+      "zh": "解压后",
+      "en": "extracted"
+    },
+    "br.fw32.title": {
+      "zh": "32 位 UEFI 固件",
+      "en": "32-bit UEFI firmware"
+    },
+    "br.fw32.state": {
+      "zh": "固件状态",
+      "en": "Firmware status"
+    },
+    "br.fw32.ready": {
+      "zh": "已就绪（公共目录里两份都在）",
+      "en": "Ready (both files present in the shared folder)"
+    },
+    "br.fw32.missing": {
+      "zh": "缺少固件 —— 这台虚拟机的 UEFI 起不来",
+      "en": "Firmware missing — UEFI cannot boot this VM"
+    },
+    "br.fw32.where": {
+      "zh": "存放位置",
+      "en": "Location"
+    },
+    "br.fw32.install": {
+      "zh": "释放固件到公共目录",
+      "en": "Extract firmware to shared folder"
+    },
+    "br.fw32.installHint": {
+      "zh": "从 App 自带资源释放，校验通过才算成功",
+      "en": "Copied from the bundled assets; verified by checksum"
+    },
+    "br.fw32.copy": {
+      "zh": "复制 QEMU 参数",
+      "en": "Copy QEMU arguments"
+    },
+    "br.fw32.copyHint": {
+      "zh": "两段 pflash 参数，粘到虚拟机的自定义参数里",
+      "en": "Two pflash arguments, paste into the VM's custom arguments"
+    },
+    "br.fw32.copied": {
+      "zh": "参数已复制",
+      "en": "Arguments copied"
+    },
+    "br.fw32.done": {
+      "zh": "固件已释放并校验通过",
+      "en": "Firmware extracted and verified"
+    },
+    "br.fw32.noAccess": {
+      "zh": "写不进公共目录：请先授予「所有文件访问权限」",
+      "en": "Cannot write to the shared folder — grant \"All files access\" first"
+    },
+    "br.fw32.fail": {
+      "zh": "固件释放失败：App 资源损坏，重装 App 再试",
+      "en": "Firmware extraction failed — the app's bundled assets are damaged, reinstall the app"
+    },
+    "br.fw32.howTitle": {
+      "zh": "怎么用",
+      "en": "How to use"
+    },
+    "br.fw32.how": {
+      "zh": "1. 在上面的卡片里释放固件，再复制参数。\n2. 打开虚拟机设置，把处理器架构改成 I386。\n3. 关掉 UEFI 开关（32 位固件由参数接管）。\n4. 把参数粘进「自定义 QEMU 参数」，保存后启动。\n\n32 位固件只加载 32 位 .efi。64 位系统仍用启动器自带的 64 位固件，不要混用。",
+      "en": "1. Extract the firmware above, then copy the arguments.\n2. Open the VM settings and set the CPU architecture to I386.\n3. Turn the UEFI switch off (the 32-bit firmware is supplied by the arguments).\n4. Paste the arguments into \"Custom QEMU arguments\", save, and boot.\n\nThe 32-bit firmware only loads 32-bit .efi files. 64-bit systems keep using the launcher's own 64-bit firmware — do not mix them."
+    },
+    "br.healthy.title": {
+      "zh": "当前引导没有问题",
+      "en": "Boot looks healthy"
+    },
+    "br.healthy.body": {
+      "zh": "自检没有发现引导问题。仍然要重新写入引导吗？\n\n重写会覆盖现有的引导文件和 BCD；如果只是想确认状态，直接返回即可。",
+      "en": "No boot problems were found. Rewrite the boot files anyway?\n\nThis overwrites the existing boot files and BCD. If you only wanted to check the status, just go back."
+    },
+    "br.healthy.go": {
+      "zh": "仍然重写",
+      "en": "Rewrite anyway"
+    },
+    "dep.bit32Warn": {
+      "zh": "这是 32 位 Windows：GPT 盘要用 32 位 UEFI 固件才能启动，需要给虚拟机额外注入 pflash 参数（引导修复页会给你现成的）。32 位 UEFI 最低要求 Windows 8；Vista / Win7 的 32 位镜像没有 EFI 引导文件，写引导会失败。",
+      "en": "This is 32-bit Windows: a GPT disk needs 32-bit UEFI firmware to boot, which requires extra pflash arguments for the VM (the boot-repair page gives you ready-made ones). 32-bit UEFI needs Windows 8 or later; Vista/Win7 32-bit images have no EFI boot files and the boot step will fail."
+    },
+    "fc.arch32": {
+      "zh": "32 位 PE（x86）",
+      "en": "32-bit PE (x86)"
+    },
+    "fc.arch64": {
+      "zh": "64 位 PE（x64）",
+      "en": "64-bit PE (x64)"
+    },
+    "fc.archArm": {
+      "zh": "ARM 架构 PE",
+      "en": "ARM PE"
+    },
+    "set.secCommunity": {
+      "zh": "社群与仓库",
+      "en": "Community & repositories"
+    },
+    "set.tg.title": {
+      "zh": "加入 Telegram 群",
+      "en": "Join the Telegram group"
+    },
+    "set.tg.fail": {
+      "zh": "打不开：设备上没有能处理该链接的应用",
+      "en": "Cannot open — no app on this device can handle this link"
+    },
+    "set.ghIssue.title": {
+      "zh": "反馈与建议",
+      "en": "Feedback & suggestions"
+    },
+    "set.ghIssue.summary": {
+      "zh": "提交 issues",
+      "en": "Submit an issue"
+    },
+    "set.ghTool.title": {
+      "zh": "底层工具仓库",
+      "en": "Underlying tool repository"
+    },
+    "set.ghTool.summary": {
+      "zh": "lgylxyyy/imgtool",
+      "en": "lgylxyyy/imgtool"
+    },
+    "set.tg.sub": {
+      "zh": "点击跳转",
+      "en": "Tap to open"
+    },
+    "set.ghApp.title": {
+      "zh": "App 仓库",
+      "en": "App repository"
+    },
+    "set.ghApp.summary": {
+      "zh": "lgylxyyy/Icdqcow2",
+      "en": "lgylxyyy/Icdqcow2"
+    }
+  }
+}

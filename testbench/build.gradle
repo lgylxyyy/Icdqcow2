@@ -1,0 +1,4 @@
+// 功能测试台：只为验证 imgtool 各项能力在真机上是否可用，不是最终 UI。
+plugins {
+    id 'com.android.application' version '8.7.3' apply false
+}

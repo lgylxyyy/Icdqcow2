@@ -1,0 +1,33 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'org.icdqcow2.imgtool.bench'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "org.icdqcow2.imgtool.bench"
+        // minSdk 28：wimlib 用到 Bionic 自 API 28 才提供的 glob()（用户 2026-10-22 定）
+        minSdk 28
+        targetSdk 35
+        versionCode 1
+        versionName "bench-1"
+        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64' }
+    }
+
+    buildTypes {
+        debug { }
+        release {
+            minifyEnabled false
+            signingConfig debug.signingConfig
+        }
+    }
+
+    // 原生库由 imgtool-android/android-cross.sh 预编译后放进 jniLibs，
+    // 这里不让 Gradle 去调 NDK 的 CMake（NDK 没有 linux-arm64 宿主二进制）。
+    packaging { jniLibs { useLegacyPackaging = false } }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}

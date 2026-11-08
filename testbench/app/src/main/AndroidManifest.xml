@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ★ Android 11+ 包可见性：不声明 <queries>，targetSdk 30+ 的应用 start
+         ACTION_OPEN_DOCUMENT 会抛 ActivityNotFoundException（真机踩过）。 -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <category android:name="android.intent.category.OPENABLE" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.GET_CONTENT" />
+            <category android:name="android.intent.category.OPENABLE" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.CREATE_DOCUMENT" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <!-- 各家文件管理器包名（有些 ROM 只注册了自己的那一个） -->
+        <package android:name="com.google.android.documentsui" />
+        <package android:name="com.android.documentsui" />
+        <package android:name="com.android.fileexplorer" />
+        <package android:name="com.miui.contentcatcher" />
+    </queries>
+
+    <!-- ★ 方案 A：要"所有文件访问"权限，才能直接读 /storage/emulated/0/ 根目录的
+         素材（9.1GB 的 ISO），并把测试产出的盘直接写回根目录给虚拟机用。
+         Android 11+ 需要 MANAGE_EXTERNAL_STORAGE（不是 READ/WRITE_EXTERNAL_STORAGE）。
+         debug APK 可用 `adb shell appops set <pkg> MANAGE_EXTERNAL_STORAGE allow` 免手点授权。
+         requestLegacyExternalStorage 给 Android 10 及以下留一条路。 -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <application
+        android:requestLegacyExternalStorage="true"
+        android:label="镜像工具测试台"
+        android:allowBackup="false"
+        android:theme="@android:style/Theme.DeviceDefault.Light">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:label="镜像工具测试台">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

@@ -1,0 +1,2301 @@
+{
+ "version": 1,
+ "note": "App 侧文案表。库只发 error_code / action / 数值；这里按 key 出中英文。新增命令或错误码时 check_i18n.py 会报缺项。",
+ "actions": {
+  "apply": {
+   "zh": "灌入",
+   "en": "Apply"
+  },
+  "cancel": {
+   "zh": "取消",
+   "en": "Cancel"
+  },
+  "check": {
+   "zh": "校验",
+   "en": "Check"
+  },
+  "convert": {
+   "zh": "转换",
+   "en": "Convert"
+  },
+  "copy": {
+   "zh": "拷贝",
+   "en": "Copy"
+  },
+  "export": {
+   "zh": "导出",
+   "en": "Export"
+  },
+  "format": {
+   "zh": "格式化",
+   "en": "Format"
+  },
+  "ls": {
+   "zh": "列出",
+   "en": "List"
+  },
+  "mk": {
+   "zh": "创建",
+   "en": "Create"
+  },
+  "open": {
+   "zh": "打开",
+   "en": "Open"
+  },
+  "put": {
+   "zh": "写入",
+   "en": "Write"
+  },
+  "reserve": {
+   "zh": "预留空间",
+   "en": "Reserve space"
+  },
+  "resize": {
+   "zh": "调整大小",
+   "en": "Resize"
+  },
+  "save": {
+   "zh": "保存",
+   "en": "Save"
+  },
+  "scan": {
+   "zh": "扫描",
+   "en": "Scan"
+  },
+  "write": {
+   "zh": "写入",
+   "en": "Write"
+  }
+ },
+ "commands": {
+  "img.info": {
+   "zh": {
+    "label": "镜像信息",
+    "help": "查看镜像大小、分区表类型与分区数"
+   },
+   "en": {
+    "label": "Image info",
+    "help": "Show image size, partition table type and partition count"
+   }
+  },
+  "part.show": {
+   "zh": {
+    "label": "分区表",
+    "help": "查看 GPT/MBR 分区表与每个分区的详细信息"
+   },
+   "en": {
+    "label": "Partition table",
+    "help": "Show the GPT/MBR table and details of every partition"
+   }
+  },
+  "fat.put": {
+   "zh": {
+    "label": "写入 FAT32",
+    "help": "把本地文件写入 FAT32 分区"
+   },
+   "en": {
+    "label": "Write to FAT32",
+    "help": "Write a local file into a FAT32 partition"
+   }
+  },
+  "fat.ls": {
+   "zh": {
+    "label": "浏览 FAT32",
+    "help": "列出 FAT32 分区里的目录"
+   },
+   "en": {
+    "label": "Browse FAT32",
+    "help": "List a directory inside a FAT32 partition"
+   }
+  },
+  "wim.size": {
+   "zh": {
+    "label": "估算展开大小",
+    "help": "估算 WIM/ESD 展开后需要多少空间"
+   },
+   "en": {
+    "label": "Estimate WIM size",
+    "help": "Estimate the space needed to expand a WIM/ESD"
+   }
+  },
+  "wim.apply": {
+   "zh": {
+    "label": "灌入 WIM/ESD",
+    "help": "把 WIM/ESD 的某个映像灌入分区（可先格式化）"
+   },
+   "en": {
+    "label": "Apply WIM/ESD",
+    "help": "Apply a WIM/ESD image into a partition (optionally format first)"
+   }
+  },
+  "part.scan": {
+   "zh": {
+    "label": "扫描分区",
+    "help": "识别文件系统、容量，并检查根目录有没有文件"
+   },
+   "en": {
+    "label": "Scan partition",
+    "help": "Detect the filesystem, size, and whether the root has files"
+   }
+  },
+  "ntfs.list": {
+   "zh": {
+    "label": "浏览 NTFS",
+    "help": "列出 NTFS 分区里的目录（给 App 决定搬谁）"
+   },
+   "en": {
+    "label": "Browse NTFS",
+    "help": "List a directory in an NTFS partition (the app decides what to move)"
+   }
+  },
+  "img.clone": {
+   "zh": {
+    "label": "克隆分区到新盘",
+    "help": "把保留分区克隆到新镜像（旧镜像自动改名、校验、失败回滚）"
+   },
+   "en": {
+    "label": "Clone partitions to a new image",
+    "help": "Clone selected partitions into a new image (old image renamed, verified, rolled back on failure)"
+   }
+  },
+  "winre.auto": {
+   "zh": {
+    "label": "开机自动启用 WinRE",
+    "help": "写入首次开机自动执行 reagentc /enable 的脚本（可删除）"
+   },
+   "en": {
+    "label": "Auto-enable WinRE",
+    "help": "Write a first-boot script that runs reagentc /enable (or remove it)"
+   }
+  },
+  "ntfs.exists": {
+   "zh": {
+    "label": "检查 NTFS 路径",
+    "help": "判断 NTFS 里的某个路径是否存在（断点续跑用）"
+   },
+   "en": {
+    "label": "Check NTFS path",
+    "help": "Check whether a path exists in NTFS (for resumable steps)"
+   }
+  },
+  "part.copy": {
+   "zh": {
+    "label": "跨镜像拷贝分区",
+    "help": "按扇区把分区从一个镜像拷到另一个镜像"
+   },
+   "en": {
+    "label": "Copy partition across images",
+    "help": "Copy a partition sector-by-sector between images"
+   }
+  },
+  "part.mbrboot": {
+   "zh": {
+    "label": "写入 MBR 引导",
+    "help": "写入 MBR 引导码和磁盘签名（BIOS 启动必需）"
+   },
+   "en": {
+    "label": "Write MBR boot code",
+    "help": "Write MBR boot code and disk signature (required for BIOS boot)"
+   }
+  },
+  "part.layout": {
+   "zh": {
+    "label": "生成 BIOS 布局",
+    "help": "生成 MBR 标准布局（系统保留、系统、恢复、扩展/逻辑分区）"
+   },
+   "en": {
+    "label": "Create BIOS/MBR layout",
+    "help": "Create the standard MBR layout (system reserved, system, recovery, extended/logical)"
+   }
+  },
+  "boot.repair": {
+   "zh": {
+    "label": "修复 BIOS 引导",
+    "help": "诊断并修复 MBR/VBR/BCD，然后复验（一键修引导）"
+   },
+   "en": {
+    "label": "Repair BIOS boot",
+    "help": "Diagnose and repair MBR/VBR/BCD, then verify (one-tap boot repair)"
+   }
+  },
+  "fat.exists": {
+   "zh": {
+    "label": "检查 FAT32 路径",
+    "help": "判断 FAT32 里的某个路径是否存在（断点续跑用）"
+   },
+   "en": {
+    "label": "Check FAT32 path",
+    "help": "Check whether a path exists in FAT32 (for resumable steps)"
+   }
+  },
+  "ctl.cancel": {
+   "zh": {
+    "label": "取消当前操作",
+    "help": "请求取消正在执行的操作（协作式，下一个检查点生效）"
+   },
+   "en": {
+    "label": "Cancel current operation",
+    "help": "Request cancellation of the running operation (cooperative, takes effect at the next checkpoint)"
+   }
+  },
+  "cmd.list": {
+   "zh": {
+    "label": "导出命令表",
+    "help": "导出命令、参数规格与帮助（App 自动生成界面用）"
+   },
+   "en": {
+    "label": "Export command table",
+    "help": "Export commands, argument specs and help (for auto-generated UI)"
+   }
+  },
+  "img.create": {
+   "zh": {
+    "label": "创建镜像",
+    "help": "建 qcow2 本体 + 分区表（GPT 或 MBR）"
+   },
+   "en": {
+    "label": "Create image",
+    "help": "Create the qcow2 file and its partition table (GPT or MBR)"
+   }
+  },
+  "fs.format": {
+   "zh": {
+    "label": "格式化分区",
+    "help": "把分区格式化成 NTFS 或 FAT32"
+   },
+   "en": {
+    "label": "Format partition",
+    "help": "Format a partition as NTFS or FAT32"
+   }
+  },
+  "ntfs.put": {
+   "zh": {
+    "label": "写入文件到 NTFS",
+    "help": "把本地文件写进 NTFS 分区（自动建父目录）"
+   },
+   "en": {
+    "label": "Put file into NTFS",
+    "help": "Write a local file into an NTFS partition (creates parent dirs)"
+   }
+  },
+  "ntfs.export": {
+   "zh": {
+    "label": "从 NTFS 导出文件",
+    "help": "把 NTFS 分区里的文件抽到本地"
+   },
+   "en": {
+    "label": "Export file from NTFS",
+    "help": "Extract a file from an NTFS partition to local storage"
+   }
+  },
+  "bcd.gen-uefi": {
+   "zh": {
+    "label": "生成 UEFI 引导配置",
+    "help": "按新盘 GUID 重写 BCD（换盘后必做）"
+   },
+   "en": {
+    "label": "Generate UEFI BCD",
+    "help": "Rewrite the BCD for the new disk's GUIDs (required after cloning)"
+   }
+  },
+  "boot.check": {
+   "zh": {
+    "label": "引导链自检",
+    "help": "逐项检查能不能启动，并给出必需项失败数"
+   },
+   "en": {
+    "label": "Boot chain check",
+    "help": "Check bootability item by item and report required failures"
+   }
+  },
+  "iso.ls": {
+   "zh": {
+    "label": "浏览 ISO",
+    "help": "列 ISO 里的目录（Windows 安装盘的 install.wim 只在 UDF 里）"
+   },
+   "en": {
+    "label": "Browse ISO",
+    "help": "List a directory inside the ISO (install.wim only exists in UDF on Windows media)"
+   }
+  },
+  "iso.extract": {
+   "zh": {
+    "label": "从 ISO 抽取文件",
+    "help": "把 ISO 里的文件流式抽到本地（App 不必自己装 ISO 库）"
+   },
+   "en": {
+    "label": "Extract from ISO",
+    "help": "Stream a file out of the ISO (the app needs no ISO library)"
+   }
+  },
+  "fat.export": {
+   "zh": {
+    "label": "从 ESP 导出文件",
+    "help": "把 FAT32(ESP) 里的文件抽到本地（UEFI 的 BCD 在 ESP 上）"
+   },
+   "en": {
+    "label": "Export from ESP",
+    "help": "Extract a file from FAT32/ESP to local storage (the UEFI BCD lives there)"
+   }
+  },
+  "part.attr": {
+   "zh": {
+    "label": "设分区属性",
+    "help": "设 GPT 分区属性（恢复分区官方要求 0x8000000000000001）"
+   },
+   "en": {
+    "label": "Set partition attributes",
+    "help": "Set GPT attributes (recovery partitions require 0x8000000000000001)"
+   }
+  },
+  "winre.find": {
+   "zh": {
+    "label": "查找 WinRE",
+    "help": "在 WIM/ESD 里定位 Winre.wim（只读）"
+   },
+   "en": {
+    "label": "Find WinRE",
+    "help": "Locate Winre.wim inside a WIM/ESD (read-only)"
+   }
+  },
+  "recovery.populate": {
+   "zh": {
+    "label": "填充恢复分区",
+    "help": "把 WinRE 填进独立恢复分区（UEFI）"
+   },
+   "en": {
+    "label": "Populate recovery partition",
+    "help": "Fill a dedicated recovery partition with WinRE (UEFI)"
+   }
+  },
+  "recovery.populate-system": {
+   "zh": {
+    "label": "填充系统分区内 WinRE",
+    "help": "把 WinRE 填进系统分区的 Recovery 目录（BIOS）"
+   },
+   "en": {
+    "label": "Populate WinRE in system partition",
+    "help": "Put WinRE into the system partition's Recovery folder (BIOS)"
+   }
+  },
+  "wim.identify": {
+   "zh": {
+    "label": "识别镜像版本",
+    "help": "从内容读 WIM/ESD/ISO 里的 Windows 版本（不信文件名）"
+   },
+   "en": {
+    "label": "Identify image version",
+    "help": "Read the Windows version from WIM/ESD/ISO content (file names lie)"
+   }
+  },
+  "win.version": {
+   "zh": {
+    "label": "读取盘内真实版本",
+    "help": "读已装盘：内核 PE 版本 + 注册表 + SKU 交叉验证"
+   },
+   "en": {
+    "label": "Read installed version",
+    "help": "Read the installed OS: kernel PE version + registry + SKUs, cross-checked"
+   }
+  },
+  "bcd.build": {
+   "zh": {
+    "label": "构建 BCD",
+    "help": "从模板直接构建 BCD（没有参考盘绑定时用）"
+   },
+   "en": {
+    "label": "Build BCD",
+    "help": "Build a BCD from a template (when no reference disk is available)"
+   }
+  },
+  "bcd.create": {
+   "zh": {
+    "label": "创建 BCD",
+    "help": "用内置模板建一张能启动的 BCD（Vista~11 / BIOS+UEFI / 32+64 位，不需要参考盘）"
+   },
+   "en": {
+    "label": "Create BCD",
+    "help": "Build a bootable BCD from built-in templates (Vista..11, BIOS+UEFI, x86+x64; no reference disk needed)"
+   }
+  },
+  "qc.verify": {
+   "zh": {
+    "label": "检查镜像结构",
+    "help": "qcow2 结构自检（别名/越界/坏 L2）——怀疑盘坏了就跑它"
+   },
+   "en": {
+    "label": "Verify image",
+    "help": "Check qcow2 structure (aliases / out-of-range / bad L2)"
+   }
+  },
+  "boot.plan": {
+   "zh": {
+    "label": "启动方案预检",
+    "help": "判定这个 Windows 能不能用 GPT/MBR 启动（只读，不写盘）"
+   },
+   "en": {
+    "label": "Boot plan",
+    "help": "Check whether this Windows can boot with GPT/MBR (read-only)"
+   }
+  },
+  "fat.touch": {
+   "zh": {
+    "label": "FAT 改时间",
+    "help": "设置 FAT 路径的时间（2 秒精度；0=该项不改）"
+   },
+   "en": {
+    "label": "FAT timestamps",
+    "help": "Set timestamps on a FAT path (2-second precision; 0 = leave unchanged)"
+   }
+  },
+  "ntfs.parent": {
+   "zh": {
+    "label": "NTFS 父引用检查",
+    "help": "只读检查目录的父引用是否自洽"
+   },
+   "en": {
+    "label": "NTFS parent check",
+    "help": "Read-only check that a directory's parent reference is consistent"
+   }
+  },
+  "ntfs.touch": {
+   "zh": {
+    "label": "NTFS 改时间",
+    "help": "设置盘内路径的时间（创建/修改/访问三选一；0=不改）"
+   },
+   "en": {
+    "label": "NTFS timestamps",
+    "help": "Set timestamps on a path (create/modify/access; 0 = leave unchanged)"
+   }
+  },
+  "wim.extract": {
+   "zh": {
+    "label": "WIM 抽文件",
+    "help": "从 WIM/ESD 只读抽出一个文件到本地"
+   },
+   "en": {
+    "label": "WIM extract",
+    "help": "Extract a single file from a WIM/ESD read-only"
+   }
+  },
+  "wim.ls": {
+   "zh": {
+    "label": "WIM 浏览",
+    "help": "浏览 WIM/ESD 内部目录树（只读）"
+   },
+   "en": {
+    "label": "WIM browse",
+    "help": "Browse the directory tree inside a WIM/ESD (read-only)"
+   }
+  },
+  "win.finish": {
+   "zh": {
+    "label": "完成 Windows 配置",
+    "help": "裸灌后首次启动收尾（离线改 Setup 状态）"
+   },
+   "en": {
+    "label": "Finish Windows setup",
+    "help": "Post-deploy first-boot fix (offline Setup state edit)"
+   }
+  },
+  "copy": {
+   "zh": {
+    "label": "统一复制",
+    "help": "按 ! 路径复制：同卷/跨分区/跨镜像/宿主/ISO/WIM；目录默认递归"
+   },
+   "en": {
+    "label": "Copy",
+    "help": "Copy using ! paths: same volume, cross partition/image, host, ISO/WIM; recursive by default"
+   }
+  },
+  "move": {
+   "zh": {
+    "label": "统一移动/改名",
+    "help": "同卷纯索引移动；跨卷复制+校验+删源；ISO/WIM 只读"
+   },
+   "en": {
+    "label": "Move/rename",
+    "help": "Index-only move in one volume; cross-volume copy+verify+delete; ISO/WIM read-only"
+   }
+  },
+  "rename": {
+   "zh": {
+    "label": "统一改名",
+    "help": "同父目录改名（新名字只写名字本身）"
+   },
+   "en": {
+    "label": "Rename",
+    "help": "Rename in the same directory (pass the new name only)"
+   }
+  },
+  "rm": {
+   "zh": {
+    "label": "统一删除",
+    "help": "删除镜像内或宿主文件/目录；递归需显式开启"
+   },
+   "en": {
+    "label": "Delete",
+    "help": "Delete files/directories in an image or on the host; recursion is explicit"
+   }
+  },
+  "part.add": {
+   "zh": {
+    "label": "新建分区",
+    "help": "在未分配空间里新建一块分区（只改分区表，不格式化）"
+   },
+   "en": {
+    "label": "New partition",
+    "help": "Create a partition in unallocated space (table only, no formatting)"
+   }
+  },
+  "part.remove": {
+   "zh": {
+    "label": "删除分区",
+    "help": "删掉一块分区（只改分区表；扩展分区容器要先删里面的逻辑分区）"
+   },
+   "en": {
+    "label": "Delete partition",
+    "help": "Delete a partition (table only; delete logical partitions inside an extended container first)"
+   }
+  },
+  "part.resize": {
+   "zh": {
+    "label": "调整分区大小",
+    "help": "调整最后一块分区的大小（不动别的分区起点）"
+   },
+   "en": {
+    "label": "Resize partition",
+    "help": "Resize the last partition (other partitions' start LBAs are never moved)"
+   }
+  },
+  "img.compact": {
+   "zh": {
+    "label": "紧凑另存",
+    "help": "把当前盘另存成更小的 qcow2（源只读，绝不改源文件）"
+   },
+   "en": {
+    "label": "Compact copy",
+    "help": "Save a smaller qcow2 copy (source is opened read-only)"
+   }
+  },
+  "ntfs.label": {
+   "zh": {
+    "label": "改 NTFS 卷标",
+    "help": "只改卷标，不格式化、不动文件数据"
+   },
+   "en": {
+    "label": "Set NTFS label",
+    "help": "Change the volume label only (no formatting)"
+   }
+  },
+  "fat.label": {
+   "zh": {
+    "label": "改 FAT32 卷标",
+    "help": "改 BPB 与根目录里的卷标项，不格式化"
+   },
+   "en": {
+    "label": "Set FAT32 label",
+    "help": "Update the BPB and root directory label entry only"
+   }
+  },
+  "part.export": {
+   "zh": {
+    "label": "导出分区表",
+    "help": "把这张盘的分区表存成 .json（只读；可另存原始表区）"
+   },
+   "en": {
+    "label": "Export partition table",
+    "help": "Save this disk's partition table as .json (read-only)"
+   }
+  },
+  "part.apply": {
+   "zh": {
+    "label": "应用分区表",
+    "help": "按 .json 写整张分区表（LBA/GUID 原样；只改表，不碰数据）"
+   },
+   "en": {
+    "label": "Apply partition table",
+    "help": "Write a whole partition table from .json (LBAs/GUIDs as-is, table only)"
+   }
+  },
+  "boot.populate": {
+   "zh": {
+    "label": "写入引导文件",
+    "help": "一条命令铺完引导：UEFI=ESP 格式化(无文件系统时)+bootmgfw.efi+Fonts+boot.sdi+BCD；BIOS=活动标志+bootmgr+MBR/VBR 引导码+BCD。跑完自动自检"
+   },
+   "en": {
+    "label": "Populate boot files",
+    "help": "One-shot boot chain: UEFI = format ESP if empty, bootmgfw.efi, fonts, boot.sdi, BCD; BIOS = active flag, bootmgr, MBR/VBR code, BCD. Runs a boot check at the end"
+   }
+  },
+  "wim.put": {
+   "zh": {
+    "label": "WIM 写进分区",
+    "help": "把 WIM/ESD/ISO 里的一个文件直接写进分区（0 临时文件）"
+   },
+   "en": {
+    "label": "WIM put",
+    "help": "Write one file from a WIM/ESD/ISO straight into a partition (zero temp)"
+   }
+  },
+  "ntfs.mkdir": {
+   "zh": {
+    "label": "建目录",
+    "help": "在 NTFS 分区里建目录（--parents 默认开；已存在算成功）"
+   },
+   "en": {
+    "label": "NTFS mkdir",
+    "help": "Create a directory in an NTFS partition (idempotent)"
+   }
+  },
+  "ntfs.stat": {
+   "zh": {
+    "label": "NTFS 详情",
+    "help": "单条详情：大小/占用/四时间/属性/ino/链接数"
+   },
+   "en": {
+    "label": "NTFS stat",
+    "help": "Single entry details: size/alloc/times/attrs/ino/links"
+   }
+  },
+  "fat.mkdir": {
+   "zh": {
+    "label": "建目录(FAT)",
+    "help": "在 FAT32 分区里建目录"
+   },
+   "en": {
+    "label": "FAT mkdir",
+    "help": "Create a directory in a FAT32 partition"
+   }
+  },
+  "fat.stat": {
+   "zh": {
+    "label": "FAT 详情",
+    "help": "单条详情（FAT32）"
+   },
+   "en": {
+    "label": "FAT stat",
+    "help": "Single entry details (FAT32)"
+   }
+  },
+  "archive.ls": {
+   "zh": {
+    "label": "列压缩包",
+    "help": "只读列压缩包目录（zip/7z/rar/tar.*/cab）；返回 index_token 供续页"
+   },
+   "en": {
+    "label": "Archive list",
+    "help": "List an archive read-only; returns index_token for paging"
+   }
+  },
+  "archive.extract": {
+   "zh": {
+    "label": "抽压缩包",
+    "help": "从压缩包抽单个文件或整棵目录子树（只读）"
+   },
+   "en": {
+    "label": "Archive extract",
+    "help": "Extract one file or a directory tree from an archive (read-only)"
+   }
+  }
+ },
+ "args": {
+  "img": {
+   "zh": "镜像路径",
+   "en": "Image path"
+  },
+  "lba": {
+   "zh": "分区起始 LBA",
+   "en": "Partition start LBA"
+  },
+  "src": {
+   "zh": "WIM/ESD/ISO 路径",
+   "en": "WIM/ESD/ISO path"
+  },
+  "dst": {
+   "zh": "目标",
+   "en": "Destination"
+  },
+  "check_size": {
+   "zh": "写入前校验空间",
+   "en": "Check free space before writing"
+  },
+  "host_free": {
+   "zh": "宿主剩余空间（字节）",
+   "en": "Host free space (bytes)"
+  },
+  "reserve": {
+   "zh": "预留宿主空间",
+   "en": "Reserve host space"
+  },
+  "path": {
+   "zh": "分区内路径",
+   "en": "Path inside the partition"
+  },
+  "wim": {
+   "zh": "WIM/ESD 文件",
+   "en": "WIM/ESD file"
+  },
+  "index": {
+   "zh": "映像索引",
+   "en": "Image index"
+  },
+  "format": {
+   "zh": "灌入前格式化",
+   "en": "Format before applying"
+  },
+  "label": {
+   "zh": "卷标",
+   "en": "Volume label"
+  },
+  "no_acls": {
+   "zh": "不写 ACL",
+   "en": "Skip ACLs"
+  },
+  "no_attrs": {
+   "zh": "不写扩展属性",
+   "en": "Skip extended attributes"
+  },
+  "wimboot": {
+   "zh": "wimboot 模式",
+   "en": "Wimboot mode"
+  },
+  "keep": {
+   "zh": "保留分区 LBA 列表",
+   "en": "Partition LBAs to keep"
+  },
+  "guid": {
+   "zh": "GUID 策略",
+   "en": "GUID policy"
+  },
+  "keep_old": {
+   "zh": "保留旧镜像",
+   "en": "Keep the old image"
+  },
+  "old_name": {
+   "zh": "旧镜像改名",
+   "en": "Old image name"
+  },
+  "enable": {
+   "zh": "启用/删除脚本",
+   "en": "Enable or remove the script"
+  },
+  "src-lba": {
+   "zh": "源分区 LBA",
+   "en": "Source partition LBA"
+  },
+  "dst-lba": {
+   "zh": "目标分区 LBA",
+   "en": "Target partition LBA"
+  },
+  "size-bytes": {
+   "zh": "拷贝字节数",
+   "en": "Bytes to copy"
+  },
+  "code": {
+   "zh": "MBR 引导码文件",
+   "en": "MBR boot code file"
+  },
+  "sig": {
+   "zh": "磁盘签名（十六进制）",
+   "en": "Disk signature (hex)"
+  },
+  "sr-mb": {
+   "zh": "系统保留大小（MiB）",
+   "en": "System reserved size (MiB)"
+  },
+  "sys-gb": {
+   "zh": "系统分区大小（GiB）",
+   "en": "System partition size (GiB)"
+  },
+  "rec-gb": {
+   "zh": "恢复分区大小（GiB）",
+   "en": "Recovery partition size (GiB)"
+  },
+  "logical-name": {
+   "zh": "逻辑分区卷标",
+   "en": "Logical partition label"
+  },
+  "extended": {
+   "zh": "创建扩展分区",
+   "en": "Create an extended partition"
+  },
+  "single": {
+   "zh": "单分区模式",
+   "en": "Single-partition mode"
+  },
+  "part-guid": {
+   "zh": "自定义分区 GUID",
+   "en": "Custom partition GUIDs"
+  },
+  "disk-guid": {
+   "zh": "新盘磁盘 GUID",
+   "en": "New disk GUID"
+  },
+  "sys-lba": {
+   "zh": "系统分区 LBA",
+   "en": "System partition LBA"
+  },
+  "sr-lba": {
+   "zh": "系统保留分区 LBA",
+   "en": "System reserved partition LBA"
+  },
+  "mbr-code": {
+   "zh": "MBR 引导码文件",
+   "en": "MBR boot code file"
+  },
+  "vbr-tpl": {
+   "zh": "VBR 模板（镜像:LBA）",
+   "en": "VBR template (image:LBA)"
+  },
+  "bcd-ref": {
+   "zh": "参考 BCD 文件",
+   "en": "Reference BCD file"
+  },
+  "vbr-lba": {
+   "zh": "VBR 引导码写入位置的 LBA（缺省=活动/系统保留分区）",
+   "en": "LBA to write the VBR boot code to (default: active / system reserved partition)"
+  },
+  "out": {
+   "zh": "新建镜像的输出路径",
+   "en": "Output path for the new image"
+  },
+  "size-gb": {
+   "zh": "磁盘大小（GiB）",
+   "en": "Disk size (GiB)"
+  },
+  "table": {
+   "zh": "分区表类型（gpt/mbr）",
+   "en": "Partition table type (gpt/mbr)"
+  },
+  "esp-mb": {
+   "zh": "ESP 大小（MiB）",
+   "en": "ESP size (MiB)"
+  },
+  "msr-mb": {
+   "zh": "MSR 大小（MiB）",
+   "en": "MSR size (MiB)"
+  },
+  "rec-mb": {
+   "zh": "恢复分区大小（MiB，0=不建）",
+   "en": "Recovery partition size (MiB, 0 = none)"
+  },
+  "sys-mb": {
+   "zh": "系统分区大小（MiB；GPT 给 0 表示吃满剩余）",
+   "en": "System partition size (MiB; 0 on GPT = fill the rest)"
+  },
+  "fs": {
+   "zh": "文件系统（ntfs/fat32）",
+   "en": "Filesystem (ntfs/fat32)"
+  },
+  "quick": {
+   "zh": "快速格式化（关掉会整盘零填，很慢）",
+   "en": "Quick format (off = zero-fill the whole partition, very slow)"
+  },
+  "mkdir": {
+   "zh": "自动创建父目录",
+   "en": "Create parent directories automatically"
+  },
+  "ref": {
+   "zh": "参考 BCD 文件",
+   "en": "Reference BCD file"
+  },
+  "sys-guid": {
+   "zh": "新盘系统分区 GUID",
+   "en": "New disk's system partition GUID"
+  },
+  "esp-guid": {
+   "zh": "新盘 ESP 分区 GUID",
+   "en": "New disk's ESP GUID"
+  },
+  "old-rec-guid": {
+   "zh": "参考件里的恢复分区 GUID",
+   "en": "Recovery partition GUID in the reference"
+  },
+  "new-rec-guid": {
+   "zh": "新盘的恢复分区 GUID",
+   "en": "New disk's recovery partition GUID"
+  },
+  "mode": {
+   "zh": "引导模式（auto/uefi/bios）",
+   "en": "Boot mode (auto/uefi/bios)"
+  },
+  "expect-recovery": {
+   "zh": "要求有恢复分区",
+   "en": "Require a recovery partition"
+  },
+  "force": {
+   "zh": "覆盖已存在的文件（会删掉原文件）",
+   "en": "Overwrite an existing file (deletes the original)"
+  },
+  "iso": {
+   "zh": "ISO 文件路径",
+   "en": "ISO file path"
+  },
+  "max-bytes": {
+   "zh": "最多抽取多少字节（0=整份）",
+   "en": "Maximum bytes to extract (0 = whole file)"
+  },
+  "attr": {
+   "zh": "GPT 分区属性（十六进制）",
+   "en": "GPT partition attributes (hex)"
+  },
+  "rec-lba": {
+   "zh": "恢复分区（或系统分区）起始 LBA",
+   "en": "Start LBA of the recovery (or system) partition"
+  },
+  "winre-src": {
+   "zh": "WinRE 来源 WIM/ESD",
+   "en": "WIM/ESD that contains WinRE"
+  },
+  "winre-index": {
+   "zh": "WIM/ESD 里的映像索引",
+   "en": "Image index inside the WIM/ESD"
+  },
+  "winre-path": {
+   "zh": "WIM 内 Winre.wim 的路径",
+   "en": "Path of Winre.wim inside the WIM"
+  },
+  "bootsdi-src": {
+   "zh": "boot.sdi 本地路径",
+   "en": "Local path to boot.sdi"
+  },
+  "set-gpt-attr": {
+   "zh": "设 GPT 属性 0x8000000000000001",
+   "en": "Set GPT attributes 0x8000000000000001"
+  },
+  "enable-script": {
+   "zh": "写首次开机启用 WinRE 的脚本",
+   "en": "Write the first-boot WinRE enable script"
+  },
+  "os-lba": {
+   "zh": "系统分区起始 LBA",
+   "en": "Start LBA of the system partition"
+  },
+  "template": {
+   "zh": "BCD 模板文件",
+   "en": "BCD template file"
+  },
+  "desc": {
+   "zh": "--sort 反向",
+   "en": "Reverse the --sort order"
+  },
+  "esp-lba": {
+   "zh": "ESP 分区 LBA",
+   "en": "ESP partition LBA"
+  },
+  "family": {
+   "zh": "BCD 代：auto/legacy(6.x)/modern(10.x)",
+   "en": "BCD generation: auto/legacy(6.x)/modern(10.x)"
+  },
+  "keep-recovery": {
+   "zh": "保留 WinRE/ramdisk 对象",
+   "en": "Keep WinRE/ramdisk objects"
+  },
+  "locale": {
+   "zh": "BCD 语言区域",
+   "en": "BCD locale"
+  },
+  "timeout": {
+   "zh": "启动菜单等待秒数",
+   "en": "Boot menu timeout (seconds)"
+  },
+  "after": {
+   "zh": "游标：只返回该 ino 之后的项",
+   "en": "Cursor: only entries after this ino"
+  },
+  "conflict": {
+   "zh": "同名策略：fail/overwrite/rename",
+   "en": "Conflict policy: fail/overwrite/rename"
+  },
+  "contains": {
+   "zh": "按名字包含过滤",
+   "en": "Filter by name substring"
+  },
+  "create_parents": {
+   "zh": "目标父目录不存在就建",
+   "en": "Create missing parent directories"
+  },
+  "depth": {
+   "zh": "递归深度上限",
+   "en": "Maximum recursion depth"
+  },
+  "dry-run": {
+   "zh": "只检查不写入",
+   "en": "Check only, do not write"
+  },
+  "find": {
+   "zh": "按名字查找",
+   "en": "Find by name"
+  },
+  "follow_symlinks": {
+   "zh": "是否跟随符号链接",
+   "en": "Follow symbolic links"
+  },
+  "ino": {
+   "zh": "附带 inode（稳定 ID）",
+   "en": "Include inode (stable id)"
+  },
+  "limit": {
+   "zh": "本页最多多少项",
+   "en": "Maximum entries per page"
+  },
+  "list_file": {
+   "zh": "批量清单文件（每行 源>目标）",
+   "en": "Batch list file (one src>dst per line)"
+  },
+  "max": {
+   "zh": "最多返回条数",
+   "en": "Maximum number of results"
+  },
+  "no-vbr": {
+   "zh": "跳过 VBR 写入",
+   "en": "Skip writing the VBR"
+  },
+  "now": {
+   "zh": "使用当前时间",
+   "en": "Use the current time"
+  },
+  "offset": {
+   "zh": "从第几项开始（分页）",
+   "en": "Start offset (pagination)"
+  },
+  "on_fail": {
+   "zh": "批量失败策略：continue/stop",
+   "en": "Batch failure policy: continue/stop"
+  },
+  "preserve_times": {
+   "zh": "保留源时间戳",
+   "en": "Preserve source timestamps"
+  },
+  "recursive": {
+   "zh": "递归处理子项",
+   "en": "Recurse into children"
+  },
+  "set": {
+   "zh": "要设置哪些时间：all/create/modify/access",
+   "en": "Which timestamps to set: all/create/modify/access"
+  },
+  "sizes": {
+   "zh": "附带真实大小",
+   "en": "Include real sizes"
+  },
+  "time": {
+   "zh": "指定 unix 时间（秒）",
+   "en": "Explicit unix time (seconds)"
+  },
+  "times": {
+   "zh": "附带时间（unix 秒）",
+   "en": "Include timestamps (unix seconds)"
+  },
+  "allow_host_delete": {
+   "zh": "允许删除宿主源（App 确认后传 true）",
+   "en": "Allow deleting the host source (pass true after UI confirmation)"
+  },
+  "name": {
+   "zh": "新名字（只写名字，不能带 / \\ ! :）",
+   "en": "New name (name only; no / \\ ! :)"
+  },
+  "extra-mb": {
+   "zh": "额外数据分区（MiB，逗号分隔）",
+   "en": "Extra data partitions (MiB, comma-separated)"
+  },
+  "size-mb": {
+   "zh": "分区大小（MiB）",
+   "en": "Partition size (MiB)"
+  },
+  "type": {
+   "zh": "分区类型",
+   "en": "Partition type"
+  },
+  "where": {
+   "zh": "放进哪块空闲区",
+   "en": "Which free region to use"
+  },
+  "align-mb": {
+   "zh": "起点对齐（MiB）",
+   "en": "Start alignment (MiB)"
+  },
+  "limits": {
+   "zh": "尺寸校验",
+   "en": "Size validation"
+  },
+  "layout": {
+   "zh": "分区布局",
+   "en": "Partition layout"
+  },
+  "win-mb": {
+   "zh": "Windows 分区大小（MiB，仅 MBR）",
+   "en": "Windows partition size (MiB, MBR only)"
+  },
+  "verify": {
+   "zh": "写完回读校验",
+   "en": "Verify after write"
+  },
+  "mbr-fill": {
+   "zh": "主分区槽策略（MBR）",
+   "en": "MBR primary-slot policy"
+  },
+  "in": {
+   "zh": "分区表文件（.json）",
+   "en": "Partition table file (.json)"
+  },
+  "raw": {
+   "zh": "原始表区输出路径",
+   "en": "Raw table area output path"
+  },
+  "inner": {
+   "zh": "（ISO）内部路径，如 /x64/sources/install.wim",
+   "en": "(ISO) path inside the image, e.g. /x64/sources/install.wim"
+  },
+  "scan": {
+   "zh": "（ISO）列出里面所有 wim/esd",
+   "en": "(ISO) list every wim/esd inside"
+  },
+  "fonts": {
+   "zh": "（UEFI）拷 \\Windows\\Boot\\Fonts（不拷中文菜单是方块）",
+   "en": "(UEFI) copy \\Windows\\Boot\\Fonts (otherwise the boot menu shows boxes)"
+  },
+  "probe": {
+   "zh": "位数判定：auto（仅当 WIM 里 ARCH 不可信时才读文件判）| always | never",
+   "en": "Architecture detection: auto (probe files only when the WIM ARCH is untrustworthy) | always | never"
+  },
+  "probe-only": {
+   "zh": "只检测、不落任何东西（winre.find 本来就只读；统一写法用）",
+   "en": "Probe only, write nothing (winre.find is read-only anyway)"
+  },
+  "winre-self": {
+   "zh": "winre-src 是【裸 winre.wim】：auto(自动认) | true | false",
+   "en": "winre-src is a bare winre.wim: auto | true | false"
+  },
+  "winre-dry-run": {
+   "zh": "只回答能不能写、WinRE 在哪、多大（不格式化、不写盘）",
+   "en": "Only report whether it can be populated, where WinRE is and how big (no format, no write)"
+  },
+  "dst-path": {
+   "zh": "目标盘内路径（如 /Recovery/WindowsRE/Winre.wim）",
+   "en": "Destination path inside the partition"
+  },
+  "dst-fd": {
+   "zh": "（REQ-29）直接写到这个文件描述符，不落临时文件",
+   "en": "Write straight to this file descriptor (no temp file)"
+  },
+  "stream": {
+   "zh": "流式解压直写（0 临时文件；false=先解到临时文件，占盘但可能更快）",
+   "en": "Stream-decompress straight to disk (zero temp; false = extract to a temp file first)"
+  },
+  "sort": {
+   "zh": "整目录排序：name|size|mtime|dir（与 --after 互斥，用 offset/limit 续页）",
+   "en": "Sort the whole directory: name|size|mtime|dir (mutually exclusive with --after)"
+  },
+  "sort-max": {
+   "zh": "排序最多收多少条，超了报 LIST-TOO-BIG（0=不限制）",
+   "en": "Max entries to collect for sorting; over it returns LIST-TOO-BIG (0 = unlimited)"
+  },
+  "skip-trashed": {
+   "zh": "递归子项跳过 .trashed-*（Android 系统回收站）；顶层 src 不受影响",
+   "en": "Skip .trashed-* in recursive children (Android trash); top-level src is untouched"
+  },
+  "exclude": {
+   "zh": "basename 通配排除，逗号分隔（如 .trashed-*,*.tmp）；大小写敏感",
+   "en": "Comma-separated basename globs to exclude (case-sensitive)"
+  },
+  "exclude-from": {
+   "zh": "排除清单文件（一行一条，tar -X 风格，按 basename 匹配）",
+   "en": "Exclusion list file (one pattern per line, matched against basename)"
+  },
+  "parents": {
+   "zh": "父目录不存在就一起建（默认 true）",
+   "en": "Create missing parents (default true)"
+  },
+  "archive": {
+   "zh": "压缩包路径（给了 index-token 时可省略）",
+   "en": "Archive path (optional when index-token is given)"
+  },
+  "index-token": {
+   "zh": "用上次返回的 index_token 续页（不重扫包；失效报 INDEX-EXPIRED）",
+   "en": "Continue with a previous index_token (no rescan; INDEX-EXPIRED when stale)"
+  }
+ },
+ "errors": {
+  "BCD-PATCH-FAIL": {
+   "zh": {
+    "cause": "改写 BCD 里的设备对象失败",
+    "suggest": "确认参考件是 BIOS BCD 且未损坏（reference/bcd-reference-bios-win11.bin）"
+   },
+   "en": {
+    "cause": "Failed to patch device objects in the BCD",
+    "suggest": "Make sure the reference is an intact BIOS BCD (reference/bcd-reference-bios-win11.bin)"
+   }
+  },
+  "BCD-REF-BAD": {
+   "zh": {
+    "cause": "参考 BCD 不是 BIOS 版或已损坏",
+    "suggest": "换用 bcdboot 在目标系统上生成的 BIOS BCD"
+   },
+   "en": {
+    "cause": "The reference BCD is not a BIOS BCD or is corrupt",
+    "suggest": "Use a BIOS BCD generated by bcdboot on the target system"
+   }
+  },
+  "BCD-WRITE-FAIL": {
+   "zh": {
+    "cause": "写入系统保留分区的 \\Boot\\BCD 失败",
+    "suggest": "确认系统保留分区是 NTFS 且空间足够"
+   },
+   "en": {
+    "cause": "Failed to write \\Boot\\BCD into the system reserved partition",
+    "suggest": "Make sure the system reserved partition is NTFS and has free space"
+   }
+  },
+  "BOOT-VBR-WRITE-FAIL": {
+   "zh": {
+    "cause": "写入 VBR 引导码失败",
+    "suggest": "核对 VBR 模板的镜像/LBA 与目标分区一致"
+   },
+   "en": {
+    "cause": "Failed to write the VBR boot code",
+    "suggest": "Check that the VBR template image/LBA matches the target partition"
+   }
+  },
+  "CLONE-VERIFY-FAIL": {
+   "zh": {
+    "cause": "克隆后校验不通过（已回滚旧镜像）",
+    "suggest": "先单独检查旧镜像是否损坏，再重试"
+   },
+   "en": {
+    "cause": "Post-clone verification failed (old image rolled back)",
+    "suggest": "Check the old image for corruption, then retry"
+   }
+  },
+  "CMD-ARG-BAD": {
+   "zh": {
+    "cause": "参数不合法或缺少必填参数",
+    "suggest": "按命令表（cmd.list）里的参数规格传值"
+   },
+   "en": {
+    "cause": "Invalid or missing argument",
+    "suggest": "Follow the argument spec from the command table (cmd.list)"
+   }
+  },
+  "CMD-CANCELLED": {
+   "zh": {
+    "cause": "操作已被取消",
+    "suggest": "目标分区/文件可能停在半写状态，请重做该步骤"
+   },
+   "en": {
+    "cause": "Operation cancelled",
+    "suggest": "The target may be half-written; redo this step"
+   }
+  },
+  "CMD-FAILED": {
+   "zh": {
+    "cause": "命令执行失败",
+    "suggest": "查看日志里的失败行（error_code + at）"
+   },
+   "en": {
+    "cause": "Command failed",
+    "suggest": "See the fail line in the log (error_code + at)"
+   }
+  },
+  "CMD-NOTFOUND": {
+   "zh": {
+    "cause": "没有这个命令",
+    "suggest": "用 cmd.list 查看当前构建支持的命令"
+   },
+   "en": {
+    "cause": "Unknown command",
+    "suggest": "Use cmd.list to see the commands in this build"
+   }
+  },
+  "FAT-DIR-NOTFOUND": {
+   "zh": {
+    "cause": "目录不存在",
+    "suggest": "核对路径（FAT 不区分大小写，但要写全名）"
+   },
+   "en": {
+    "cause": "Directory not found",
+    "suggest": "Check the path (FAT is case-insensitive but needs the full name)"
+   }
+  },
+  "FAT-ENOSPC": {
+   "zh": {
+    "cause": "目标分区空间不足",
+    "suggest": "换更小的文件，或先扩容该分区"
+   },
+   "en": {
+    "cause": "Not enough space in the target partition",
+    "suggest": "Use a smaller file, or grow the partition first"
+   }
+  },
+  "FAT-ENTRY-NOTFOUND": {
+   "zh": {
+    "cause": "要操作的名字不在目录里",
+    "suggest": "先用 ntfs.list / fat.ls 查看目录里有什么"
+   },
+   "en": {
+    "cause": "The entry is not in the directory",
+    "suggest": "List the directory first (ntfs.list / fat.ls)"
+   }
+  },
+  "FAT-LS-FAIL": {
+   "zh": {
+    "cause": "列目录失败",
+    "suggest": "镜像可能损坏，用 qemu-img check 校验"
+   },
+   "en": {
+    "cause": "Failed to list the directory",
+    "suggest": "The image may be corrupt; verify with qemu-img check"
+   }
+  },
+  "FAT-MOUNT-FAIL": {
+   "zh": {
+    "cause": "该 LBA 上不是合法 FAT32（未格式化或 LBA 不对）",
+    "suggest": "先格式化该分区，或核对 LBA"
+   },
+   "en": {
+    "cause": "Not a valid FAT32 at this LBA (not formatted, or wrong LBA)",
+    "suggest": "Format the partition first, or check the LBA"
+   }
+  },
+  "FAT-PUT-FAIL": {
+   "zh": {
+    "cause": "写入 FAT32 失败",
+    "suggest": "看日志里的失败行（含偏移与错误码）"
+   },
+   "en": {
+    "cause": "Failed to write into FAT32",
+    "suggest": "See the fail line in the log (offset + error code)"
+   }
+  },
+  "FEATURE-UNAVAILABLE": {
+   "zh": {
+    "cause": "当前构建缺少该功能需要的系统库",
+    "suggest": "重新构建并开启对应开关（见命令表的 features）"
+   },
+   "en": {
+    "cause": "This build is missing a library required by the feature",
+    "suggest": "Rebuild with the matching switch on (see features in the command table)"
+   }
+  },
+  "GUID-INVALID-BAD": {
+   "zh": {
+    "cause": "GUID 格式非法",
+    "suggest": "使用 8-4-4-4-12 的十六进制 GUID（如 1a233c35-12f4-6047-9d59-eafe3bb17577）"
+   },
+   "en": {
+    "cause": "Invalid GUID format",
+    "suggest": "Use an 8-4-4-4-12 hex GUID (e.g. 1a233c35-12f4-6047-9d59-eafe3bb17577)"
+   }
+  },
+  "HOST-ENOSPC": {
+   "zh": {
+    "cause": "宿主磁盘空间不足",
+    "suggest": "清理宿主空间，或换更小的源文件/镜像"
+   },
+   "en": {
+    "cause": "Not enough free space on the host",
+    "suggest": "Free up host space, or use a smaller source/image"
+   }
+  },
+  "HOST-OPEN-FAIL": {
+   "zh": {
+    "cause": "宿主文件无法打开（不存在或无权限）",
+    "suggest": "检查路径与权限"
+   },
+   "en": {
+    "cause": "Cannot open the host file (missing or no permission)",
+    "suggest": "Check the path and permissions"
+   }
+  },
+  "IMG-FORMAT": {
+   "zh": {
+    "cause": "镜像格式不对或已损坏",
+    "suggest": "用 qemu-img check 校验镜像"
+   },
+   "en": {
+    "cause": "Invalid or corrupt image format",
+    "suggest": "Verify the image with qemu-img check"
+   }
+  },
+  "IMG-OPEN-FAIL": {
+   "zh": {
+    "cause": "镜像无法打开（路径/权限/SAF fd 失效）",
+    "suggest": "检查路径与权限；SAF 场景确认 fd 仍有效"
+   },
+   "en": {
+    "cause": "Cannot open the image (path/permission/expired SAF fd)",
+    "suggest": "Check the path and permission; for SAF make sure the fd is still valid"
+   }
+  },
+  "IO-TIMEOUT": {
+   "zh": {
+    "cause": "磁盘 I/O 长时间没有任何进展",
+    "suggest": "检查介质/线缆/权限；慢介质可调大 I/O 超时（0=关闭）"
+   },
+   "en": {
+    "cause": "Disk I/O made no progress for too long",
+    "suggest": "Check the media/cable/permission; raise the I/O timeout for slow media (0=off)"
+   }
+  },
+  "LIST-FAIL": {
+   "zh": {
+    "cause": "列表读取失败",
+    "suggest": "看日志里的失败行；必要时用 qemu-img check"
+   },
+   "en": {
+    "cause": "Failed to read the listing",
+    "suggest": "See the fail line in the log; use qemu-img check if needed"
+   }
+  },
+  "NTFS-FORMAT-FAIL": {
+   "zh": {
+    "cause": "NTFS 格式化失败（灌 WIM 前的准备步骤）",
+    "suggest": "换更小的分区，或单独重试格式化"
+   },
+   "en": {
+    "cause": "NTFS formatting failed (the step before applying a WIM)",
+    "suggest": "Use a smaller partition, or retry formatting separately"
+   }
+  },
+  "PART-COPY-FAIL": {
+   "zh": {
+    "cause": "分区拷贝失败",
+    "suggest": "核对源/目标 LBA 与宿主空间"
+   },
+   "en": {
+    "cause": "Partition copy failed",
+    "suggest": "Check the source/target LBAs and host free space"
+   }
+  },
+  "PART-FS-BAD": {
+   "zh": {
+    "cause": "目标分区的文件系统不对",
+    "suggest": "先格式化该分区（如 NTFS）"
+   },
+   "en": {
+    "cause": "The target partition has the wrong filesystem",
+    "suggest": "Format the partition first (e.g. NTFS)"
+   }
+  },
+  "PART-JSON-FAIL": {
+   "zh": {
+    "cause": "分区表 JSON 渲染失败（内部错误）",
+    "suggest": "请把日志与操作步骤一并反馈"
+   },
+   "en": {
+    "cause": "Failed to render the partition table JSON (internal error)",
+    "suggest": "Please report it with the log and the steps"
+   }
+  },
+  "PART-READ-FAIL": {
+   "zh": {
+    "cause": "分区表读取失败",
+    "suggest": "镜像可能损坏，用 qemu-img check 复核"
+   },
+   "en": {
+    "cause": "Failed to read the partition table",
+    "suggest": "The image may be corrupt; verify with qemu-img check"
+   }
+  },
+  "PART-WRITE-FAIL": {
+   "zh": {
+    "cause": "分区表写入失败",
+    "suggest": "检查镜像是否可写、宿主空间是否足够"
+   },
+   "en": {
+    "cause": "Failed to write the partition table",
+    "suggest": "Check that the image is writable and the host has free space"
+   }
+  },
+  "QC-OPEN-FAIL": {
+   "zh": {
+    "cause": "不是合法的 qcow2（魔数或版本不符）",
+    "suggest": "确认镜像来源；必要时用 qemu-img check"
+   },
+   "en": {
+    "cause": "Not a valid qcow2 (bad magic or version)",
+    "suggest": "Check where the image came from; use qemu-img check if needed"
+   }
+  },
+  "SRC-NOTFOUND": {
+   "zh": {
+    "cause": "源文件不存在或无权限",
+    "suggest": "检查路径与权限"
+   },
+   "en": {
+    "cause": "Source file missing or not readable",
+    "suggest": "Check the path and permissions"
+   }
+  },
+  "WIM-NOTFOUND": {
+   "zh": {
+    "cause": "WIM/ESD 无法打开（文件不存在，或不是合法的 WIM/ESD）",
+    "suggest": "核对路径与权限；先用 wim.size 列出索引，确认文件下载完整"
+   },
+   "en": {
+    "cause": "Cannot open the WIM/ESD (missing, or not a valid WIM/ESD)",
+    "suggest": "Check the path; list indexes with wim.size first to confirm the file is complete"
+   }
+  },
+  "WIM-IDX-INVALID": {
+   "zh": {
+    "cause": "WIM/ESD 里没有这个索引",
+    "suggest": "先用 wim.size 看有哪些索引，再传正确的 index（从 1 开始）"
+   },
+   "en": {
+    "cause": "That image index does not exist in the WIM/ESD",
+    "sugglost": "",
+    "suggest": "List the indexes with wim.size, then pass the right index (1-based)"
+   }
+  },
+  "WIM-APPLY-FAIL": {
+   "zh": {
+    "cause": "格式化已经完成，但灌入 WIM/ESD 没有做完（分区里是半成品）",
+    "suggest": "整段重做（格式化 + 重灌）；看日志失败行的 error_code 与 at"
+   },
+   "en": {
+    "cause": "Formatting succeeded but applying the WIM/ESD did not finish (the partition is half-written)",
+    "suggest": "Redo the whole step (format + re-apply); check the fail line's error_code and at"
+   }
+  },
+  "CLONE-COPY-FAIL": {
+   "zh": {
+    "cause": "克隆拷贝失败（已自动回滚：旧镜像恢复原名）",
+    "suggest": "检查宿主剩余空间与旧镜像健康（qemu-img check / imgq2test）后重试"
+   },
+   "en": {
+    "cause": "Clone copy failed (rolled back automatically: the old image was renamed back)",
+    "suggest": "Check host free space and the old image's health (qemu-img check / imgq2test), then retry"
+   }
+  },
+  "WINRE-NOTFOUND": {
+   "zh": {
+    "cause": "这个 WIM/ESD 里没有 Winre.wim",
+    "suggest": "让用户换一个包含 WinRE 的 ISO/ESD/WIM（精简版常被移除）"
+   },
+   "en": {
+    "cause": "No Winre.wim inside this WIM/ESD",
+    "suggest": "Ask the user for an ISO/ESD/WIM that contains WinRE (slimmed builds often remove it)"
+   }
+  },
+  "REC-VERIFY-FAIL": {
+   "zh": {
+    "cause": "恢复分区填充失败",
+    "suggest": "看日志里的 at/error_code；确认分区已格式化且有空间"
+   },
+   "en": {
+    "cause": "Filling the recovery partition failed",
+    "suggest": "Check at/error_code in the log; make sure the partition is formatted with enough space"
+   }
+  },
+  "BCD-BUILD-FAIL": {
+   "zh": {
+    "cause": "内置模板生成 BCD 失败（参数不足或模板损坏）",
+    "suggest": "检查 --family/--sys-lba/--esp-lba；UEFI 需要分区表里有 ESP，BIOS 需要活动分区"
+   },
+   "en": {
+    "cause": "Failed to build the BCD from the built-in template",
+    "suggest": "Check --family/--sys-lba/--esp-lba; UEFI needs an ESP, BIOS needs an active partition"
+   }
+  },
+  "BOOT-FORMAT-UNSUPPORTED": {
+   "zh": {
+    "cause": "该 Windows 版本不支持使用此分区表启动",
+    "suggest": "32 位 Windows 没有 UEFI 启动路径；改用 MBR/BIOS（img.create --table=mbr）"
+   },
+   "en": {
+    "cause": "This Windows version does not support booting from the requested partition table",
+    "suggest": "32-bit Windows has no UEFI boot path; use MBR/BIOS (img.create --table=mbr)"
+   }
+  },
+  "BOOT-FORMAT-NEEDS-CONFIRM": {
+   "zh": {
+    "cause": "技术上能启动，但风险需要用户确认（老系统的 UEFI/GPT）",
+    "suggest": "弹框让用户确认；确认后带 --force=true 再调一次"
+   },
+   "en": {
+    "cause": "Technically bootable, but the risk needs the user's confirmation (legacy OS on UEFI/GPT)",
+    "suggest": "Ask the user to confirm, then retry with --force=true"
+   }
+  },
+  "TMPDIR-UNAVAILABLE": {
+   "zh": {
+    "cause": "没有可写的临时目录（Android 没有 /tmp）",
+    "suggest": "写操作前先调 Native.setTmpdir(context.getCacheDir().getAbsolutePath())"
+   },
+   "en": {
+    "cause": "No writable temporary directory (Android has no /tmp)",
+    "suggest": "Call Native.setTmpdir(context.getCacheDir().getAbsolutePath()) before any write operation"
+   }
+  },
+  "ISO-READ-FAIL": {
+   "zh": {
+    "cause": "ISO 文件能打开，但一个扇区都读不出来",
+    "suggest": "查权限与挂载是否被系统回收（Android 长时间后台后可能发生）；冷启动 App 或重选文件再试"
+   },
+   "en": {
+    "cause": "The ISO opens but not a single sector could be read",
+    "suggest": "Check permissions / whether the storage mount was revoked (can happen after the app sat in background on Android); restart the app or pick the file again"
+   }
+  },
+  "ISO-FORMAT-BAD": {
+   "zh": {
+    "cause": "认不出 UDF 也认不出 ISO9660 结构",
+    "suggest": "确认这是光盘镜像（.iso）；Windows 安装盘的 install.wim 只存在于 UDF 里"
+   },
+   "en": {
+    "cause": "Neither UDF nor ISO9660 structure recognised",
+    "suggest": "Make sure this is a disc image (.iso); on Windows install media install.wim lives only in the UDF part"
+   }
+  },
+  "COPY-SRC-NOTFOUND": {
+   "zh": {
+    "cause": "源路径或源镜像不存在",
+    "suggest": "核对源路径/镜像；列表刷新后再试"
+   },
+   "en": {
+    "cause": "Source path or image does not exist",
+    "suggest": "Verify the source path/image and refresh the list"
+   }
+  },
+  "COPY-DST-NOTFOUND": {
+   "zh": {
+    "cause": "目标分区或父目录不存在",
+    "suggest": "建目录或换目标位置"
+   },
+   "en": {
+    "cause": "Destination partition or parent directory does not exist",
+    "suggest": "Create the directory or pick another destination"
+   }
+  },
+  "COPY-DST-EXISTS": {
+   "zh": {
+    "cause": "目标已存在",
+    "suggest": "选择覆盖、保留两者（重命名）或跳过"
+   },
+   "en": {
+    "cause": "Destination already exists",
+    "suggest": "Choose overwrite, keep both (rename) or skip"
+   }
+  },
+  "COPY-DST-CONFLICT": {
+   "zh": {
+    "cause": "文件与目录互顶",
+    "suggest": "换一个目标名，或先删除旧对象"
+   },
+   "en": {
+    "cause": "A file and a directory collide",
+    "suggest": "Pick another name or delete the existing object first"
+   }
+  },
+  "COPY-LBA-AMBIGUOUS": {
+   "zh": {
+    "cause": "镜像里该文件系统有多个分区",
+    "suggest": "显式指定分区 LBA"
+   },
+   "en": {
+    "cause": "Multiple partitions of that filesystem exist",
+    "suggest": "Specify the partition LBA explicitly"
+   }
+  },
+  "COPY-DST-FS-BAD": {
+   "zh": {
+    "cause": "目标分区不是预期的文件系统",
+    "suggest": "回到分区页确认并格式化"
+   },
+   "en": {
+    "cause": "Destination partition is not the expected filesystem",
+    "suggest": "Check the partition and format it"
+   }
+  },
+  "COPY-UNSUPPORTED": {
+   "zh": {
+    "cause": "该组合不支持，或目录未开启递归",
+    "suggest": "开启递归或更换目标"
+   },
+   "en": {
+    "cause": "Unsupported combination, or recursion is disabled",
+    "suggest": "Enable recursion or choose another destination"
+   }
+  },
+  "COPY-NO-SPACE": {
+   "zh": {
+    "cause": "空间不足",
+    "suggest": "清理镜像内或宿主空间后重试"
+   },
+   "en": {
+    "cause": "Not enough space",
+    "suggest": "Free space in the image or on the host and retry"
+   }
+  },
+  "COPY-FILE-TOO-BIG": {
+   "zh": {
+    "cause": "FAT32 单文件超过 4 GiB-1",
+    "suggest": "改用 NTFS 分区或拆分文件"
+   },
+   "en": {
+    "cause": "File exceeds the FAT32 4 GiB-1 limit",
+    "suggest": "Use NTFS or split the file"
+   }
+  },
+  "NAME-INVALID": {
+   "zh": {
+    "cause": "名字是 Windows 不接受的（非法字符、尾随点/空格、CON/NUL/COM1 等设备名）",
+    "suggest": "改名后再试：去掉 < > : \" / \\ | ? *，名字别以 . 或空格结尾，别用保留设备名"
+   },
+   "en": {
+    "cause": "The name is not valid on Windows (illegal characters, trailing dot/space, or a reserved device name)",
+    "suggest": "Rename it: remove < > : \" / \\ | ? *, do not end with '.' or a space, avoid CON/NUL/COM1"
+   }
+  },
+  "COPY-NAME-TOO-LONG": {
+   "zh": {
+    "cause": "名字超过文件系统上限",
+    "suggest": "先改名（工具不会截断）"
+   },
+   "en": {
+    "cause": "Name exceeds the filesystem limit",
+    "suggest": "Rename it first (the tool never truncates)"
+   }
+  },
+  "COPY-SAME-FILE": {
+   "zh": {
+    "cause": "源和目标指向同一个文件",
+    "suggest": "要副本请用“保留两者”"
+   },
+   "en": {
+    "cause": "Source and destination are the same file",
+    "suggest": "Use keep-both to create a copy"
+   }
+  },
+  "COPY-INTO-SELF": {
+   "zh": {
+    "cause": "目标在源目录的子树里",
+    "suggest": "换一个目标位置"
+   },
+   "en": {
+    "cause": "Destination is inside the source directory",
+    "suggest": "Pick another destination"
+   }
+  },
+  "COPY-VERIFY-FAIL": {
+   "zh": {
+    "cause": "写完从盘上复查失败",
+    "suggest": "停止写入，保留现场并考虑使用备份"
+   },
+   "en": {
+    "cause": "Post-write verification failed",
+    "suggest": "Stop writing, keep the image and consider a backup"
+   }
+  },
+  "COPY-FAIL": {
+   "zh": {
+    "cause": "复制失败",
+    "suggest": "查看错误位置并导出诊断日志"
+   },
+   "en": {
+    "cause": "Copy failed",
+    "suggest": "Check the failing side and export diagnostics"
+   }
+  },
+  "FAT-TOUCH-FAIL": {
+   "zh": {
+    "cause": "设置 FAT 时间失败",
+    "suggest": "确认路径存在且卷可写"
+   },
+   "en": {
+    "cause": "Failed to set FAT timestamps",
+    "suggest": "Verify the path exists and the volume is writable"
+   }
+  },
+  "NTFS-DIR-PHANTOM": {
+   "zh": {
+    "cause": "目录记录未落盘或索引指向不存在的记录",
+    "suggest": "停止写入；用备份恢复或重建该分区"
+   },
+   "en": {
+    "cause": "Directory record was not persisted (phantom directory)",
+    "suggest": "Stop writing; restore from backup or rebuild the partition"
+   }
+  },
+  "NTFS-NOT-A-DIR": {
+   "zh": {
+    "cause": "路径不是目录",
+    "suggest": "换一个目录路径"
+   },
+   "en": {
+    "cause": "Path is not a directory",
+    "suggest": "Use a directory path"
+   }
+  },
+  "NTFS-PARENT-FAIL": {
+   "zh": {
+    "cause": "目录父引用不自洽",
+    "suggest": "运行 ntfs.parent 复核并考虑重建"
+   },
+   "en": {
+    "cause": "Directory parent reference is inconsistent",
+    "suggest": "Re-check with ntfs.parent and consider rebuilding"
+   }
+  },
+  "NTFS-PATH-NOTFOUND": {
+   "zh": {
+    "cause": "盘内路径不存在",
+    "suggest": "先用 ntfs.list 核对名称（大小写不敏感）"
+   },
+   "en": {
+    "cause": "Path does not exist in the volume",
+    "suggest": "List the parent with ntfs.list (case-insensitive)"
+   }
+  },
+  "NTFS-RM-FAIL": {
+   "zh": {
+    "cause": "删除失败",
+    "suggest": "检查是否为空目录或卷已只读"
+   },
+   "en": {
+    "cause": "Delete failed",
+    "suggest": "Check for a non-empty directory or a read-only volume"
+   }
+  },
+  "NTFS-TOUCH-FAIL": {
+   "zh": {
+    "cause": "设置 NTFS 时间失败",
+    "suggest": "确认路径存在且卷可写"
+   },
+   "en": {
+    "cause": "Failed to set NTFS timestamps",
+    "suggest": "Verify the path exists and the volume is writable"
+   }
+  },
+  "NTFS-VOLUME-DIRTY": {
+   "zh": {
+    "cause": "卷被标记为脏（休眠/掉电）",
+    "suggest": "先格式化或清理休眠文件"
+   },
+   "en": {
+    "cause": "Volume is marked dirty (hibernation/power loss)",
+    "suggest": "Format it or clear the hibernation file first"
+   }
+  },
+  "WIM-NOT-A-DIR": {
+   "zh": {
+    "cause": "WIM 内路径不是目录",
+    "suggest": "换一个目录路径"
+   },
+   "en": {
+    "cause": "Path inside the WIM is not a directory",
+    "suggest": "Use a directory path"
+   }
+  },
+  "PATH-BAD": {
+   "zh": {
+    "cause": "路径写法不合法",
+    "suggest": "按 /镜像.qcow2!p3:/路径、/镜像.iso!:/路径、host:/手机路径 书写"
+   },
+   "en": {
+    "cause": "Invalid path syntax",
+    "suggest": "Use /image.qcow2!p3:/path, /image.iso!:/path or host:/phone/path"
+   }
+  },
+  "PATH-READONLY": {
+   "zh": {
+    "cause": "ISO/WIM/ESD 是只读安装源",
+    "suggest": "不要写入或移动只读容器里的内容"
+   },
+   "en": {
+    "cause": "ISO/WIM/ESD is read-only",
+    "suggest": "Do not write to or move content inside a read-only container"
+   }
+  },
+  "PATH-SRC-NOTFOUND": {
+   "zh": {
+    "cause": "源路径不存在",
+    "suggest": "先列父目录核对名称（大小写不敏感）"
+   },
+   "en": {
+    "cause": "Source path does not exist",
+    "suggest": "List the parent directory and check the name (case-insensitive)"
+   }
+  },
+  "PATH-DST-NOTFOUND": {
+   "zh": {
+    "cause": "目标路径/父目录不存在",
+    "suggest": "建父目录或开启 create_parents"
+   },
+   "en": {
+    "cause": "Destination path/parent does not exist",
+    "suggest": "Create the parent or enable create_parents"
+   }
+  },
+  "PATH-FS-BAD": {
+   "zh": {
+    "cause": "分区不是 NTFS/FAT32",
+    "suggest": "确认 LBA 或重新格式化"
+   },
+   "en": {
+    "cause": "Partition is not NTFS/FAT32",
+    "suggest": "Check the LBA or format it"
+   }
+  },
+  "PATH-PART-AMBIGUOUS": {
+   "zh": {
+    "cause": "该文件系统有多个分区",
+    "suggest": "把路径写成 !p3: 或 !lba165888:"
+   },
+   "en": {
+    "cause": "Multiple partitions use that filesystem",
+    "suggest": "Write !p3: or !lba165888: in the path"
+   }
+  },
+  "MOVE-PARTIAL": {
+   "zh": {
+    "cause": "复制成功但删除源失败（两份都在）",
+    "suggest": "手动删除源；不要自动重试"
+   },
+   "en": {
+    "cause": "Copied successfully but failed to delete the source (both exist)",
+    "suggest": "Delete the source manually; do not retry automatically"
+   }
+  },
+  "MOVE-HOST-DELETE-REFUSED": {
+   "zh": {
+    "cause": "未允许删除宿主源文件",
+    "suggest": "App 弹窗确认后传 allow_host_delete=true"
+   },
+   "en": {
+    "cause": "Deleting the host source was not allowed",
+    "suggest": "Confirm in the UI and pass allow_host_delete=true"
+   }
+  },
+  "MOVE-REFUSED": {
+   "zh": {
+    "cause": "按安全策略拒绝移动",
+    "suggest": "检查目标与权限"
+   },
+   "en": {
+    "cause": "Move refused by policy",
+    "suggest": "Check the destination and permissions"
+   }
+  },
+  "RM-DIR-NOT-EMPTY": {
+   "zh": {
+    "cause": "目录非空",
+    "suggest": "显式开启 recursive=true"
+   },
+   "en": {
+    "cause": "Directory is not empty",
+    "suggest": "Enable recursive=true explicitly"
+   }
+  },
+  "RM-HOST-DELETE-REFUSED": {
+   "zh": {
+    "cause": "未允许删除宿主文件",
+    "suggest": "App 二次确认后传 allow_host_delete=true"
+   },
+   "en": {
+    "cause": "Deleting host files was not allowed",
+    "suggest": "Confirm in the UI and pass allow_host_delete=true"
+   }
+  },
+  "RM-REFUSED": {
+   "zh": {
+    "cause": "按安全策略拒绝删除",
+    "suggest": "检查路径与权限"
+   },
+   "en": {
+    "cause": "Delete refused by policy",
+    "suggest": "Check the path and permissions"
+   }
+  },
+  "RM-ROOT-REFUSED": {
+   "zh": {
+    "cause": "不允许删除根目录",
+    "suggest": "选择具体的文件或子目录"
+   },
+   "en": {
+    "cause": "Refusing to delete a root directory",
+    "suggest": "Pick a specific file or subdirectory"
+   }
+  },
+  "PART-NOSPACE": {
+   "zh": {
+    "cause": "未分配空间放不下（工具不会去挤/移动已有分区）",
+    "suggest": "把目标调小；或先删/缩小最后一块分区腾地方；或把盘建大一点"
+   },
+   "en": {
+    "cause": "Not enough unallocated space (existing partitions are never moved)",
+    "suggest": "Use a smaller size, delete/shrink the last partition, or make the image bigger"
+   }
+  },
+  "PART-SIZE-BAD": {
+   "zh": {
+    "cause": "分区尺寸超出允许范围",
+    "suggest": "改成工具给出的范围（返回的 data 里有 role/min/max/unit）"
+   },
+   "en": {
+    "cause": "Partition size is outside the allowed range",
+    "suggest": "Use the range reported in data (role/min/max/unit)"
+   }
+  },
+  "LABEL-WRITE-FAIL": {
+   "zh": {
+    "cause": "改卷标写盘失败（MFT 记录 / FAT 卷标项写不进去）",
+    "suggest": "先 qc.verify 自检镜像；改卷标不改数据，失败不会毁分区"
+   },
+   "en": {
+    "cause": "Failed to write the volume label (MFT record / root dir entry)",
+    "suggest": "Run qc.verify first; changing a label never touches file data"
+   }
+  },
+  "PT-FILE-BAD": {
+   "zh": {
+    "cause": "这个文件不是分区表（kind/版本/表类型/字段不对）",
+    "suggest": "用「导出分区表」生成的那种 .json；不要手改 kind/v/table"
+   },
+   "en": {
+    "cause": "Not a partition-table file (bad kind/version/table/field)",
+    "suggest": "Use a .json produced by part.export"
+   }
+  },
+  "PT-NOT-EMPTY": {
+   "zh": {
+    "cause": "目标盘已经有分区了",
+    "suggest": "确认要覆盖整张表再传 force=true（只改表，不动分区里的数据）"
+   },
+   "en": {
+    "cause": "The target disk already has partitions",
+    "suggest": "Pass force=true to overwrite the table (data stays untouched)"
+   }
+  },
+  "PT-OVERLAP": {
+   "zh": {
+    "cause": "文件里有两条分区重叠",
+    "suggest": "检查 first/sectors；容器与它自己的逻辑分区不算重叠"
+   },
+   "en": {
+    "cause": "Two partitions in the file overlap",
+    "suggest": "Check first/sectors; a container and its own logicals don't count"
+   }
+  },
+  "PT-TOO-MANY": {
+   "zh": {
+    "cause": "MBR 主分区（含扩展容器）超过 4 个",
+    "suggest": "删掉一个主分区，或改用 GPT"
+   },
+   "en": {
+    "cause": "More than 4 MBR primary slots (container included)",
+    "suggest": "Drop a primary partition or use GPT"
+   }
+  },
+  "PT-DUP-GUID": {
+   "zh": {
+    "cause": "文件里有两条分区的 partGuid 相同或非法",
+    "suggest": "每条 GPT 分区必须有唯一的 partGuid"
+   },
+   "en": {
+    "cause": "Duplicate or invalid partGuid in the file",
+    "suggest": "Every GPT partition needs a unique partGuid"
+   }
+  },
+  "PT-WRITE-FAIL": {
+   "zh": {
+    "cause": "写分区表失败（宿主满 / 镜像损坏）",
+    "suggest": "先 qc.verify 自检；重跑一次本命令（GPT 最坏情况只写了主表）"
+   },
+   "en": {
+    "cause": "Failed to write the partition table",
+    "suggest": "Run qc.verify; re-run the command (GPT may have only the primary table written)"
+   }
+  },
+  "HOST-WRITE-FAIL": {
+   "zh": {
+    "cause": "写宿主文件失败（空间不足 / 目录被删）",
+    "suggest": "确认目录还在、空间够，再重试"
+   },
+   "en": {
+    "cause": "Failed writing the host file (no space / dir gone)",
+    "suggest": "Check the directory and free space, then retry"
+   }
+  },
+  "IMG-READ-FAIL": {
+   "zh": {
+    "cause": "读镜像里的表区失败",
+    "suggest": "qc.verify 自检；确认镜像没被截断"
+   },
+   "en": {
+    "cause": "Failed reading the table area from the image",
+    "suggest": "Run qc.verify; make sure the image isn't truncated"
+   }
+  },
+  "WIM-ISO-UNSUPPORTED": {
+   "zh": {
+    "cause": "本版不支持从 ISO 里直接读 WIM（当前构建的 wimlib 是共享库，拦不住它的 IO）",
+    "suggest": "换完整版 so；或先用 iso.extract 把 install.wim 抽出来再灌"
+   },
+   "en": {
+    "cause": "Directly reading the WIM inside an ISO isn't supported in this build",
+    "suggest": "Use the full .so, or iso.extract the install.wim first"
+   }
+  },
+  "BOOT-SRC-MISSING": {
+   "zh": {
+    "cause": "系统分区里缺引导文件（盘里可能还没灌系统），或引导文件写进 ESP/系统保留分区时失败",
+    "suggest": "先 wim.apply 把系统灌进系统分区，再重跑 boot.populate；细节看返回里的 files[]"
+   },
+   "en": {
+    "cause": "Boot files are missing in the Windows partition (system not applied yet?) or writing them failed",
+    "suggest": "Run wim.apply first, then boot.populate again; see files[] for per-file details"
+   }
+  },
+  "FAT-FORMAT-FAIL": {
+   "zh": {
+    "cause": "ESP 上没有文件系统，自动格式化 FAT32 也失败了",
+    "suggest": "先单独跑 fs.format --lba=<esp> --fs=fat32 看具体报错（分区太小/镜像被占用）"
+   },
+   "en": {
+    "cause": "ESP has no filesystem and formatting it as FAT32 failed",
+    "suggest": "Run fs.format --lba=<esp> --fs=fat32 alone to see the real error (too small / image busy)"
+   }
+  },
+  "HOST-NO-MEM": {
+   "zh": {
+    "cause": "命令要用的临时缓冲分配失败（内存不足）",
+    "suggest": "关掉别的 App 再试；一次要列的条目太多时先缩小范围（--limit / 分页）"
+   },
+   "en": {
+    "cause": "Failed to allocate a scratch buffer for this command (out of memory)",
+    "suggest": "Free some memory and retry; narrow the listing with --limit / paging"
+   }
+  },
+  "FS-FORMAT-FAIL": {
+   "zh": {
+    "cause": "格式化目标分区失败",
+    "suggest": "确认分区大小够、没有只读挂载；必要时先 part.layout 重建"
+   },
+   "en": {
+    "cause": "Failed to format the target partition",
+    "suggest": "Check partition size / read-only state; rebuild with part.layout if needed"
+   }
+  },
+  "LIST-TOO-BIG": {
+   "zh": {
+    "cause": "目录条目超过 --sort-max，拒绝排序",
+    "suggest": "调大 --sort-max（0=不限制），或退回客户端排序"
+   },
+   "en": {
+    "cause": "Directory exceeds --sort-max; sorting refused",
+    "suggest": "Raise --sort-max (0 = unlimited) or sort on the client"
+   }
+  },
+  "PATH-EXISTS-FILE": {
+   "zh": {
+    "cause": "同名文件已存在，不能当目录用",
+    "suggest": "换一个目录名，或先删掉那个文件"
+   },
+   "en": {
+    "cause": "A file with that name already exists",
+    "suggest": "Pick another name or delete the file first"
+   }
+  },
+  "PATH-NOT-FOUND": {
+   "zh": {
+    "cause": "路径不存在",
+    "suggest": "核对大小写与层级；用 list 看父目录"
+   },
+   "en": {
+    "cause": "Path does not exist",
+    "suggest": "Check case/spelling; list the parent directory"
+   }
+  },
+  "FS-WRITE-FAIL": {
+   "zh": {
+    "cause": "文件系统写入失败（空间/权限/结构）",
+    "suggest": "确认分区没满、没只读挂载；必要时 chkdsk"
+   },
+   "en": {
+    "cause": "Filesystem write failed (space/permission)",
+    "suggest": "Check free space and mount mode"
+   }
+  },
+  "ARCHIVE-NOTFOUND": {
+   "zh": {
+    "cause": "压缩包不存在",
+    "suggest": "核对路径；App 选的文件可能已移动"
+   },
+   "en": {
+    "cause": "Archive not found",
+    "suggest": "Check the path"
+   }
+  },
+  "ARCHIVE-OPEN-FAIL": {
+   "zh": {
+    "cause": "打不开压缩包（格式不认识或文件损坏）",
+    "suggest": "确认是 zip/7z/rar/tar/cab；损坏的包重新下载"
+   },
+   "en": {
+    "cause": "Cannot open the archive",
+    "suggest": "Check the format or re-download"
+   }
+  },
+  "INDEX-EXPIRED": {
+   "zh": {
+    "cause": "索引失效（包变了/超时/进程重启）",
+    "suggest": "从第 1 页重新索引（不带 --index-token 再调一次）"
+   },
+   "en": {
+    "cause": "Index expired",
+    "suggest": "Re-index from page 1 (call again without --index-token)"
+   }
+  },
+  "ARCHIVE-ENTRY-NOTFOUND": {
+   "zh": {
+    "cause": "包内没有这个路径",
+    "suggest": "用 archive.ls --path=/ 看包内路径"
+   },
+   "en": {
+    "cause": "Path not in archive",
+    "suggest": "List with archive.ls to see the real paths"
+   }
+  },
+  "ARCHIVE-ENCRYPTED": {
+   "zh": {
+    "cause": "包内条目加密",
+    "suggest": "暂不支持密码（不做密码参数）；请用未加密的包"
+   },
+   "en": {
+    "cause": "Entry is encrypted",
+    "suggest": "Password-protected archives are not supported yet"
+   }
+  },
+  "ARCHIVE-READ-FAIL": {
+   "zh": {
+    "cause": "读取/解压失败",
+    "suggest": "确认包没损坏、磁盘还有空间"
+   },
+   "en": {
+    "cause": "Read/decompress failed",
+    "suggest": "Check archive integrity and free space"
+   }
+  }
+ },
+ "features": {
+  "wimlib": {
+   "zh": "WIM/ESD 灌入",
+   "en": "WIM/ESD apply"
+  },
+  "ntfs3g": {
+   "zh": "NTFS 读写",
+   "en": "NTFS read/write"
+  },
+  "zlib": {
+   "zh": "压缩支持",
+   "en": "zlib support"
+  },
+  "mkntfs": {
+   "zh": "NTFS 格式化",
+   "en": "NTFS formatting"
+  }
+ }
+}

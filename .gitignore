@@ -1,0 +1,54 @@
+# ── 构建产物：库、APK、CMake/Gradle 中间物一律不入库 ──
+#     安卓端 .so 由 imgtool-android/android-cross.sh + android-deps.sh 现场生成
+build/
+build-*/
+.gradle/
+.cxx/
+.externalNativeBuild/
+obj/
+*.o
+*.a
+*.so
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# ── IDE 与本地路径 ──
+.idea/
+*.iml
+local.properties
+captures/
+*.swp
+.DS_Store
+
+# ── 素材/镜像：不可复刻的大文件永不入库 ──
+images/
+*.qcow2
+*.iso
+*.ISO
+*.wim
+*.esd
+*.raw
+*.img
+*.fd
+# 例外：32 位 UEFI 固件是有意随 App 分发的（BSD-2-Clause-Patent，见 THIRD_PARTY.md）
+!app/src/main/assets/firmware/*.fd
+
+# ── 运行期垃圾 ──
+*.log
+__pycache__/
+*.pyc
+tools/.cache/
+
+# ── 签名文件：绝不入库（用户 2026-11-06 明确要求）──
+*.jks
+*.keystore
+*.p12
+*.pem
+keystore.properties
+signing/
+release/
+
+# ── 内部工作文档不入库（2026-11-09）──
+docs/
