@@ -30,7 +30,7 @@
 
 ## 二、随 App 分发的原生库 `libimgtool.so`
 
-`libimgtool.so` 来自 [imgtool-android](https://github.com/lgylxyyy/imgtool-android)，
+`libimgtool.so` 来自 [imgtool](https://github.com/lgylxyyy/imgtool)（`./android-cross.sh`），
 其中包含：
 
 | 组件 | 许可证 | 用途 |

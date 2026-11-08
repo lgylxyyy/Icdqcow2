@@ -470,7 +470,7 @@ class Strings(val code: String) {
     val outOfRange get() = raw("plan.outOfRange")
     val noteWinDisk get() = raw("plan.note.winDisk")
 
-    // ── 工具端错误码 → 人话（REPLY-03 §2：失败信封也带 data） ──
+    // ── 工具端错误码 → 可读文本（REPLY-03 §2：失败信封也带 data） ──
     fun errorSize(min: Int, max: Int) =
         tpl("error.size", min, if (max <= 0) "∞" else max)
     /** 只有下限（工具端 `max=0` = 无上限）时的说法：别显示"16384–∞ MB"。 */
@@ -585,7 +585,7 @@ class Strings(val code: String) {
     val partsNoAtLba get() = raw("parts.noAtLba")
     val partsDelEspPair get() = raw("parts.delEspPair")
     fun partsNeedFront(front: String) = tpl("parts.needFront", front)
-    // ── 错误码说人话 ──
+    // ── 错误码生成说明文本 ──
     val errOpen get() = raw("err.open")
     val errQcOpen get() = raw("err.qcOpen")
     val errImgFormat get() = raw("err.imgFormat")

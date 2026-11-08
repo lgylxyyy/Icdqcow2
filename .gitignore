@@ -1,5 +1,5 @@
 # ── 构建产物：库、APK、CMake/Gradle 中间物一律不入库 ──
-#     安卓端 .so 由 imgtool-android/android-cross.sh + android-deps.sh 现场生成
+#     安卓端 .so 由 imgtool/android-cross.sh + android-deps.sh 现场生成
 build/
 build-*/
 .gradle/

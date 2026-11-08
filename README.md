@@ -7,7 +7,7 @@
 做完的镜像直接丢给虚拟机启动。
 
 > 底层是自研的 C 库 [imgtool](https://github.com/lgylxyyy/imgtool)，
-> Android 交叉编译版本在 [imgtool-android](https://github.com/lgylxyyy/imgtool-android)。
+> Android 交叉编译在同一仓库（[imgtool](https://github.com/lgylxyyy/imgtool)）里，用 `./android-cross.sh`。
 > 完全离线，不联网、不上传任何东西。
 
 ---
@@ -28,7 +28,7 @@
 | **文件操作** | 复制、移动、改名、删除（进回收站）、压缩成 zip、跨栏拖拽，多选批量 |
 | **压缩回收** | 把镜像里空洞压实，体积能小几个 GB |
 | **文本编辑器** | 内置编辑器，能直接改盘里的 `boot.ini`、`unattend.xml`、`BCD` 之外的配置文件；行号、查找替换、语法高亮 |
-| **全量自检** | 一次检查分区表、文件系统、引导链，给出人话结论 |
+| **全量自检** | 一次检查分区表、文件系统、引导链，给出结论说明 |
 
 ## 界面怎么用
 
@@ -72,8 +72,8 @@
 
 ```bash
 # 1) 先拿到 C 库（本仓库不含 .so）
-git clone https://github.com/lgylxyyy/imgtool-android
-cd imgtool-android && ./android-deps.sh && ./android-cross.sh arm64-v8a
+git clone https://github.com/lgylxyyy/imgtool
+cd imgtool && ./android-deps.sh && ./android-cross.sh arm64-v8a
 
 # 2) 放进 App 的 jniLibs
 cp build/android/arm64-v8a/libimgtool.so \
@@ -107,7 +107,7 @@ python3 tools/check_strings.py     # 缺 key / 多 key / 占位符不一致都�
 | Miuix（小米 HyperOS 风格组件库） | 0.9.4 |
 | 编辑器内核 sora-editor | 0.23.6 |
 | 液态玻璃 | `io.github.kyant0:backdrop` 2.0.1 / `shapes` 1.2.1 |
-| JNI | 自研薄层（`jni/`），`.so` 由 imgtool-android 产出 |
+| JNI | 自研薄层（`jni/`），`.so` 由 imgtool 的 android-cross.sh 产出 |
 
 ## 用到的开源项目
 

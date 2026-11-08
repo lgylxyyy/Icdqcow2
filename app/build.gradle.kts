@@ -36,7 +36,7 @@ android {
     }
     buildFeatures { compose = true }
 
-    // .so 由 imgtool-android/android-cross.sh 交叉编译后放进 jniLibs（Gradle 不调 NDK）
+    // .so 由 imgtool/android-cross.sh 交叉编译后放进 jniLibs（Gradle 不调 NDK）
     packaging { jniLibs { useLegacyPackaging = false } }
 
     // JNI 入口 Native.java 与 JNI 薄层是仓库里的同一份，别在 App 里抄第二份

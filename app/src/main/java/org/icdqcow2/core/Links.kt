@@ -19,12 +19,12 @@ import android.net.Uri
  */
 object Links {
 
-    const val TELEGRAM_GROUP = "https://t.me/+MDi67NofcjtmNWU1"
+    const val TELEGRAM_GROUP = "https://t.me/+S7A3cUHgbuVkMmI9"
     const val TELEGRAM_PKG = "org.telegram.messenger"
 
     const val REPO_APP = "https://github.com/lgylxyyy/Icdqcow2"
     const val REPO_TOOL = "https://github.com/lgylxyyy/imgtool"
-    const val REPO_TOOL_ANDROID = "https://github.com/lgylxyyy/imgtool-android"
+    const val REPO_TOOL_ANDROID = "https://github.com/lgylxyyy/imgtool"
 
     /** 提 issue 的直达链接（GitHub 会自动带上模板选择器）。 */
     const val ISSUE_APP = "$REPO_APP/issues/new/choose"

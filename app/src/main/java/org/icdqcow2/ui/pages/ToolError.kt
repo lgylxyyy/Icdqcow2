@@ -4,7 +4,7 @@ import org.icdqcow2.core.ToolRunner
 import org.icdqcow2.ui.Strings
 
 /**
- * 把工具端失败信封翻成人话。
+ * 把工具端失败信封转为可读文本。
  *
  * 工具端从 2026-10-25 起，失败时也可能带 `data`
  * （`PART-SIZE-BAD` → `min/max/role`，`PART-NOSPACE` → `avail_mb`），
@@ -34,7 +34,7 @@ internal fun toolErrorText(s: Strings, r: ToolRunner.Result): String {
             else -> s.errorArg(r.at ?: "?")
         }
         "PART-READ-FAIL" -> s.errorNoTable
-        // 常见错误码全部翻成人话；实在没有的才回退成"未知错误（码）"
+        // 常见错误码全部转为可读文本；实在没有的才回退成"未知错误（码）"
         "IMG-OPEN-FAIL" -> s.errOpen
         "QC-OPEN-FAIL" -> s.errQcOpen
         "IMG-FORMAT" -> s.errImgFormat

@@ -67,7 +67,7 @@ void imgapp_set_io_timeout_ms(int ms);  /* 0=关闭；默认 30000 */
  *   否则 bcd.create / BCD 读写会报 TMPDIR-UNAVAILABLE。
  *   dir=NULL/空/不可写 → IMG_EINVAL。可在 imgapp_init() 前后调用。 */
 int  imgapp_set_tmpdir(const char *dir);
-void imgapp_set_lang(const char *code);   /* 库内人话（note/summary/检查项名）的语言："zh"/"en" */
+void imgapp_set_lang(const char *code);   /* 库内说明文本（note/summary/检查项名）的语言："zh"/"en" */
 const char *imgapp_version(void);
 void imgapp_free(void *p);
 

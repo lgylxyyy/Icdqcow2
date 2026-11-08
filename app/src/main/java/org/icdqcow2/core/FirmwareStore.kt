@@ -94,7 +94,7 @@ object FirmwareStore {
      * 确保公共目录里有一对完好的固件：缺哪个补哪个，大小/校验不对就重写。
      *
      * `assets/firmware/` 是唯一真源，所以这里只做"拷出去 + 复核"。
-     * 返回 `null` 表示成功，非 `null` 是失败原因（给调用方映射成人话）。
+     * 返回 `null` 表示成功，非 `null` 是失败原因（供调用方转为可读文本）。
      */
     fun ensure(ctx: Context): String? {
         val dir = File(DIR)
