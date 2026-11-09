@@ -39,6 +39,7 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.icdqcow2.core.TempDirs
 import org.icdqcow2.core.ImageRepo
 import org.icdqcow2.core.ToolRunner
 import org.icdqcow2.ui.LocalStrings
@@ -343,7 +344,7 @@ internal suspend fun buildFcReport(
             title = s.fxReFill,
             detail = s.fxReFillDetail,
             run = {
-                val dir = File(ctx.cacheDir, "fcwinre").apply { mkdirs() }
+                val dir = File(TempDirs.stagingDir(ctx), "fcwinre").apply { mkdirs() }
                 val local = File(dir, "winre.wim")
                 val ex = ImageRepo.ntfsExport(winLba, sysWimPath, local.absolutePath, img)
                 if (!ex.ok) {
@@ -444,7 +445,7 @@ internal suspend fun rebuildTable(
     ctx: Context,
     diskSectors: Long,
 ): ToolRunner.Result = withContext(Dispatchers.IO) {
-    val dir = File(ctx.cacheDir, "fcpt").apply { mkdirs() }
+    val dir = File(TempDirs.stagingDir(ctx), "fcpt").apply { mkdirs() }
     val tmp = File(dir, "table.json")
     val ex = ImageRepo.exportTable(out = tmp.absolutePath, path = img)
     if (!ex.ok) return@withContext ex

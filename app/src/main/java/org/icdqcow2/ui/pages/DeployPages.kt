@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
+import org.icdqcow2.core.TempDirs
 import org.icdqcow2.core.ImageRepo
 import org.icdqcow2.core.StorageAccess
 import org.icdqcow2.ui.LocalStrings
@@ -937,7 +938,7 @@ fun DeployPage(
                     if (failure == null && writeRec) {
                         // ramdisk 要的 boot.sdi 在恢复分区里也得有一份（`boot.check` 的 rec.bootsdi
                         // 就是查这个）——工具端只吃本地文件，先从系统分区抽出来
-                        val sdiTmp = java.io.File(ctx.cacheDir, "deploy-boot.sdi")
+                        val sdiTmp = java.io.File(TempDirs.stagingDir(ctx), "deploy-boot.sdi")
                         val sdiRel = if (isGpt) {
                             "/Windows/Boot/DVD/EFI/boot.sdi"
                         } else {

@@ -23,6 +23,7 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.icdqcow2.core.TempDirs
 import org.icdqcow2.core.ImageRepo
 import org.icdqcow2.ui.LocalStrings
 import org.icdqcow2.ui.SmallTitlePage
@@ -73,7 +74,7 @@ fun ExportTablePage(onBack: () -> Unit, onToast: (String) -> Unit) {
         file = null
         parts = emptyList()
         // 先让工具端写成规范 JSON（缓存目录），读回来既当预览也当保存内容
-        val tmp = File(ctx.cacheDir, "pt-export.json")
+        val tmp = File(TempDirs.stagingDir(ctx), "pt-export.json")
         runCatching { tmp.delete() }
         val r = ImageRepo.exportTable(out = tmp.absolutePath, path = path)
         if (!r.ok) {

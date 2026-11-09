@@ -56,6 +56,7 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.icdqcow2.core.TempDirs
 import org.icdqcow2.core.DiskLimits
 import org.icdqcow2.core.ToolCaps
 import org.icdqcow2.core.ImageRepo
@@ -696,7 +697,7 @@ private fun CreateDiskForm(
         }
         val created = File(targetDir, "${draft.name}.${draft.format}").absolutePath
         // 表文件写到缓存目录再交给工具端：绕开 SAF 的 uri（工具只认路径）
-        val tmp = File(ctx.cacheDir, "pt-import.json")
+        val tmp = File(TempDirs.stagingDir(ctx), "pt-import.json")
         val wrote = withContext(Dispatchers.IO) { runCatching { tmp.writeText(raw) }.isSuccess }
         val ap = if (!wrote) null else ImageRepo.applyTable(tmp.absolutePath, path = created, force = true)
         if (ap == null || !ap.ok) {

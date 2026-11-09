@@ -61,6 +61,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.icdqcow2.core.TempDirs
 import org.icdqcow2.core.ImageRepo
 import org.icdqcow2.core.ShizukuShell
 import org.icdqcow2.core.ToolCaps
@@ -1103,7 +1104,7 @@ fun FilesScreen(
         scope.launch {
             busy = s.filesExtracting
             try {
-                val outDir = File(ctx.cacheDir, "preview").apply { mkdirs() }
+                val outDir = File(TempDirs.stagingDir(ctx), "preview").apply { mkdirs() }
                 val dst = File(outDir, e.name)
                 runCatching { if (dst.exists()) dst.delete() }
                 val r = when (loc.kind) {
@@ -1343,7 +1344,7 @@ fun FilesScreen(
                     continue
                 }
                 // 只读容器：取一份到缓存
-                val tmp = File(ctx.cacheDir, "pack").apply { mkdirs() }.resolve(n)
+                val tmp = File(TempDirs.stagingDir(ctx), "pack").apply { mkdirs() }.resolve(n)
                 runCatching { if (tmp.exists()) tmp.deleteRecursively() }
                 val loc = src.loc
                 val r = when (loc.kind) {
@@ -1400,7 +1401,7 @@ fun FilesScreen(
             ToolEvents.clear()
             if (fail == null) reload(dstPane, s)
             // 缓存里那份不再需要（打包已完成）
-            runCatching { File(ctx.cacheDir, "pack").deleteRecursively() }
+            runCatching { File(TempDirs.stagingDir(ctx), "pack").deleteRecursively() }
         }
     }
 

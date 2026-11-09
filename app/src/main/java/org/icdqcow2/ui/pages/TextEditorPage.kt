@@ -48,6 +48,7 @@ import io.github.rosemoe.sora.widget.schemes.EditorColorScheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.icdqcow2.core.TempDirs
 import org.icdqcow2.ui.LocalStrings
 import org.icdqcow2.ui.LocalVisualEffects
 import top.yukonga.miuix.kmp.basic.Button
@@ -485,7 +486,7 @@ fun TextEditorPage(
                                 // 只读位置取出来的副本：先落到缓存文件，再交给文件页挑位置
                                 val txt = currentText()
                                 scope.launch {
-                                    val tmp = File(ctx.cacheDir, "saveto").apply { mkdirs() }.resolve(f.name)
+                                    val tmp = File(TempDirs.stagingDir(ctx), "saveto").apply { mkdirs() }.resolve(f.name)
                                     val ok = withContext(Dispatchers.IO) {
                                         runCatching { tmp.writeBytes(txt.toByteArray(charsetOf(enc))) }.isSuccess
                                     }

@@ -31,6 +31,7 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.icdqcow2.core.TempDirs
 import org.icdqcow2.core.BootMode
 import org.icdqcow2.core.ImageRepo
 import org.icdqcow2.core.StorageAccess
@@ -441,7 +442,7 @@ private suspend fun fillRecFromSys(
         ImageRepo.ntfsExists(sysLba, WINRE_P2, img) == true -> WINRE_P2
         else -> null
     } ?: return@withContext ToolRunner.Result(cmd = "ntfs.exists", ok = false, code = "WINRE-NOTFOUND")
-    val dir = File(ctx.cacheDir, "brre").apply { mkdirs() }
+    val dir = File(TempDirs.stagingDir(ctx), "brre").apply { mkdirs() }
     val local = File(dir, "winre.wim")
     val ex = ImageRepo.ntfsExport(sysLba, src, local.absolutePath, img)
     if (!ex.ok) return@withContext ex
@@ -479,7 +480,7 @@ private suspend fun runBootFallback(
     srLba: Long,
     uefi: Boolean,
 ): ToolRunner.Result? = withContext(Dispatchers.IO) {
-    val dir = File(ctx.cacheDir, "brfb").apply { mkdirs() }
+    val dir = File(TempDirs.stagingDir(ctx), "brfb").apply { mkdirs() }
     if (uefi) {
         if (espLba <= 0L) return@withContext null
         val src = "/Windows/Boot/EFI/bootmgfw.efi"
@@ -687,7 +688,7 @@ fun WinRePage(
             )
         } else {
             // 系统盘那份：先抽到本地再灌（工具端只吃本地文件）
-            val dir = File(ctx.cacheDir, "wr").apply { mkdirs() }
+            val dir = File(TempDirs.stagingDir(ctx), "wr").apply { mkdirs() }
             val local = File(dir, "winre.wim")
             val ex = ImageRepo.ntfsExport(sysLba, sysWimPath!!, local.absolutePath, img)
             if (!ex.ok) {
