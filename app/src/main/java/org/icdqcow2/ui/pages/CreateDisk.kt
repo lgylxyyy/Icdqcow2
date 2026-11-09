@@ -766,9 +766,9 @@ private fun CreateDiskForm(
         }
         var fmtAsk by remember { mutableStateOf(false) }
         // ★ 弹窗必须和输入框装在同一个 Box 里：
-        //   CardMenuPopup 用 PopupPositionProvider 定位，锚点是它在 Compose 树里的**父节点**。
+        //   CardDropdown 用 PopupPositionProvider 定位，锚点是它在 Compose 树里的**父节点**。
         //   直接挂在页面 Column 下，锚点就变成整列 —— 菜单会飞到屏幕别处。
-        //   设置页（SettingsScreen 的历史条数）就是 Box { 行; CardMenuPopup }，此处照抄。
+        //   设置页（SettingsScreen 的历史条数）也是 Box { 行; CardDropdown }，此处照抄。
         Box {
             TextField(
                 value = draft.name,
@@ -779,17 +779,11 @@ private fun CreateDiskForm(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
-                    Text(
-                        "." + draft.format,
-                        style = MiuixTheme.textStyles.body2,
-                        color = MiuixTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .clickable { fmtAsk = true }
-                            .padding(end = 12.dp),
-                    )
+                    // 与 GB/MB 完全一致的胶囊：圆角高亮 + ⌃⌄，点按有轻震（打开那次）
+                    UnitPill("." + draft.format) { fmtAsk = !fmtAsk }
                 },
             )
-            CardMenuPopup(
+            CardDropdown(
                 show = fmtAsk,
                 items = fmtItems.map { it.title },
                 selectedIndex = fmtItems.indexOfFirst { it.title == draft.format }.coerceAtLeast(0),

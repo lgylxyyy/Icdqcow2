@@ -71,7 +71,7 @@ import org.icdqcow2.ui.pages.Choice
 import org.icdqcow2.ui.pages.ChoiceCard
 import org.icdqcow2.ui.pages.ChoiceDialog
 import org.icdqcow2.ui.pages.ConflictDialog
-import org.icdqcow2.ui.pages.CardMenuOverlay
+import org.icdqcow2.ui.pages.CardDropdownTopEnd
 import org.icdqcow2.ui.pages.ConfirmDialog
 import org.icdqcow2.ui.pages.LabelDialog
 import org.icdqcow2.ui.pages.ProgressBar
@@ -1510,7 +1510,7 @@ fun FilesScreen(
         }
 
         // ⋮ 菜单：页面内浮层，顶边 = 状态栏高 + 16dp − 32dp
-        CardMenuOverlay(
+        CardDropdownTopEnd(
             show = menuOpen,
             items = listOf(
                 s.filesSearch,

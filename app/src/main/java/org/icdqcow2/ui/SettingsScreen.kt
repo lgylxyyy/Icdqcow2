@@ -38,7 +38,7 @@ import org.icdqcow2.core.StorageAccess
 import org.icdqcow2.core.ThemeMode
 import org.icdqcow2.ui.pages.Choice
 import org.icdqcow2.ui.pages.ChoiceCard
-import org.icdqcow2.ui.pages.CardMenuPopup
+import org.icdqcow2.ui.pages.CardDropdown
 import org.icdqcow2.ui.pages.OptionRow
 import org.icdqcow2.ui.pages.rememberAllFilesGranted
 import top.yukonga.miuix.kmp.basic.BasicComponent
@@ -194,7 +194,7 @@ fun SettingsScreen(
                     value = labels[sel],
                     onClick = { historyDlg = !historyDlg },
                 )
-                CardMenuPopup(
+                CardDropdown(
                     show = historyDlg,
                     items = labels,
                     selectedIndex = sel,

@@ -5,7 +5,6 @@ import org.icdqcow2.core.StorageAccess
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.ui.draw.alpha
@@ -19,7 +18,6 @@ import androidx.compose.foundation.clickable
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -73,6 +71,9 @@ import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.DropdownDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -816,79 +817,7 @@ fun LabelDialog(
  * 也不像 Miuix 的 Spinner 那样给整屏加一层压暗。
  * 位置贴着锚点右上角，弹层会**盖住**右侧的 ⇅ 图标。
  */
-@Composable
-fun RowOptionPopup(
-    expanded: Boolean,
-    onDismiss: () -> Unit,
-    content: @Composable () -> Unit,
-) {
-    if (!expanded) return
-    val density = LocalDensity.current
-    val overlap = with(density) { 8.dp.toPx() }.toInt()
-    val margin = with(density) { 8.dp.toPx() }.toInt()
-    Popup(
-        popupPositionProvider = object : PopupPositionProvider {
-            override fun calculatePosition(
-                anchorBounds: IntRect,
-                windowSize: IntSize,
-                layoutDirection: LayoutDirection,
-                popupContentSize: IntSize,
-            ): IntOffset {
-                // 右边缘对齐、顶部略微上移盖住图标；下方放不下就翻到上方
-                val x = (anchorBounds.right - popupContentSize.width + overlap).coerceAtLeast(margin)
-                val below = anchorBounds.top + overlap
-                val above = anchorBounds.bottom - popupContentSize.height - overlap
-                val y = if (below + popupContentSize.height <= windowSize.height) below
-                else above.coerceAtLeast(margin)
-                return IntOffset(x, y)
-            }
-        },
-        properties = PopupProperties(focusable = false),
-        onDismissRequest = onDismiss,
-    ) {
-        content()
-    }
-}
-
 /** 下拉浮层里那张小卡片（紧凑、带对勾）。 */
-@Composable
-fun OptionCard(options: List<Pair<String, Boolean>>, onPick: (Int) -> Unit) {
-    val colors = MiuixTheme.colorScheme
-    Card(
-        modifier = Modifier.width(150.dp),
-        insideMargin = PaddingValues(vertical = 4.dp),
-    ) {
-        Column {
-            options.forEachIndexed { i, row ->
-                val label = row.first
-                val selected = row.second
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onPick(i) }
-                        .padding(horizontal = 16.dp, vertical = 9.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        label,
-                        style = MiuixTheme.textStyles.body2,
-                        color = if (selected) colors.primary else colors.onSurface,
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (selected) {
-                        Icon(
-                            MiuixIcons.Ok,
-                            contentDescription = null,
-                            tint = colors.primary,
-                            modifier = Modifier.size(16.dp),
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
 /**
  * 弹层定位：**以被点的那一行为基准**。
  *
@@ -1340,7 +1269,10 @@ fun NumberDialog(
         show = show,
         title = title,
         summary = hint,
-        onDismissRequest = { show = false },
+        onDismissRequest = {
+            // 点对话框外（scrim）时：菜单开着就只收菜单，别把整个对话框关掉
+            if (menu) menu = false else show = false
+        },
         onDismissFinished = {
             val v = pending
             when {
@@ -1350,7 +1282,7 @@ fun NumberDialog(
             }
         },
     ) {
-        Box(Modifier.fillMaxWidth()) {
+        Box(Modifier.fillMaxWidth().dismissCardDropdownOnTap()) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -1362,27 +1294,18 @@ fun NumberDialog(
                     allowDecimal = unit == SizeUnit.GB,
                     modifier = Modifier.onFocusChanged { if (it.isFocused) menu = false },
                     trailing = {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(50))
-                                .clickable {
-                                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                                    menu = !menu
-                                }
-                                .padding(start = 10.dp, end = 10.dp, top = 4.dp, bottom = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                unit.label,
-                                style = MiuixTheme.textStyles.body2,
-                                color = colors.onSurfaceVariantSummary,
-                            )
-                            Icon(
-                                MiuixIcons.Basic.ArrowUpDown,
-                                contentDescription = null,
-                                tint = colors.onSurfaceVariantSummary,
-                                modifier = Modifier.size(width = 10.dp, height = 16.dp),
+                        // 胶囊 + 就地挂下拉：锚点就是胶囊本身，位置规则与设置页/建盘页一致
+                        Box {
+                            UnitPill(unit.label) { menu = !menu }
+                            CardDropdown(
+                                show = menu,
+                                items = SizeUnit.entries.map { it.label },
+                                selectedIndex = SizeUnit.entries.indexOf(unit),
+                                onDismiss = { menu = false },
+                                onSelected = { i ->
+                                    switchUnit(SizeUnit.entries[i])
+                                    menu = false
+                                },
                             )
                         }
                     },
@@ -1444,106 +1367,6 @@ fun NumberDialog(
                 }
             }
 
-            // 单位浮层：不新开窗口，压在内容上方（右上角贴住单位按钮）
-            if (menu) {
-                UnitMenu(
-                    current = unit,
-                    onPick = {
-                        switchUnit(it)
-                        menu = false      // 必须落回 false，否则隐形浮层会一直挡着按钮
-                    },
-                    onDismiss = { menu = false },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .offset(y = 18.dp)
-                        .zIndex(1f),
-                )
-            }
-        }
-    }
-}
-
-/**
- * 单位浮层：贴在单位按钮下方，**右上角压住上下箭头**。
- *
- * 动效：从右上角向左下方向弹出（缩放 + 轻微位移，`TransformOrigin(1f, 0f)`），
- * 弹出和收回都用 spring（带一点过冲），收回动画跑完再真正移除。
- * 点按钮、点选项都有一次轻触震动。
- */
-@Composable
-private fun UnitMenu(
-    current: SizeUnit,
-    onPick: (SizeUnit) -> Unit,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val colors = MiuixTheme.colorScheme
-    val haptic = LocalHapticFeedback.current
-    val scope = rememberCoroutineScope()
-
-    // 0 = 收起，1 = 展开；spring 允许越过 1，做出"弹一下"的过冲
-    val progress = remember { Animatable(0f) }
-    var closing by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        progress.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow))
-    }
-
-    fun close(then: () -> Unit) {
-        if (closing) return
-        closing = true
-        scope.launch {
-            progress.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMedium))
-            then()
-        }
-    }
-
-    val density = LocalDensity.current
-    val drift = with(density) { 10.dp.toPx() }
-
-    Card(
-        modifier = modifier
-            .width(132.dp)
-            .graphicsLayer {
-                val p = progress.value
-                val s = 0.82f + 0.18f * p
-                scaleX = s
-                scaleY = s
-                translationX = (1f - p) * drift      // 从右上 → 左下
-                translationY = -(1f - p) * drift
-                alpha = p.coerceIn(0f, 1f)
-                transformOrigin = TransformOrigin(1f, 0f)
-            },
-        insideMargin = PaddingValues(vertical = 6.dp),
-    ) {
-        Column {
-            SizeUnit.entries.forEach { u ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                            close { onPick(u) }
-                        }
-                        .padding(horizontal = 18.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        u.label,
-                        style = MiuixTheme.textStyles.main,
-                        color = if (u == current) colors.primary else colors.onSurface,
-                    )
-                    Spacer(Modifier.weight(1f))
-                    if (u == current) {
-                        Icon(
-                            MiuixIcons.Ok,
-                            contentDescription = null,
-                            tint = colors.primary,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                }
-            }
         }
     }
 }
@@ -1655,105 +1478,172 @@ fun IconItem(
 //  ③ 动画只动「阴影自己的参数」（颜色 alpha、offset）和布局位移。
 //     官方文档推荐的也是动 Shadow 参数，而不是缩放带阴影的图层。
 // ───────────────────────────────────────────────────────────────────────────
+// 卡片下拉（全项目唯一实现）
+//
+// 用户 2026-11-09 定的规格，改之前先读：
+//   · 动效：弹出 spring(0.55, MediumLow) 带回弹；收回 spring(0.85, Medium) 播完才移除
+//   · 位移：scale 0.82→1 + 10dp 对角，transformOrigin(1,0)（从锚点那一角长出来）
+//   · 阴影：静态四周阴影，不随动画改 alpha
+//   · 条目贴边：上下不留白，圆角裁剪让按压高亮跟着圆角走
+//   · 震动：打开一次（在胶囊 [UnitPill] 里）+ 选中一次，共两次
+//   · 收回：点卡片外任何地方都收回，但**不消费**点击 —— 下层组件照常生效
+//
+// 两个位置模式（用户要求"除 GB/MB 外其他卡片的位置和方向不变"）：
+//   [CardDropdown]       贴锚点：设置页行、建盘页输入框、对话框里的单位胶囊
+//   [CardDropdownTopEnd] 钉在容器右上角：文件页 ⋮、编辑器
+//
+// ⚠️ 图层顺序：graphicsLayer（缩放/淡入）在外，阴影在内。不要用 dropShadow：它的模糊
+//    一旦被关进缩放小图层就会被 clamp，卡片圆角那圈发黑（踩过）。
+// ───────────────────────────────────────────────────────────────────────────
 
-/** 卡片菜单的展开进度。`visible = false` 表示退场播完了，调用方别再渲染。 */
+/** 卡片下拉的展开进度。`visible = false` 表示退场播完了，调用方别再渲染。 */
 private class CardMenuAnim(val visible: Boolean, val t: Float)
 
 @Composable
 private fun rememberCardMenuAnim(show: Boolean): CardMenuAnim {
+    val p = remember { Animatable(0f) }
     var rendered by remember { mutableStateOf(false) }
-    var opened by remember { mutableStateOf(false) }
     LaunchedEffect(show) {
         if (show) {
-            // 先让卡片以 t = 0 组出来，下一帧再开始播；否则首帧就是终态，看不到动画
             if (!rendered) {
                 rendered = true
+                // 先以 t = 0 组出来，下一帧再开始播；否则首帧就是终态，看不到动画
                 withFrameNanos { }
             }
-            opened = true
-        } else {
-            opened = false
-            kotlinx.coroutines.delay(160)
+            p.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow))
+        } else if (rendered) {
+            // 收回：动画**跑完**才移除，别用 delay 硬删（那样看不到过程）
+            p.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMedium))
             rendered = false
         }
     }
-    val t by androidx.compose.animation.core.animateFloatAsState(
-        targetValue = if (opened) 1f else 0f,
-        animationSpec = androidx.compose.animation.core.tween(
-            durationMillis = if (opened) 220 else 130,
-            easing = androidx.compose.animation.core.FastOutSlowInEasing,
-        ),
-        label = "cardMenuT",
-    )
-    return remember(rendered, t) { CardMenuAnim(rendered, t) }
+    return CardMenuAnim(rendered, p.value)
 }
 
 /**
- * 卡片本体。两个入口（Popup / 页面内浮层）都走这里，避免两套逻辑越改越歪。
- * 图层顺序见文件上方注释，**不要为了加动画往中间插 graphicsLayer**。
+ * 当前打开的卡片下拉（同一时刻只会有一个）。
+ *
+ * 为什么要全局登记：收回旁听器必须挂在**页面根**（祖先）上，而菜单是页面深处的组件 ——
+ * Compose 没有"向上挂修饰符"的 API。所以由菜单登记、页面根（[SmallTitlePage] /
+ * [LargeTitlePage]）和对话框内容统一旁听，见 [dismissCardDropdownOnTap]。
+ */
+object CardDropdownState {
+    private var owner: Any? = null
+    private var dismisser: (() -> Unit)? = null
+
+    /**
+     * 登记"点外面收回"。
+     *
+     * 不需要"放行打开手势"：打开发生在 UP 的 Main 阶段，而旁听器在同一次事件派发的
+     * Final 阶段跑 —— 那时 [open] 还没被调用（它要等重组后的 DisposableEffect），
+     * 所以打开那一下不会被自己关掉。
+     */
+    fun open(token: Any, dismiss: () -> Unit) {
+        owner = token
+        dismisser = dismiss
+    }
+
+    fun close(token: Any) {
+        if (owner === token) {
+            owner = null
+            dismisser = null
+        }
+    }
+
+    /** 旁听器每次"抬起"调一次；菜单没开就是空操作。 */
+    fun dispatchUp() {
+        dismisser?.invoke()
+    }
+
+    /** 测：当前是否有菜单打开（对话框用它决定 scrim 点击先收谁）。 */
+    val isOpen: Boolean get() = dismisser != null
+}
+
+/**
+ * "点卡片外收回" 的旁听器。挂在页面/对话框内容的**祖先**上，随时装、不消费事件。
+ *
+ * 为什么用 `PointerEventPass.Final` + 抬起时收回：
+ *   · 不消费 → 点到的按钮/输入框照常生效（"选组件的同时收回卡片"）；
+ *   · 抬起时下层已经处理完 → 点胶囊自己时它已经把菜单关掉，这里再调只会是空操作，
+ *     不会出现"关了又开"；
+ *   · 卡片本体在独立 Popup 窗口里，点它的事件根本不进这个窗口 —— 不用判断坐标。
+ */
+fun Modifier.dismissCardDropdownOnTap(): Modifier = this.pointerInput(Unit) {
+    awaitPointerEventScope {
+        while (true) {
+            val e = awaitPointerEvent(PointerEventPass.Final)
+            if (e.changes.any { !it.pressed && it.previousPressed }) CardDropdownState.dispatchUp()
+        }
+    }
+}
+
+/**
+ * 卡片本体。两个位置模式共用，保证样式完全一致。
+ *
+ * 阴影用平台 elevation（`Modifier.shadow`）而不是模糊：静态、不随进度变，四周都有。
  */
 @Composable
-private fun CardMenuSurface(
+private fun CardDropdownSurface(
     items: List<String>,
     selectedIndex: Int,
-    cardColor: Color,
-    t: Float,
     width: androidx.compose.ui.unit.Dp,
+    t: Float,
     onSelected: (Int) -> Unit,
 ) {
+    val colors = MiuixTheme.colorScheme
+    val haptic = LocalHapticFeedback.current
     val shape = RoundedCornerShape(16.dp)
     val p = t.coerceIn(0f, 1f)
-    Column(
-        modifier = Modifier
-            .width(width)
-            // 位移：**对角**落位 —— 从右上方（+8dp, -8dp）斜着落到原位，
-            // 正好对着锚点那一侧的角（⋮ 在右上、设置行也是右对齐），
-            // 看起来像卡片从那个角里"抽"出来。
-            // 用布局偏移而不是 scale：不建图层、不重采样，圆角柔边不会发黑。
-            .offset {
-                val d = (8.dp * (1f - p)).roundToPx()
-                androidx.compose.ui.unit.IntOffset(d, -d)
-            }
-            // 阴影：画进父画布，跟进度联动（官方推荐动 Shadow 参数）
-            .dropShadow(
-                shape = shape,
-                shadow = androidx.compose.ui.graphics.shadow.Shadow(
-                    radius = 12.dp,
-                    spread = 0.dp,
-                    offset = androidx.compose.ui.unit.DpOffset.Zero,
-                    color = Color.Black.copy(alpha = 0.22f * p),
-                ),
-            )
-            // 淡入：这层图层里只有纯色卡片，没有模糊，不会有 clamp 问题
-            .alpha(p)
-            .clip(shape)
-            .background(cardColor)
-            .padding(vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+    val cardColor = if (colors.surface.luminance() > 0.5f) Color.White
+    else colors.surfaceContainerHighest
+    val drift = with(LocalDensity.current) { 10.dp.toPx() }
+
+    Box(
+        Modifier.graphicsLayer {
+            val s = 0.82f + 0.18f * p
+            scaleX = s
+            scaleY = s
+            translationX = (1f - p) * drift      // 从右上 → 左下
+            translationY = -(1f - p) * drift
+            alpha = p
+            transformOrigin = TransformOrigin(1f, 0f)
+        },
     ) {
-        items.forEachIndexed { i, label ->
-            val selected = i == selectedIndex
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSelected(i) }
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    label,
-                    style = MiuixTheme.textStyles.main,
-                    color = if (selected) MiuixTheme.colorScheme.primary
-                    else MiuixTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f),
-                )
-                if (selected) {
-                    Icon(
-                        MiuixIcons.Basic.Check,
-                        contentDescription = null,
-                        tint = MiuixTheme.colorScheme.primary,
-                        modifier = Modifier.size(DropdownDefaults.CheckIconSize),
+        Column(
+            modifier = Modifier
+                .width(width)
+                .shadow(elevation = 14.dp, shape = shape, clip = false)
+                .clip(shape)
+                .background(cardColor),
+        ) {
+            items.forEachIndexed { i, label ->
+                val selected = i == selectedIndex
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            // 选中一次震动（与打开那次一起，构成用户要求的两次）
+                            haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                            onSelected(i)
+                        }
+                        // 条目贴边：卡片上下不留白，否则首尾条目外会露出"白条"
+                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        label,
+                        style = MiuixTheme.textStyles.main,
+                        color = if (selected) colors.primary else colors.onSurface,
+                        modifier = Modifier.weight(1f),
                     )
+                    if (selected) {
+                        Icon(
+                            MiuixIcons.Basic.Check,
+                            contentDescription = null,
+                            tint = colors.primary,
+                            modifier = Modifier.size(DropdownDefaults.CheckIconSize),
+                        )
+                    }
                 }
             }
         }
@@ -1761,108 +1651,95 @@ private fun CardMenuSurface(
 }
 
 /**
- * 独立窗口版本（设置页的下拉）：贴锚点，`focusable = true`（有系统遮罩、返回键可关）。
+ * 贴锚点的卡片下拉。
  *
- * 注意：`Popup` 的 `popupPositionProvider` 在这台机器上对 `fixedTopRight` 不生效，
- * 所以文件页的 ⋮ 用的是下面的 [CardMenuOverlay]。
+ * 定位规则（用户口径，**不要改**）：向下开时卡片顶边 = 条目顶边 + 16dp、右边 = 条目右边；
+ * 下面放不下才翻到上方。
+ *
+ * `focusable = false`：不抢焦点，点外面的事件才能落到下层组件（下层照常生效），
+ * 收回交给 [dismissCardDropdownOnTap]；返回键用宿主窗口的 BackHandler 兜。
  */
 @Composable
-fun CardMenuPopup(
+fun CardDropdown(
     show: Boolean,
     items: List<String>,
     selectedIndex: Int,
     onDismiss: () -> Unit,
     onSelected: (Int) -> Unit,
+    width: androidx.compose.ui.unit.Dp = ListPopupDefaults.MinWidth,
     offsetX: androidx.compose.ui.unit.Dp = 0.dp,
     offsetY: androidx.compose.ui.unit.Dp = 0.dp,
 ) {
     val anim = rememberCardMenuAnim(show)
+    val token = remember { Any() }
+    val latestDismiss by rememberUpdatedState(onDismiss)
+    val haptic = LocalHapticFeedback.current
+
+    // 打开这一次震动放在菜单里（而不是胶囊里）：不管用胶囊、整行还是 ⋮ 打开，都震一次
+    LaunchedEffect(show) { if (show) haptic.performHapticFeedback(HapticFeedbackType.ToggleOn) }
+
+    // 登记给页面根的旁听器（同一时刻只有一个菜单）
+    DisposableEffect(show, token) {
+        if (show) CardDropdownState.open(token, latestDismiss)
+        else CardDropdownState.close(token)
+        onDispose { CardDropdownState.close(token) }
+    }
+    // 系统返回键：菜单开着就只收菜单（Popup 不抢焦点，所以要挂在宿主窗口上）
+    if (show) BackHandler { onDismiss() }
     if (!anim.visible) return
-    // 所有弹出的卡片：系统返回键一律等同"取消"（用户 2026-10-29 定）
-    BackHandler { onDismiss() }
-    val d = androidx.compose.ui.platform.LocalDensity.current
-    val pad = 24.dp
+
+    val d = LocalDensity.current
+    val pad = 24.dp                       // 窗口四周留白给阴影
     val padPx = with(d) { pad.roundToPx() }
     val dx = with(d) { offsetX.roundToPx() }
     val dy = with(d) { offsetY.roundToPx() }
     val marginPx = with(d) { 8.dp.roundToPx() }
     val gapPx = with(d) { 16.dp.roundToPx() }
-    val cardColor = if (MiuixTheme.colorScheme.surface.luminance() > 0.5f) Color.White
-    else MiuixTheme.colorScheme.surfaceContainerHighest
 
-    androidx.compose.ui.window.Popup(
-        // 窗口四周留 pad 给阴影，所以「卡片」的边缘 = 「窗口」边缘 ∓ pad。
-        //
-        // 定位规则（用户口径）：
-        //   · 向下开：卡片**顶边** = 条目**底边** + 16dp
-        //   · 向上开：卡片**底边** = 条目**顶边** − 16dp
-        //   · 水平：卡片**右边** = 条目右边
-        // 下面放不下才翻到上方；两处都要先减/加 pad 才能对上卡片的视觉边缘。
+    Popup(
         popupPositionProvider = remember(dx, dy, padPx, gapPx, marginPx) {
-            object : androidx.compose.ui.window.PopupPositionProvider {
+            object : PopupPositionProvider {
                 override fun calculatePosition(
-                    anchorBounds: androidx.compose.ui.unit.IntRect,
-                    windowSize: androidx.compose.ui.unit.IntSize,
-                    layoutDirection: androidx.compose.ui.unit.LayoutDirection,
-                    popupContentSize: androidx.compose.ui.unit.IntSize,
-                ): androidx.compose.ui.unit.IntOffset {
+                    anchorBounds: IntRect,
+                    windowSize: IntSize,
+                    layoutDirection: LayoutDirection,
+                    popupContentSize: IntSize,
+                ): IntOffset {
                     val cardW = popupContentSize.width - 2 * padPx
                     val cardH = popupContentSize.height - 2 * padPx
                     val maxX = (windowSize.width - popupContentSize.width - marginPx).coerceAtLeast(marginPx)
                     val x = (anchorBounds.right - cardW - padPx + dx).coerceIn(marginPx, maxX)
 
-                    // 菜单是"从条目里长出来"的，压住条目 16dp：
-                    //   向下 → 卡片**顶边** = 条目**顶边** + 16dp
-                    //   向上 → 卡片**底边** = 条目**底边** − 16dp
                     val downTop = anchorBounds.top + gapPx + dy
                     val upTop = anchorBounds.bottom - gapPx - cardH + dy
-
-                    // ★ 放不放得下要用**卡片**判断，不能用带阴影留白的窗口高度：
-                    //   窗口高度 = 卡片 + 2*pad（上下各 24dp 给阴影），拿它判断会提前 48dp 翻面，
-                    //   于是明明下面放得开也翻到上面去了（看起来像上/下方向搞反）。
+                    // 放不放得下要用**卡片**判断，不能用带阴影留白的窗口高度
                     val fitsDown = downTop + cardH <= windowSize.height - marginPx
-                    var cardTop = if (fitsDown) downTop else upTop
-                    // 两个方向都放不下（卡片特别高）时贴边，别跑到屏幕外
                     val maxTop = windowSize.height - marginPx - cardH
-                    cardTop = cardTop.coerceIn(marginPx, maxTop.coerceAtLeast(marginPx))
-
-                    val y = cardTop - padPx
-                    android.util.Log.i(
-                        "IcdqcowMenu",
-                        "anchor=$anchorBounds window=$windowSize content=$popupContentSize " +
-                            "card=${cardW}x$cardH fitsDown=$fitsDown downTop=$downTop upTop=$upTop " +
-                            "-> cardTop=$cardTop cardBottom=${cardTop + cardH} y=$y",
-                    )
-                    return androidx.compose.ui.unit.IntOffset(x, y)
+                    val cardTop = (if (fitsDown) downTop else upTop)
+                        .coerceIn(marginPx, maxTop.coerceAtLeast(marginPx))
+                    return IntOffset(x, cardTop - padPx)
                 }
             }
         },
-        properties = androidx.compose.ui.window.PopupProperties(focusable = true),
-        onDismissRequest = onDismiss,
+        properties = PopupProperties(focusable = false),
     ) {
         Box(Modifier.padding(pad)) {
-            CardMenuSurface(
-                items = items,
-                selectedIndex = selectedIndex,
-                cardColor = cardColor,
-                t = anim.t,
-                width = ListPopupDefaults.MinWidth,
-                onSelected = { i ->
-                    onSelected(i)
-                    onDismiss()
-                },
-            )
+            CardDropdownSurface(items, selectedIndex, width, anim.t) { i ->
+                onSelected(i)
+                onDismiss()
+            }
         }
     }
 }
 
 /**
- * 页面内浮层版本（文件页的 ⋮）：不新开窗口，位置 100% 由调用方给的 padding 决定
- * （这台机器上 `Popup` 的坐标会被系统再夹一次，我们算的不生效）。
- * 全屏透明蒙层吃掉点击 → 点哪儿都收回，不会穿透到下面的文件行。
+ * 钉在容器右上角的卡片下拉（文件页 ⋮ / 编辑器）。
+ *
+ * 位置由调用方给的 padding 决定，**与改造前完全一致**；只换了样式、动效、震动和收回语义。
+ * 旁听器直接装在这一层的全屏 Box 上。
  */
 @Composable
-fun CardMenuOverlay(
+fun CardDropdownTopEnd(
     show: Boolean,
     items: List<String>,
     selectedIndex: Int,
@@ -1873,54 +1750,55 @@ fun CardMenuOverlay(
     onSelected: (Int) -> Unit,
 ) {
     val anim = rememberCardMenuAnim(show)
+    val token = remember { Any() }
+    val latestDismiss by rememberUpdatedState(onDismiss)
+    val haptic = LocalHapticFeedback.current
+    LaunchedEffect(show) { if (show) haptic.performHapticFeedback(HapticFeedbackType.ToggleOn) }
+    DisposableEffect(show, token) {
+        if (show) CardDropdownState.open(token, latestDismiss)
+        else CardDropdownState.close(token)
+        onDispose { CardDropdownState.close(token) }
+    }
+    if (show) BackHandler { onDismiss() }
     if (!anim.visible) return
-    // 所有弹出的卡片：系统返回键一律等同"取消"（用户 2026-10-29 定）
-    BackHandler { onDismiss() }
-    val cardColor = if (MiuixTheme.colorScheme.surface.luminance() > 0.5f) Color.White
-    else MiuixTheme.colorScheme.surfaceContainerHighest
-    val noIndication = remember { MutableInteractionSource() }
 
     Box(
         modifier
             .fillMaxSize()
-            // 横向滑动（切换主页面）时要马上收回。这里只**观察**、不消费事件，
-            // 所以页面照样能左右滑 —— 之前是滑走了卡片还挂着。
-            .pointerInput(Unit) {
-                awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    var dx = 0f
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                        if (!change.pressed) break
-                        dx += change.positionChange().x
-                        if (kotlin.math.abs(dx) > viewConfiguration.touchSlop) {
-                            onDismiss()
-                            break
-                        }
-                    }
-                }
-            }
-            .clickable(interactionSource = noIndication, indication = null) { onDismiss() },
+            .dismissCardDropdownOnTap(),
     ) {
-        Box(
-            Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = topPadding, end = endPadding)
-                // 卡片自己吃掉点击，别把「点卡片」当成「点外面」
-                .clickable(interactionSource = noIndication, indication = null) {},
-        ) {
-            CardMenuSurface(
-                items = items,
-                selectedIndex = selectedIndex,
-                cardColor = cardColor,
-                t = anim.t,
-                width = 200.dp,
-                onSelected = { i ->
-                    onSelected(i)
-                    onDismiss()
-                },
-            )
+        Box(Modifier.align(Alignment.TopEnd).padding(top = topPadding, end = endPadding)) {
+            CardDropdownSurface(items, selectedIndex, 200.dp, anim.t) { i ->
+                onSelected(i)
+                onDismiss()
+            }
         }
+    }
+}
+
+/**
+ * 输入框右侧的"单位 / 格式"胶囊：文字 + ⌃⌄，点按是圆角高亮 + 一次轻震。
+ *
+ * 建盘页的容器格式、对话框的 MB/GB 都用它 —— 样式必须一致（用户 2026-11-09 定）。
+ * 以前格式那边是裸 `Text` 加 `clickable`，高亮是压在文字背后的矩形，看着像"文字有阴影"。
+ */
+@Composable
+fun UnitPill(text: String, onClick: () -> Unit) {
+    val colors = MiuixTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .clickable { onClick() }
+            .padding(start = 10.dp, end = 10.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(text, style = MiuixTheme.textStyles.body2, color = colors.onSurfaceVariantSummary)
+        Icon(
+            MiuixIcons.Basic.ArrowUpDown,
+            contentDescription = null,
+            tint = colors.onSurfaceVariantSummary,
+            modifier = Modifier.size(10.dp, 16.dp),
+        )
     }
 }

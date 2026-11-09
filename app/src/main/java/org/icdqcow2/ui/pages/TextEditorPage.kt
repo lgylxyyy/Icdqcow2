@@ -413,7 +413,7 @@ fun TextEditorPage(
     }
 
     // ── ⋮ 菜单 ──
-    CardMenuOverlay(
+    CardDropdownTopEnd(
         show = menuOpen,
         items = listOf(
             s.edFind,

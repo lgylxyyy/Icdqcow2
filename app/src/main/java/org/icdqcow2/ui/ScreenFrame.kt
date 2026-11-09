@@ -1,6 +1,7 @@
 package org.icdqcow2.ui
 
 import androidx.compose.runtime.mutableStateOf
+import org.icdqcow2.ui.pages.dismissCardDropdownOnTap
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -88,7 +89,14 @@ fun LargeTitlePage(
     val barHeightDp = with(density) { barHeight.toDp() }
 
     // 页面必须有实底：二级页转场时它是滑在上级页面之上的，透明会透出下面的内容
-    Box(Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface)) {
+    // 卡片下拉的"点外面收回"旁听器装在这里（页面根）：不消费事件，
+    // 所以点到的按钮/输入框照常生效，同时把弹出的菜单收掉。
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(MiuixTheme.colorScheme.surface)
+            .dismissCardDropdownOnTap(),
+    ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -152,7 +160,14 @@ fun LargeTitleScaffold(
         label = "barPad",
     )
 
-    Box(Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface)) {
+    // 卡片下拉的"点外面收回"旁听器装在这里（页面根）：不消费事件，
+    // 所以点到的按钮/输入框照常生效，同时把弹出的菜单收掉。
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(MiuixTheme.colorScheme.surface)
+            .dismissCardDropdownOnTap(),
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -239,7 +254,14 @@ fun SmallTitlePage(
     var barHeight by remember { mutableIntStateOf(with(density) { FALLBACK_SMALL_BAR.roundToPx() }) }
     val barHeightDp = with(density) { barHeight.toDp() }
 
-    Box(Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surface)) {
+    // 卡片下拉的"点外面收回"旁听器装在这里（页面根）：不消费事件，
+    // 所以点到的按钮/输入框照常生效，同时把弹出的菜单收掉。
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(MiuixTheme.colorScheme.surface)
+            .dismissCardDropdownOnTap(),
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
