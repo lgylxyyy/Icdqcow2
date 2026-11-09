@@ -55,6 +55,8 @@ object I18n {
                     val it2 = o.keys()
                     while (it2.hasNext()) {
                         val code = it2.next()
+                        // `note` 是写作说明（给维护者看的），不是语言列
+                        if (code == "note") continue
                         cols[code] = o.optString(code)
                     }
                     raw[key] = cols

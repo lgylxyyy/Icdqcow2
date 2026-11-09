@@ -41,6 +41,9 @@ def main() -> int:
         for lang in LANGS:
             if not str(cols.get(lang, "")).strip():
                 bad.append((key, f"缺 {lang}"))
+        # 写作说明：给维护者看这条文案出现在哪、给谁看、为什么这么写
+        if not str(cols.get("note", "")).strip():
+            bad.append((key, "缺 note（写作用注释：页面 · 组件 · 用途）"))
 
     missing = sorted(k for k in keys if k not in table)
     unused = sorted(k for k in table if k not in keys)
