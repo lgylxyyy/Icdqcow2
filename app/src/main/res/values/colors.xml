@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="page_background">#FFF7F7F7</color>
-    <!-- 应用图标背景：纯白（用户 2026-11-09 指定） -->
-    <color name="ic_launcher_background">#FFFFFFFF</color>
+    <!-- 应用图标背景：与图标底色同色 #C7CDF0（取自用户提供的成图） -->
+    <color name="ic_launcher_background">#FFC7CDF0</color>
 </resources>
