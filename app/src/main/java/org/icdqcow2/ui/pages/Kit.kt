@@ -30,7 +30,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -1500,17 +1502,23 @@ fun IconItem(
 private class CardMenuAnim(val visible: Boolean, val t: Float)
 
 @Composable
-private fun rememberCardMenuAnim(show: Boolean): CardMenuAnim {
+private fun rememberCardMenuAnim(show: Boolean, ready: Boolean = true): CardMenuAnim {
     val p = remember { Animatable(0f) }
     var rendered by remember { mutableStateOf(false) }
-    LaunchedEffect(show) {
+    LaunchedEffect(show, ready) {
         if (show) {
             if (!rendered) {
                 rendered = true
+                // 归零：上一次收回被打断时 p 可能停在半路，直接用会"闪"一下再弹
+                p.snapTo(0f)
                 // 先以 t = 0 组出来，下一帧再开始播；否则首帧就是终态，看不到动画
                 withFrameNanos { }
             }
-            p.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow))
+            // 等弹窗**真的摆到位置上**再开始播：Popup 首帧的尺寸/坐标还没定，
+            // 这时就开始动画会先闪一下再归位（用户 2026-11-09 反馈）
+            if (ready) {
+                p.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow))
+            }
         } else if (rendered) {
             // 收回：动画**跑完**才移除，别用 delay 硬删（那样看不到过程）
             p.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMedium))
@@ -1570,9 +1578,29 @@ object CardDropdownState {
  */
 fun Modifier.dismissCardDropdownOnTap(): Modifier = this.pointerInput(Unit) {
     awaitPointerEventScope {
+        var downPos: Offset? = null
+        var already = false
         while (true) {
             val e = awaitPointerEvent(PointerEventPass.Final)
-            if (e.changes.any { !it.pressed && it.previousPressed }) CardDropdownState.dispatchUp()
+            val c = e.changes.firstOrNull() ?: continue
+            if (c.pressed && downPos == null) {
+                downPos = c.position
+                already = false
+            }
+            // 拖动/滚动越过 touch slop 就立刻收回：之前只在"抬起"时收，
+            // 所以滑动过程中卡片会跟着锚点一起滑（用户 2026-11-09 反馈）
+            if (c.pressed && !already) {
+                val d = downPos
+                if (d != null && (c.position - d).getDistance() > viewConfiguration.touchSlop) {
+                    already = true
+                    CardDropdownState.dispatchUp()
+                }
+            }
+            if (!c.pressed && c.previousPressed) {
+                if (!already) CardDropdownState.dispatchUp()   // 单击：抬起时收回
+                downPos = null
+                already = false
+            }
         }
     }
 }
@@ -1580,7 +1608,9 @@ fun Modifier.dismissCardDropdownOnTap(): Modifier = this.pointerInput(Unit) {
 /**
  * 卡片本体。两个位置模式共用，保证样式完全一致。
  *
- * 阴影用平台 elevation（`Modifier.shadow`）而不是模糊：静态、不随进度变，四周都有。
+ * 阴影：`dropShadow` 画在**缩放图层之外**（父画布），偏移为零 → 四周均匀。
+ *   · 平台 `Modifier.shadow` 的 spot 阴影天生往下偏 —— 用户 2026-11-09 反馈"阴影都像往下移了"；
+ *   · 模糊不能放进缩放图层，否则边缘被 clamp、圆角发黑（踩过）。
  */
 @Composable
 private fun CardDropdownSurface(
@@ -1589,6 +1619,7 @@ private fun CardDropdownSurface(
     width: androidx.compose.ui.unit.Dp,
     t: Float,
     onSelected: (Int) -> Unit,
+    onPlaced: () -> Unit = {},
 ) {
     val colors = MiuixTheme.colorScheme
     val haptic = LocalHapticFeedback.current
@@ -1599,20 +1630,30 @@ private fun CardDropdownSurface(
     val drift = with(LocalDensity.current) { 10.dp.toPx() }
 
     Box(
-        Modifier.graphicsLayer {
-            val s = 0.82f + 0.18f * p
-            scaleX = s
-            scaleY = s
-            translationX = (1f - p) * drift      // 从右上 → 左下
-            translationY = -(1f - p) * drift
-            alpha = p
-            transformOrigin = TransformOrigin(1f, 0f)
-        },
+        Modifier
+            .onGloballyPositioned { onPlaced() }
+            .dropShadow(
+                shape = shape,
+                shadow = androidx.compose.ui.graphics.shadow.Shadow(
+                    radius = 16.dp,
+                    spread = 0.dp,
+                    offset = androidx.compose.ui.unit.DpOffset.Zero,
+                    color = Color.Black.copy(alpha = 0.22f * p),
+                ),
+            ),
     ) {
         Column(
             modifier = Modifier
                 .width(width)
-                .shadow(elevation = 14.dp, shape = shape, clip = false)
+                .graphicsLayer {
+                    val s = 0.82f + 0.18f * p
+                    scaleX = s
+                    scaleY = s
+                    translationX = (1f - p) * drift      // 从右上 → 左下
+                    translationY = -(1f - p) * drift
+                    alpha = p
+                    transformOrigin = TransformOrigin(1f, 0f)
+                }
                 .clip(shape)
                 .background(cardColor),
         ) {
@@ -1670,7 +1711,10 @@ fun CardDropdown(
     offsetX: androidx.compose.ui.unit.Dp = 0.dp,
     offsetY: androidx.compose.ui.unit.Dp = 0.dp,
 ) {
-    val anim = rememberCardMenuAnim(show)
+    var placed by remember { mutableStateOf(false) }
+    // 每次关闭都把闸门复位：否则第二次打开会沿用上一次的 placed=true，闸门形同虚设
+    LaunchedEffect(show) { if (!show) placed = false }
+    val anim = rememberCardMenuAnim(show, ready = placed || !show)
     val token = remember { Any() }
     val latestDismiss by rememberUpdatedState(onDismiss)
     val haptic = LocalHapticFeedback.current
@@ -1717,6 +1761,12 @@ fun CardDropdown(
                     val maxTop = windowSize.height - marginPx - cardH
                     val cardTop = (if (fitsDown) downTop else upTop)
                         .coerceIn(marginPx, maxTop.coerceAtLeast(marginPx))
+                    // 诊断用：弹出时定位跑了几次、每次落在哪 —— 闪烁多半是首帧尺寸/坐标不对
+                    android.util.Log.i(
+                        "IcdqcowMenu",
+                        "anchor=$anchorBounds content=$popupContentSize " +
+                            "card=${cardW}x$cardH -> ($x,${cardTop - padPx})",
+                    )
                     return IntOffset(x, cardTop - padPx)
                 }
             }
@@ -1724,10 +1774,17 @@ fun CardDropdown(
         properties = PopupProperties(focusable = false),
     ) {
         Box(Modifier.padding(pad)) {
-            CardDropdownSurface(items, selectedIndex, width, anim.t) { i ->
-                onSelected(i)
-                onDismiss()
-            }
+            CardDropdownSurface(
+                items = items,
+                selectedIndex = selectedIndex,
+                width = width,
+                t = anim.t,
+                onSelected = { i ->
+                    onSelected(i)
+                    onDismiss()
+                },
+                onPlaced = { placed = true },
+            )
         }
     }
 }
@@ -1749,7 +1806,10 @@ fun CardDropdownTopEnd(
     onDismiss: () -> Unit,
     onSelected: (Int) -> Unit,
 ) {
-    val anim = rememberCardMenuAnim(show)
+    var placed by remember { mutableStateOf(false) }
+    // 每次关闭都把闸门复位：否则第二次打开会沿用上一次的 placed=true，闸门形同虚设
+    LaunchedEffect(show) { if (!show) placed = false }
+    val anim = rememberCardMenuAnim(show, ready = placed || !show)
     val token = remember { Any() }
     val latestDismiss by rememberUpdatedState(onDismiss)
     val haptic = LocalHapticFeedback.current
@@ -1768,10 +1828,16 @@ fun CardDropdownTopEnd(
             .dismissCardDropdownOnTap(),
     ) {
         Box(Modifier.align(Alignment.TopEnd).padding(top = topPadding, end = endPadding)) {
-            CardDropdownSurface(items, selectedIndex, 200.dp, anim.t) { i ->
-                onSelected(i)
-                onDismiss()
-            }
+            CardDropdownSurface(
+                items = items,
+                selectedIndex = selectedIndex,
+                width = 200.dp,
+                t = anim.t,
+                onSelected = { i ->
+                    onSelected(i)
+                    onDismiss()
+                },
+            )
         }
     }
 }
