@@ -95,6 +95,11 @@ fun HomeScreen(onOpen: (String) -> Unit) {
             Tile(s.winre, s.winreSummary, MiuixIcons.Reset) { onOpen("winre") },
             Tile(s.selfCheck, s.selfCheckSummary, MiuixIcons.Ok) { onOpen("verify") },
         )
+        grid(
+            // 注册表：只读浏览系统盘 hive（写入未开放）
+            Tile(s.regTitle, s.regSummary, MiuixIcons.ListView) { onOpen("registry") },
+            Tile(s.regCaptureTitle, s.regCaptureSummary, MiuixIcons.Download) { onOpen("capture") },
+        )
     }
 }
 

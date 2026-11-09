@@ -504,25 +504,15 @@ object ImageRepo {
         dst: String,
         index: Int = 1,
         inner: String? = null,
-    ): ToolRunner.Result = ToolRunner.exec(
-        "wim.extract",
-        args = buildMap {
-            put("wim", wim)
-            put("index", index.toString())
-            put("path", path)
-            put("dst", dst)
-            if (!inner.isNullOrBlank()) put("inner", inner)
-        },
-        writable = true,
+    ): ToolRunner.Result = copyFrom(
+        // 统一走 `copy`：`<wim>!<index>:/path` → 宿主文件
+        src = wimPath(wim, index, path, inner),
+        dst = "host:" + dst,
     )
 
     /** `iso.extract`：从 ISO 里抽一个文件出来（ISO 里的 `install.wim` 要它先落地）。 */
     suspend fun isoExtract(iso: String, innerPath: String, dst: String): ToolRunner.Result =
-        ToolRunner.exec(
-            "iso.extract",
-            args = mapOf("iso" to iso, "path" to innerPath, "dst" to dst),
-            writable = true,
-        )
+        copyFrom(src = isoPath(iso, innerPath), dst = "host:" + dst)
 
     /** `bcd.create`：用内置模板建一张能启动的 BCD（BIOS / UEFI 自动按分区表）。 */
     suspend fun bcdCreate(
@@ -618,8 +608,8 @@ object ImageRepo {
         dst: String,
         path: String? = _current.value,
     ): ToolRunner.Result = exec(
-        "fat.put",
-        args = mapOf("lba" to lba.toString(), "src" to src, "dst" to dst),
+        "copy",
+        args = mapOf("src" to "host:" + src, "dst" to diskPath(lba, dst), "create_parents" to "true"),
         path = path,
         writable = true,
     )
@@ -631,9 +621,136 @@ object ImageRepo {
         dst: String,
         path: String? = _current.value,
     ): ToolRunner.Result = exec(
-        "ntfs.put",
-        args = mapOf("lba" to lba.toString(), "src" to src, "dst" to dst),
+        "copy",
+        args = mapOf("src" to "host:" + src, "dst" to diskPath(lba, dst), "create_parents" to "true"),
         path = path,
+        writable = true,
+    )
+
+    // ── 统一路径构造（REPLY-55）────────────────────────────────────────────
+    // 工具端两种分区写法都认：`!pN:`（第 N 个分区）与 `!lba<N>:`（显式 LBA）。
+    // App 内部一律用 lba —— 不依赖分区序号，表变了也不会指错分区。
+
+    /** 宿主文件 → 工具端路径。 */
+    fun hostPath(abs: String): String = "host:" + abs
+
+    /** 磁盘内路径：`<img>!lba<LBA>:<path>`。 */
+    fun diskPath(lba: Long, path: String, img: String? = _current.value): String =
+        "${img ?: ""}!lba$lba:${path.ifEmpty { "/" }}"
+
+    /** ISO 内路径：`<iso>!:<path>`。 */
+    fun isoPath(iso: String, path: String): String = "$iso!:$path"
+
+    /** WIM 内路径：`<wim>!<index>:<path>`；ISO 里的 WIM 用 `<iso>!:<inner>!<index>:<path>`。 */
+    fun wimPath(wim: String, index: Int, path: String, inner: String? = null): String =
+        if (inner.isNullOrBlank()) "$wim!$index:$path"
+        else "$wim!:$inner!$index:$path"
+
+    // ── 注册表（REPLY-58 / REQ-60 §2.2）────────────────────────────────────
+    // 只读写 hive 文件，不启动 Windows、不挂载卷。**本轮只做只读**（list / get）。
+
+    /** 支持的 hive（大小写不敏感）。 */
+    val REG_HIVES = listOf("SYSTEM", "SOFTWARE", "SAM", "SECURITY", "DEFAULT")
+
+    /**
+     * `reg.list`：列子键与值。
+     *
+     * `path` 形如 `SYSTEM\Setup`；返回 `items[] {name, kind, type, bytes}` + `truncated`。
+     * 键不存在报 `REG-NOTFOUND`（不是空列表）。
+     */
+    suspend fun regList(
+        lba: Long,
+        path: String,
+        img: String? = _current.value,
+    ): ToolRunner.Result = exec(
+        "reg.list",
+        args = mapOf(
+            "lba" to lba.toString(),
+            "path" to path,
+            "subkeys" to "true",
+            "values" to "true",
+        ),
+        path = img,
+        writable = false,
+    )
+
+    /**
+     * `reg.get`：读一个值。
+     *
+     * 返回 `type` + `value`（REG_SZ/DWORD/QWORD）或 `value_hex`（REG_BINARY）。
+     */
+    suspend fun regGet(
+        lba: Long,
+        path: String,
+        img: String? = _current.value,
+    ): ToolRunner.Result = exec(
+        "reg.get",
+        args = mapOf("lba" to lba.toString(), "path" to path),
+        path = img,
+        writable = false,
+    )
+
+    // ── wim.capture（REQ-60 §2.3）──────────────────────────────────────────
+
+    /** 支持的压缩方式。 */
+    val CAPTURE_COMP = listOf("none", "xpress", "lzx", "lzms")
+
+    /**
+     * 估算捕获体积（不写盘）。返回 `bytes_needed` / `files` / `bytes_needed_mb`。
+     * 调用方**必须**用返回值做空间预检：临时目录需要 ≥ bytes_needed × 1.2。
+     */
+    suspend fun captureEstimate(
+        lba: Long,
+        img: String? = _current.value,
+    ): ToolRunner.Result = exec(
+        "wim.capture",
+        args = mapOf("lba" to lba.toString(), "estimate" to "true"),
+        path = img,
+        writable = false,
+    )
+
+    /**
+     * 正式捕获：把系统分区整树打包成 WIM。
+     *
+     * ⚠️ wimlib 只能读宿主路径，工具端会先把整树解到临时目录（≈原始体积）再打包。
+     * 临时目录走 `TempDirs`（App 缓存），启动时清扫。
+     */
+    suspend fun capture(
+        lba: Long,
+        out: String,
+        comp: String = "xpress",
+        name: String = "Windows",
+        img: String? = _current.value,
+    ): ToolRunner.Result = exec(
+        "wim.capture",
+        args = mapOf(
+            "lba" to lba.toString(),
+            "out" to out,
+            "comp" to comp,
+            "name" to name,
+        ),
+        path = img,
+        writable = true,
+    )
+
+    /** 统一 copy：`src` → `dst`（两个都是统一路径）。`recursive` 默认关（单文件）。 */
+    suspend fun copyFrom(
+        src: String,
+        dst: String,
+        recursive: Boolean = false,
+        maxDepth: Int? = null,
+        conflict: String? = null,
+        createParents: Boolean = false,
+    ): ToolRunner.Result = exec(
+        "copy",
+        args = buildMap {
+            put("src", src)
+            put("dst", dst)
+            if (recursive) put("recursive", "true")
+            if (maxDepth != null) put("max-depth", maxDepth.toString())
+            if (conflict != null) put("conflict", conflict)
+            if (createParents) put("create_parents", "true")
+        },
         writable = true,
     )
 

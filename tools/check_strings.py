@@ -32,6 +32,13 @@ def main() -> int:
     table = data.get("strings") or {}
     src = KT.read_text(encoding="utf-8")
     keys = set(re.findall(r'raw\("([^"]+)"\)', src)) | set(re.findall(r'tpl\("([^"]+)"', src))
+    # 动态拼接的 key（如 raw("cap.comp.$mode")）不是真实 key，跳过：
+    # 这类前缀必须能在 JSON 里找到对应条目，否则才是真缺失。
+    dyn_prefixes = set()
+    for k in list(keys):
+        if "$" in k:
+            keys.discard(k)
+            dyn_prefixes.add(k.split("$")[0])
 
     bad = []
     for key, cols in table.items():
@@ -49,6 +56,9 @@ def main() -> int:
     unused = sorted(k for k in table if k not in keys)
 
     print(f"Strings.kt 引用 {len(keys)} 条；JSON 共 {len(table)} 条")
+    for pre in sorted(dyn_prefixes):
+        if not any(k.startswith(pre) for k in table):
+            bad.append((pre + "*", "动态拼接前缀没有任何对应 key"))
     if missing:
         print(f"x JSON 里没有（界面会显示裸 key）：{len(missing)}")
         for k in missing:

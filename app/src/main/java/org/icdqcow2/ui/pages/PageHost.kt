@@ -44,6 +44,8 @@ fun PageHost(
             onBack = onBack,
             onOpenText = { file, title -> onNav("license:$file") },
         )
+        "registry" -> RegistryPage(onBack, onToast, initialImage = arg)
+        "capture" -> CapturePage(onBack, onToast, initialImage = arg)
         "logs" -> LogsPage(onBack, onToast)
         // 许可证全文：route 形如 `license:GPL-2.0.txt`
         else -> if (route.startsWith("license:")) {

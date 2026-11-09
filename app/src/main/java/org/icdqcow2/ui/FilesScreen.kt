@@ -717,16 +717,11 @@ fun FilesScreen(
                             )
                         }
                     }
-                    val r = ToolRunner.exec(
-                        "archive.extract",
-                        mapOf(
-                            "archive" to (srcLoc.arc ?: ""),
-                            "path" to join(src.path, nameOfItem),
-                            "dst" to target,
-                        ),
-                        imagePath = null,
-                        writable = true,
-                        imageFd = -1,
+                    // 统一走 copy（REPLY-55）：archive.extract 对根目录会报 ARCHIVE-ENTRY-NOTFOUND
+                    val r = ImageRepo.copyFrom(
+                        src = srcLoc.spec(join(src.path, nameOfItem)),
+                        dst = ImageRepo.hostPath(target),
+                        recursive = true,
                     )
                     if (!r.ok) {
                         fail = toolErrorText(s, r)
@@ -1123,30 +1118,10 @@ fun FilesScreen(
                         writable = true,
                         imageFd = -1,
                     )
-                    Kind.ISO -> ToolRunner.exec(
-                        "iso.extract",
-                        mapOf("iso" to (loc.iso ?: ""), "path" to inner, "dst" to dst.absolutePath),
-                        writable = true,
-                    )
-                    Kind.WIM -> ToolRunner.exec(
-                        "wim.extract",
-                        buildMap {
-                            put("wim", loc.wim ?: "")
-                            put("index", loc.index.toString())
-                            put("path", inner)
-                            put("dst", dst.absolutePath)
-                            loc.inner?.takeIf { it.isNotBlank() }?.let { put("inner", it) }
-                        },
-                        writable = true,
-                    )
-                    Kind.ARCHIVE -> ToolRunner.exec(
-                        "archive.extract",
-                        mapOf(
-                            "archive" to (loc.arc ?: ""),
-                            "path" to inner,
-                            "dst" to dst.absolutePath,
-                        ),
-                        writable = true,
+                    // 统一走 copy（REPLY-55）：ISO / WIM / 压缩包同一套语法
+                    Kind.ISO, Kind.WIM, Kind.ARCHIVE -> ImageRepo.copyFrom(
+                        src = loc.spec(inner),
+                        dst = ImageRepo.hostPath(dst.absolutePath),
                     )
                     else -> null
                 }
@@ -1384,30 +1359,10 @@ fun FilesScreen(
                         writable = true,
                         imageFd = -1,
                     )
-                    Kind.ISO -> ToolRunner.exec(
-                        "iso.extract",
-                        mapOf("iso" to (loc.iso ?: ""), "path" to inner, "dst" to tmp.absolutePath),
-                        writable = true,
-                    )
-                    Kind.WIM -> ToolRunner.exec(
-                        "wim.extract",
-                        buildMap {
-                            put("wim", loc.wim ?: "")
-                            put("index", loc.index.toString())
-                            put("path", inner)
-                            put("dst", tmp.absolutePath)
-                            loc.inner?.takeIf { it.isNotBlank() }?.let { put("inner", it) }
-                        },
-                        writable = true,
-                    )
-                    Kind.ARCHIVE -> ToolRunner.exec(
-                        "archive.extract",
-                        mapOf(
-                            "archive" to (loc.arc ?: ""),
-                            "path" to inner,
-                            "dst" to tmp.absolutePath,
-                        ),
-                        writable = true,
+                    // 统一走 copy（REPLY-55）
+                    Kind.ISO, Kind.WIM, Kind.ARCHIVE -> ImageRepo.copyFrom(
+                        src = loc.spec(inner),
+                        dst = ImageRepo.hostPath(tmp.absolutePath),
                     )
                     else -> null
                 }
@@ -2995,7 +2950,11 @@ private fun sniffContainer(f: File): String? {
 private fun sniffName(name: String): String? {
     val n = name.lowercase()
     return when {
-        n.endsWith(".qcow2") || n.endsWith(".qcow") || n.endsWith(".img") -> "qcow2"
+        // 磁盘映像：尽量把名字里能看出类型的都认了。具体格式工具端按魔数判（REPLY-59），
+        // 这里只决定"用磁盘视图打开"还是"当普通文件"。
+        n.endsWith(".qcow2") || n.endsWith(".qcow") || n.endsWith(".img") ||
+            n.endsWith(".raw") || n.endsWith(".dd") ||
+            n.endsWith(".vhd") || n.endsWith(".vmdk") -> "qcow2"
         n.endsWith(".iso") -> "iso"
         n.endsWith(".wim") || n.endsWith(".esd") || n.endsWith(".swm") -> "wim"
         else -> {
@@ -3424,55 +3383,44 @@ private fun appCanWriteInto(f: File): Boolean = runCatching {
 /**
  * 借 Shizuku（shell）搬一个文件/目录。
  */
-private fun shellTransfer(src: String, dst: String, move: Boolean, policy: String, s: Strings): String? {
-    val q: (String) -> String = { ShizukuShell.quote(it) }
-    val cmd = buildString {
-        append("set -o pipefail 2>/dev/null; ")
-        append("base=").append(q(dst)).append("; d=\"\$base\"; ")
-        // 目标已存在的处理：skip / overwrite / rename（默认）
-        append("if [ -e \"\$d\" ] || [ -L \"\$d\" ]; then ")
-        if (policy == "skip") {
-            append("echo __SKIP__; exit 0; ")
-        } else if (policy == "overwrite") {
-            // 覆盖：直接用原名（下面的 cp/mv 带 -f）
-        } else {
-            // 顺延：x.bin → "x (1).bin"、"x (2).bin"……（保留扩展名，和工具端 conflict=rename 一致）
-            append("dir=\${base%/*}; [ \"\$dir\" = \"\$base\" ] && dir=.; ")
-            append("fn=\${base##*/}; stem=\"\$fn\"; ext=; ")
-            append("case \"\$fn\" in *.*) stem=\"\${fn%.*}\"; ext=\".\${fn##*.}\";; esac; ")
-            append("i=1; while [ -e \"\$dir/\$stem (\$i)\$ext\" ]; do i=\$((i+1)); ")
-            append("[ \$i -gt 500 ] && break; done; d=\"\$dir/\$stem (\$i)\$ext\"; ")
-        }
-        append("fi; ")
-        append("if [ -d ").append(q(src)).append(" ]; then ")
-        if (move) {
-            append("mv -f ").append(q(src)).append(" \"\$d\"")
-        } else {
-            // 目录复制要跳过系统回收站文件（.trashed-*）——toybox tar 的 -X 支持通配
-            append("ex=/data/local/tmp/.icdqcow_ex; ")
-            append("printf '.trashed-*\\n' > \"\$ex\"; ")
-            append("mkdir -p \"\$d\" && tar cf - -C ").append(q(src))
-            append(" -X \"\$ex\" . | tar xf - -C \"\$d\"; rc=\$?; rm -f \"\$ex\"; exit \$rc")
-        }
-        append("; else ")
-        append(if (move) "mv -f " else "cp -a -f ").append(q(src)).append(" \"\$d\"")
-        append("; fi")
+private suspend fun shellTransfer(src: String, dst: String, move: Boolean, policy: String, s: Strings): String? {
+    // 统一走工具端 copy / move（REPLY-55）：冲突策略只有一份实现，宿主/容器行为一致。
+    // 之前用 shell cp/mv/tar：重命名规则要自己写一遍，且 tar 依赖 toybox 行为。
+    val r = ToolRunner.exec(
+        if (move) "move" else "copy",
+        buildMap {
+            put("src", ImageRepo.hostPath(src))
+            put("dst", ImageRepo.hostPath(dst))
+            put("recursive", "true")
+            put("create_parents", "true")
+            put(
+                "conflict",
+                when (policy) {
+                    "overwrite" -> "overwrite"
+                    "skip" -> "fail"        // 已存在报错，调用方按"跳过"处理
+                    else -> "rename"
+                },
+            )
+            if (!move) put("skip-trashed", "true")
+            if (move) put("allow_host_delete", "true")
+        },
+        imagePath = null,
+        writable = true,
+        imageFd = -1,
+    )
+    if (r.ok) {
+        if (policy == "skip" && (r.code ?: "").contains("EXIST")) return SHELL_SKIP
+        return null
     }
-    val r = ShizukuShell.execResult(cmd) ?: return s.filesNoAccess
-    if (r.ok && r.out.contains("__SKIP__")) return SHELL_SKIP
-    if (r.ok) return null
-    val msg = (r.err + "\n" + r.out).trim()
+    if (policy == "skip" && (r.code ?: "").contains("EXIST")) return SHELL_SKIP
     return when {
-        msg.contains("Permission denied") || msg.contains("not permitted") -> s.filesNoAccess
-        msg.contains("Read-only file system") -> s.filesReadonlyHere
-        msg.contains("No such file") || msg.contains("Not a directory") -> s.filesNoSuchDir
-        else -> s.filesReadFail
+        (r.code ?: "") == "HOST-NOACCESS" || (r.code ?: "").contains("PERM") -> s.filesNoAccess
+        (r.code ?: "").contains("READONLY") -> s.filesReadonlyHere
+        (r.code ?: "").contains("NOTFOUND") -> s.filesNoSuchDir
+        else -> toolErrorText(s, r)
     }
 }
 
-/**
- * 用 Shizuku（shell）列目录。
- */
 private fun listViaShell(path: String, s: Strings): Listing {
     val q = ShizukuShell.quote(path)
     // 根目录要特殊处理：`'/'/*` 会被 shell 展开成 `//apex`（双斜杠）

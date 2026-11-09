@@ -61,7 +61,9 @@ fun PickImagePage(
             ?: path?.substringAfterLast('/')
             ?: uri.lastPathSegment?.substringAfterLast('/')
             ?: "image.qcow2"
-        if (!name.endsWith(".qcow2", true)) {
+        // 磁盘格式按魔数识别（REPLY-59），扩展名只用于提示；这五种都放行
+        val ext = name.substringAfterLast('.', "").lowercase()
+        if (ext !in setOf("qcow2", "raw", "img", "dd", "vhd", "vmdk")) {
             onToastPlaceholder(s.partsNotQcow2)
             return@rememberLauncherForActivityResult
         }

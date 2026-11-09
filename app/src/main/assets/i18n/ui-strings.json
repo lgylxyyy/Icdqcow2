@@ -4656,6 +4656,196 @@
       "zh": "vmdk：VMware 稀疏盘，部分虚拟机直接认",
       "en": "vmdk: VMware sparse disk, accepted by some VMs",
       "note": "建盘页 · 格式选择器 vmdk 说明"
+    },
+    "reg.title": {
+      "zh": "注册表",
+      "en": "Registry",
+      "note": "注册表页 · 页面标题"
+    },
+    "reg.image": {
+      "zh": "磁盘映像",
+      "en": "Disk image",
+      "note": "注册表页 · 选盘分组"
+    },
+    "reg.needImage": {
+      "zh": "选择含 Windows 的磁盘映像",
+      "en": "Pick a disk image containing Windows",
+      "note": "注册表页 · 未选盘提示"
+    },
+    "reg.noWindows": {
+      "zh": "未找到 Windows 分区，注册表 hive 位于系统分区",
+      "en": "No Windows partition found; registry hives live on the system partition",
+      "note": "注册表页 · 没有系统分区时"
+    },
+    "reg.hive": {
+      "zh": "选择配置单元",
+      "en": "Select a hive",
+      "note": "注册表页 · 五个 hive 入口"
+    },
+    "reg.path": {
+      "zh": "当前路径",
+      "en": "Current path",
+      "note": "注册表页 · 面包屑"
+    },
+    "reg.up": {
+      "zh": "上一级",
+      "en": "Up",
+      "note": "注册表页 · 返回上级键"
+    },
+    "reg.itemCount": {
+      "zh": "共 {0} 项",
+      "en": "{0} items",
+      "note": "注册表页 · 路径行右侧计数"
+    },
+    "reg.items": {
+      "zh": "键与值",
+      "en": "Keys and values",
+      "note": "注册表页 · 列表标题"
+    },
+    "reg.empty": {
+      "zh": "此键为空",
+      "en": "This key is empty",
+      "note": "注册表页 · 空键"
+    },
+    "reg.kindKey": {
+      "zh": "子键",
+      "en": "Subkey",
+      "note": "注册表页 · 子键项标注"
+    },
+    "reg.value": {
+      "zh": "值",
+      "en": "Value",
+      "note": "注册表页 · 值详情标题"
+    },
+    "reg.binary": {
+      "zh": "二进制",
+      "en": "Binary",
+      "note": "注册表页 · 无类型名时的兜底"
+    },
+    "reg.truncated": {
+      "zh": "条目过多，只显示前一部分，请缩小范围",
+      "en": "Too many items; only the first part is shown, narrow the path",
+      "note": "注册表页 · truncated=true 时"
+    },
+    "reg.readOnlyNote": {
+      "zh": "本轮只支持读取。写入功能尚未开放，改错注册表会导致系统无法启动。",
+      "en": "Read-only for now. Writing is not enabled yet; a bad edit can prevent Windows from booting.",
+      "note": "注册表页 · 底部只读说明"
+    },
+    "reg.summary": {
+      "zh": "只读浏览系统盘的注册表",
+      "en": "Browse the system disk's registry read-only",
+      "note": "主页 · 功能入口卡副标题"
+    },
+    "reg.captureTitle": {
+      "zh": "捕获映像",
+      "en": "Capture image",
+      "note": "主页 · 捕获映像入口卡标题"
+    },
+    "reg.captureSummary": {
+      "zh": "把系统盘打包成 WIM",
+      "en": "Pack the system disk into a WIM",
+      "note": "主页 · 捕获映像入口卡副标题"
+    },
+    "cap.title": {
+      "zh": "捕获映像",
+      "en": "Capture image",
+      "note": "捕获页 · 页面标题"
+    },
+    "cap.out": {
+      "zh": "输出文件",
+      "en": "Output file",
+      "note": "捕获页 · 输出路径分组"
+    },
+    "cap.outHint": {
+      "zh": "保存到宿主可写目录，建议放在 Download",
+      "en": "Save to a writable location, e.g. Download",
+      "note": "捕获页 · 输出路径说明"
+    },
+    "cap.comp": {
+      "zh": "压缩方式",
+      "en": "Compression",
+      "note": "捕获页 · 压缩方式分组"
+    },
+    "cap.comp.none": {
+      "zh": "不压缩",
+      "en": "None",
+      "note": "捕获页 · 压缩方式 none"
+    },
+    "cap.comp.xpress": {
+      "zh": "xpress：速度快，体积中等",
+      "en": "xpress: fast, medium size",
+      "note": "捕获页 · 压缩方式 xpress"
+    },
+    "cap.comp.lzx": {
+      "zh": "lzx：慢，体积小",
+      "en": "lzx: slow, small size",
+      "note": "捕获页 · 压缩方式 lzx"
+    },
+    "cap.comp.lzms": {
+      "zh": "lzms：最慢，体积最小（ESD）",
+      "en": "lzms: slowest, smallest (ESD)",
+      "note": "捕获页 · 压缩方式 lzms"
+    },
+    "cap.name": {
+      "zh": "映像名称",
+      "en": "Image name",
+      "note": "捕获页 · 映像名分组"
+    },
+    "cap.estimate": {
+      "zh": "估算体积",
+      "en": "Estimate size",
+      "note": "捕获页 · 估算按钮"
+    },
+    "cap.estNeed": {
+      "zh": "预计需要",
+      "en": "Estimated required",
+      "note": "捕获页 · 估算结果行标题"
+    },
+    "cap.estFree": {
+      "zh": "可用空间",
+      "en": "Available space",
+      "note": "捕获页 · 可用空间行标题"
+    },
+    "cap.noSpace": {
+      "zh": "空间不足：至少需要 {0} 可用空间",
+      "en": "Not enough space: at least {0} free is required",
+      "note": "捕获页 · 空间预检失败"
+    },
+    "cap.run": {
+      "zh": "开始捕获",
+      "en": "Start capture",
+      "note": "捕获页 · 开始按钮"
+    },
+    "cap.done": {
+      "zh": "捕获完成",
+      "en": "Capture finished",
+      "note": "捕获页 · 成功提示"
+    },
+    "cap.needOut": {
+      "zh": "填写输出文件路径",
+      "en": "Enter an output file path",
+      "note": "捕获页 · 输出为空时"
+    },
+    "cap.result": {
+      "zh": "结果",
+      "en": "Result",
+      "note": "捕获页 · 结果分组"
+    },
+    "cap.ratio": {
+      "zh": "压缩后占比",
+      "en": "Compressed ratio",
+      "note": "捕获页 · 压缩率行"
+    },
+    "cap.inOut": {
+      "zh": "原始 → 输出",
+      "en": "Input → output",
+      "note": "捕获页 · 体积对比行"
+    },
+    "cap.files": {
+      "zh": "个文件",
+      "en": "files",
+      "note": "捕获页 · 文件数单位"
     }
   }
 }

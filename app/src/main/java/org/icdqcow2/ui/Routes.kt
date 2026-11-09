@@ -19,5 +19,7 @@ val PAGE_TITLES: Map<String, String> = mapOf(
     "errors" to "错误码手册",
     "logs" to "导出日志",
     "licenses" to "开源许可证",
+    "registry" to "注册表",
+    "capture" to "捕获映像",
     "setup" to "全流程装机",
 )
