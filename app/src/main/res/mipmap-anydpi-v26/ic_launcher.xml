@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  自适应图标（Android 8.0+）。
+
+  前景 = 那张紫色玻璃方块（圆角 22%，四角透明），占画布 85%：
+  启动器遮罩是 squircle（HyperOS / 多数国产 ROM），85% 时本体离遮罩边缘还有余量；
+  圆形遮罩的机型也只切掉一点点圆角，不会切进方块本体。
+  背景 = 从原图边缘取样的淡紫 #C7CCF1，和前景边缘同色，遮罩外不会出现白圈。
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

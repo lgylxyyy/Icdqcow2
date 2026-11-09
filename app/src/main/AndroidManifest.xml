@@ -26,6 +26,8 @@
     <application
         android:allowBackup="false"
         android:label="Icdqcow2"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:requestLegacyExternalStorage="true"
         android:theme="@style/Theme.Icdqcow2">
