@@ -150,13 +150,16 @@ object ImageRepo {
         extrasMb: List<Int> = emptyList(),
         /** `mbr-fill`：MBR 想要"3 主 + 容器 + 逻辑卷"就传 `auto`（REQ-08）。 */
         mbrFill: String? = null,
+        /** 容器格式：qcow2（默认）/ raw / vmdk。VHD 建盘不支持（REQ-60 §2.4）。 */
+        format: String = "qcow2",
     ): CreateOutcome {
-        val path = File(dir, "$name.qcow2").absolutePath
+        val path = File(dir, "$name.$format").absolutePath
         val base = buildMap {
             put("out", path)
             put("size-gb", sizeGb.toString())
             put("table", table)
             put("layout", layout)
+            if (format != "qcow2") put("format", format)
             extra.forEach { (k, v) -> if (v.isNotBlank()) put(k, v) }
         }
 
@@ -931,8 +934,9 @@ object ImageRepo {
         sizeGb: Int,
         parts: List<LayoutPart>,
         dir: File = imagesDir(),
+        format: String = "qcow2",
     ): CreateOutcome {
-        val path = File(dir, "$name.qcow2").absolutePath
+        val path = File(dir, "$name.$format").absolutePath
         val mk = ToolRunner.exec(
             "img.create",
             args = mapOf(
@@ -940,7 +944,7 @@ object ImageRepo {
                 "size-gb" to sizeGb.toString(),
                 "table" to "gpt",
                 "layout" to "empty",
-            ),
+            ).let { if (format == "qcow2") it else it + ("format" to format) },
             writable = true,
         )
         if (!mk.ok) return CreateOutcome(mk, false, false)

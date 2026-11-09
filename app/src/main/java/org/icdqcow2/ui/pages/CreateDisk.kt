@@ -14,6 +14,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Text
@@ -22,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -77,6 +79,9 @@ class DiskDraft(defaultName: String) {
 
     var name by mutableStateOf(defaultName)
     var sizeGb by mutableStateOf("64")
+
+    /** 磁盘容器格式：qcow2（默认）/ raw / vmdk。VHD 建盘不支持，不提供选项。 */
+    var format by mutableStateOf("qcow2")
 
     /** 0 = GPT / 1 = MBR / 2 = 空盘 / 3 = 应用分区表（表来自文件） */
     var table by mutableIntStateOf(0)
@@ -638,13 +643,13 @@ private fun CreateDiskForm(
     // 只在进页面/换目录时算一次：用户之后手改的名字不会被抢回去。
     LaunchedEffect(targetDir) {
         val base = draft.name
-        if (base.isBlank() || !File(targetDir, "$base.qcow2").exists()) return@LaunchedEffect
+        if (base.isBlank() || !File(targetDir, "$base.${draft.format}").exists()) return@LaunchedEffect
         val suffix = 4 // " （1）" / " (1)" 都是 4 个字符
         val keep = (DiskLimits.NAME_MAX - suffix - 1).coerceAtLeast(1)
         var n = 1
         while (n <= 99) {
             val candidate = s.nameDup(base.take(keep), n)
-            if (!File(targetDir, "$candidate.qcow2").exists()) {
+            if (!File(targetDir, "$candidate.${draft.format}").exists()) {
                 draft.name = candidate
                 return@LaunchedEffect
             }
@@ -653,7 +658,7 @@ private fun CreateDiskForm(
     }
 
     val sizeGb = draft.sizeGb.toIntOrNull() ?: 0
-    val exists = draft.name.isNotBlank() && File(targetDir, "${draft.name}.qcow2").exists()
+    val exists = draft.name.isNotBlank() && File(targetDir, "${draft.name}.${draft.format}").exists()
     val ok = !busy && draft.name.isNotBlank() &&
         sizeGb in draft.minGb..DiskLimits.DISK_MAX_GB &&
         !exists && draft.planValid && dirWritable &&
@@ -681,6 +686,7 @@ private fun CreateDiskForm(
             table = "none",
             layout = "empty",
             dir = targetDir,
+            format = draft.format,
         )
         if (!out.result.ok) {
             busy = false
@@ -688,7 +694,7 @@ private fun CreateDiskForm(
             onToast(err!!)
             return
         }
-        val created = File(targetDir, "${draft.name}.qcow2").absolutePath
+        val created = File(targetDir, "${draft.name}.${draft.format}").absolutePath
         // 表文件写到缓存目录再交给工具端：绕开 SAF 的 uri（工具只认路径）
         val tmp = File(ctx.cacheDir, "pt-import.json")
         val wrote = withContext(Dispatchers.IO) { runCatching { tmp.writeText(raw) }.isSuccess }
@@ -746,6 +752,15 @@ private fun CreateDiskForm(
         }
 
         GroupTitle(s.secName)
+        // 文件名 + 右侧容器格式（样式同容量框的 GB 单位，点击切换）
+        val fmtItems = remember {
+            listOf(
+                Choice("qcow2", s.fmtQcow2Hint),
+                Choice("raw", s.fmtRawHint),
+                Choice("vmdk", s.fmtVmdkHint),
+            )
+        }
+        var fmtAsk by remember { mutableStateOf(false) }
         TextField(
             value = draft.name,
             onValueChange = {
@@ -754,8 +769,28 @@ private fun CreateDiskForm(
                     .take(DiskLimits.NAME_MAX)
             },
             modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                Text(
+                    "." + draft.format,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .clickable { fmtAsk = true }
+                        .padding(end = 12.dp),
+                )
+            },
         )
         Note(s.nameHint)
+        CardMenuPopup(
+            show = fmtAsk,
+            items = fmtItems.map { it.title },
+            selectedIndex = fmtItems.indexOfFirst { it.title == draft.format }.coerceAtLeast(0),
+            onDismiss = { fmtAsk = false },
+            onSelected = { i ->
+                draft.format = fmtItems[i].title
+                fmtAsk = false
+            },
+        )
 
         GroupTitle(s.secCapacity)
         NumberField(value = draft.sizeGb, onValueChange = { draft.sizeGb = it }, unit = "GB", maxDigits = 4)
@@ -923,6 +958,7 @@ private fun CreateDiskForm(
                         sizeGb = sizeGb,
                         parts = list,
                         dir = targetDir,
+                        format = draft.format,
                     )
                 } else {
                     ImageRepo.create(
@@ -934,6 +970,7 @@ private fun CreateDiskForm(
                         extra = extra,
                         extrasMb = extras,
                         mbrFill = mbrFill,
+                        format = draft.format,
                     )
                 }
                 val r = out.result
@@ -956,7 +993,7 @@ private fun CreateDiskForm(
                     }
                 }
                 // 建完盘就按角色格式化（用**真实分区表**决定格式化谁，而不是草稿里的计划）
-                val created = File(targetDir, "${draft.name}.qcow2").absolutePath
+                val created = File(targetDir, "${draft.name}.${draft.format}").absolutePath
                 val createdParts = ImageRepo.parseParts(ImageRepo.parts(created))?.second.orEmpty()
                 if (draft.formatAfter) {
                     fmtNow = true

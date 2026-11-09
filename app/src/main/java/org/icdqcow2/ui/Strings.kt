@@ -14,7 +14,7 @@ import org.icdqcow2.core.I18n
  */
 class Strings(val code: String) {
 
-    private fun raw(key: String): String = I18n.table(code)[key] ?: key
+    fun raw(key: String): String = I18n.table(code)[key] ?: key
 
     private fun tpl(key: String, vararg args: Any?): String = I18n.format(raw(key), args)
 
@@ -231,7 +231,6 @@ class Strings(val code: String) {
     val toolVersionSummary get() = raw("settings.toolVersionSummary")
     val license get() = raw("settings.license")
     val licenseSummary get() = raw("settings.licenseSummary")
-    val licenseBody get() = raw("settings.licenseBody")
     val filesSolid get() = raw("files.solid")
     val filesExtracted get() = raw("files.extracted")
     val privacy get() = raw("settings.privacy")
@@ -984,6 +983,18 @@ class Strings(val code: String) {
     val fcArch32 get() = raw("fc.arch32")
     val fcArch64 get() = raw("fc.arch64")
     val fcArchArm get() = raw("fc.archArm")
+    val fmtQcow2Hint get() = raw("fmt.qcow2Hint")
+    val fmtRawHint get() = raw("fmt.rawHint")
+    val fmtVmdkHint get() = raw("fmt.vmdkHint")
+
+    // ── 开源许可证页 ──
+    val licensesTitle get() = raw("licenses.title")
+    val licensesCore get() = raw("licenses.core")
+    val licensesFramework get() = raw("licenses.framework")
+    val licensesLoadFailed get() = raw("licenses.loadFailed")
+    val licensesComplianceNote get() = raw("licenses.complianceNote")
+    /** 组件用途：key 形如 `licPurpose.tool`。 */
+    fun licPurpose(suffix: String): String = raw(suffix)
 
     // ── 设置页 · 社群与仓库 ──
     val secCommunity get() = raw("set.secCommunity")

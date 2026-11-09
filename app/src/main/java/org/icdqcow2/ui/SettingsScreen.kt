@@ -77,7 +77,6 @@ fun SettingsScreen(
     val historyCount by settings.historyCount.collectAsState()
     var historyDlg by remember { mutableStateOf(false) }
     // 开源许可（含 UnRAR：REPLY-49 明确要求随二进制附 license 说明）
-    var showLicense by remember { mutableStateOf(false) }
 
     LargeTitlePage(title = s.settingsTitle) {
         section(s.secAppearance)
@@ -311,7 +310,7 @@ fun SettingsScreen(
         card {
             BasicComponent(title = s.version, summary = s.versionSummary)
             BasicComponent(title = s.toolVersion, summary = s.toolVersionSummary)
-            BasicComponent(title = s.license, summary = s.licenseSummary, onClick = { showLicense = true })
+            BasicComponent(title = s.license, summary = s.licenseSummary, onClick = { onOpen("licenses") })
             BasicComponent(title = s.privacy, summary = s.privacySummary)
         }
 
@@ -354,36 +353,6 @@ fun SettingsScreen(
         }
     }
 
-    if (showLicense) {
-        WindowDialog(
-            show = true,
-            title = s.license,
-            onDismissRequest = { showLicense = false },
-            onDismissFinished = { showLicense = false },
-        ) {
-            Column(Modifier.fillMaxWidth()) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 380.dp)
-                        .verticalScroll(rememberScrollState()),
-                ) {
-                    Text(
-                        s.licenseBody,
-                        style = MiuixTheme.textStyles.footnote2,
-                        color = MiuixTheme.colorScheme.onSurface,
-                    )
-                }
-                Button(
-                    onClick = { showLicense = false },
-                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-                    colors = ButtonDefaults.buttonColorsPrimary(),
-                ) {
-                    Text(s.confirm, style = MiuixTheme.textStyles.button)
-                }
-            }
-        }
-    }
 }
 
 private fun LazyListScope.section(title: String) {

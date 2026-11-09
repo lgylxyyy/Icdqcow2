@@ -132,7 +132,13 @@ class MainActivity : ComponentActivity(), NavigationEventDispatcherOwner {
         }
 
         // ★ Android 没有 /tmp：BCD 读写、恢复分区填充都要一个可写临时目录
-        runCatching { Native.setTmpdir(cacheDir.absolutePath) }
+        // 临时目录：统一用 App 缓存目录（用户 2026-11-09 定），不用工具端的"容器同目录"兜底。
+        // 每次启动先清扫上次残留 —— 放在 setTmpdir 之前，避免删到本轮要用的目录。
+        runCatching {
+            val swept = org.icdqcow2.core.TempDirs.sweep(this)
+            if (swept > 0) android.util.Log.i("Icdqcow2", "cleaned $swept stale temp files")
+        }
+        runCatching { Native.setTmpdir(org.icdqcow2.core.TempDirs.toolDir(this).absolutePath) }
         // 进度事件（wim.apply / iso.extract 这类长任务）：界面靠它画进度条
         ToolEvents.install()
         runCatching { Native.setIoTimeoutMs(30_000) }
@@ -385,7 +391,7 @@ private fun AppRoot(settings: SettingsStore) {
                                     }
                                 } else null,
                             )
-                            else -> PageHost(target, onBack = { page = null }, onToast = toast)
+                            else -> PageHost(target, onBack = { page = null }, onToast = toast, onNav = { page = it })
                         }
                     }
                 }

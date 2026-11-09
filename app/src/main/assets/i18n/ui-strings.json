@@ -4367,11 +4367,6 @@
       "en": "solid",
       "note": "文件页 · 文案位 · files.solid"
     },
-    "settings.licenseBody": {
-      "zh": "本应用使用以下开源组件：\n\n· Miuix (Apache-2.0) — 界面组件\n· sora-editor (LGPL-2.1) — 文本编辑器内核\n· UnRAR (UnRAR License) — RAR 解压（只读，不做压缩器）\n· libarchive (BSD-2) — zip/7z/tar 读写\n· wimlib (LGPL-2.1) — WIM/ESD 读写\n· ntfs-3g (GPL-2.0) — NTFS 读写\n· Shizuku API (Apache-2.0)\n\nUnRAR 版权：© Alexander Roshal。UnRAR 源码可自由分发，但不得用于实现 RAR 压缩器。",
-      "en": "This app uses these open-source components:\n\n· Miuix (Apache-2.0) — UI components\n· sora-editor (LGPL-2.1) — text editor core\n· UnRAR (UnRAR License) — RAR decompression (read-only, no compressor)\n· libarchive (BSD-2) — zip/7z/tar\n· wimlib (LGPL-2.1) — WIM/ESD\n· ntfs-3g (GPL-2.0) — NTFS\n· Shizuku API (Apache-2.0)\n\nUnRAR © Alexander Roshal. UnRAR source may be freely distributed, but must not be used to create a RAR compressor.",
-      "note": "设置 · 文案位 · settings.licenseBody"
-    },
     "files.extracted": {
       "zh": "解压后",
       "en": "extracted",
@@ -4536,6 +4531,131 @@
       "zh": "lgylxyyy/Icdqcow2",
       "en": "lgylxyyy/Icdqcow2",
       "note": "设置 · 文案位 · set.ghApp.summary"
+    },
+    "licenses.title": {
+      "zh": "开源许可证",
+      "en": "Open-source licenses",
+      "note": "设置 · 许可证页标题"
+    },
+    "licenses.core": {
+      "zh": "随应用分发",
+      "en": "Bundled with the app",
+      "note": "许可证页 · 核心组件分组标题"
+    },
+    "licenses.framework": {
+      "zh": "应用框架",
+      "en": "App framework",
+      "note": "许可证页 · 框架层分组标题"
+    },
+    "licenses.loadFailed": {
+      "zh": "许可证全文读取失败",
+      "en": "Failed to load the license text",
+      "note": "许可证全文页 · assets 读不到时"
+    },
+    "licenses.complianceNote": {
+      "zh": "LGPL 组件（libntfs-3g / wimlib / hivex / libiconv）静态链接进 libimgtool.so，完整源码与构建脚本见 imgtool 仓库，可据此重新生成。",
+      "en": "LGPL components (libntfs-3g / wimlib / hivex / libiconv) are statically linked into libimgtool.so; complete sources and build scripts are published in the imgtool repository for relinking.",
+      "note": "许可证页 · 底部合规说明"
+    },
+    "licPurpose.tool": {
+      "zh": "核心 C 库",
+      "en": "Core C library",
+      "note": "imgtool 用途"
+    },
+    "licPurpose.zlib": {
+      "zh": "qcow2 压缩簇",
+      "en": "qcow2 compressed clusters",
+      "note": "zlib 用途"
+    },
+    "licPurpose.ntfs": {
+      "zh": "NTFS 读写",
+      "en": "NTFS read/write",
+      "note": "libntfs-3g 用途"
+    },
+    "licPurpose.mkntfs": {
+      "zh": "NTFS 格式化",
+      "en": "NTFS formatting",
+      "note": "ntfsprogs 用途"
+    },
+    "licPurpose.wimlib": {
+      "zh": "WIM / ESD",
+      "en": "WIM / ESD",
+      "note": "wimlib 用途"
+    },
+    "licPurpose.archive": {
+      "zh": "zip / 7z / tar",
+      "en": "zip / 7z / tar",
+      "note": "libarchive 用途"
+    },
+    "licPurpose.hivex": {
+      "zh": "注册表 hive（BCD）",
+      "en": "Registry hives (BCD)",
+      "note": "hivex 用途"
+    },
+    "licPurpose.xml2": {
+      "zh": "hivex 依赖",
+      "en": "hivex dependency",
+      "note": "libxml2 用途"
+    },
+    "licPurpose.iconv": {
+      "zh": "字符集转换",
+      "en": "Character set conversion",
+      "note": "libiconv 用途"
+    },
+    "licPurpose.unrar": {
+      "zh": "只读解 RAR",
+      "en": "Read-only RAR",
+      "note": "UnRAR 用途"
+    },
+    "licPurpose.xz": {
+      "zh": "libarchive 依赖",
+      "en": "libarchive dependency",
+      "note": "xz 用途"
+    },
+    "licPurpose.edk2": {
+      "zh": "32 位 UEFI 固件",
+      "en": "32-bit UEFI firmware",
+      "note": "edk2 用途"
+    },
+    "licPurpose.miuix": {
+      "zh": "界面组件库",
+      "en": "UI component library",
+      "note": "Miuix 用途"
+    },
+    "licPurpose.sora": {
+      "zh": "文本编辑器内核",
+      "en": "Text editor engine",
+      "note": "sora-editor 用途"
+    },
+    "licPurpose.shizuku": {
+      "zh": "权限提升接口",
+      "en": "Privilege elevation API",
+      "note": "Shizuku 用途"
+    },
+    "licPurpose.androidx": {
+      "zh": "UI 框架",
+      "en": "UI framework",
+      "note": "AndroidX 用途"
+    },
+    "licPurpose.kotlin": {
+      "zh": "语言与协程",
+      "en": "Language and coroutines",
+      "note": "Kotlin 用途"
+    },
+    "fmt.qcow2Hint": {
+      "zh": "qcow2：支持快照与压缩，体积最小",
+      "en": "qcow2: snapshots and compression, smallest size",
+      "note": "建盘页 · 格式选择器 qcow2 说明"
+    },
+    "fmt.rawHint": {
+      "zh": "raw：无元数据，VHD/VMDK 转换前的通用格式",
+      "en": "raw: no metadata, common before converting to VHD/VMDK",
+      "note": "建盘页 · 格式选择器 raw 说明"
+    },
+    "fmt.vmdkHint": {
+      "zh": "vmdk：VMware 稀疏盘，部分虚拟机直接认",
+      "en": "vmdk: VMware sparse disk, accepted by some VMs",
+      "note": "建盘页 · 格式选择器 vmdk 说明"
     }
   }
 }

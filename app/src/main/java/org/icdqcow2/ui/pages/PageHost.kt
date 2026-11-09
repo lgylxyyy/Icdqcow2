@@ -21,6 +21,8 @@ fun PageHost(
     onToast: (String) -> Unit,
     /** 带着镜像跳进来（自检页的异常项用它直接落到"已选中该盘"）。 */
     arg: String? = null,
+    /** 页内跳转（许可证列表 → 全文页用）。 */
+    onNav: (String) -> Unit = {},
 ) {
     when (route) {
         "create" -> CreateDiskPage(onBack, onToast)
@@ -37,8 +39,20 @@ fun PageHost(
         "tasks" -> TasksPage(onBack, onToast)
         "console" -> ConsolePage(onBack, onToast)
         "errors" -> ErrorsPage(onBack, onToast)
+        // 许可证：列表 → 点卡片进全文（全文页用 route 编码 `license:<文件名>`）
+        "licenses" -> LicensesPage(
+            onBack = onBack,
+            onOpenText = { file, title -> onNav("license:$file") },
+        )
         "logs" -> LogsPage(onBack, onToast)
-        else -> NobodyPage(route, onBack)
+        // 许可证全文：route 形如 `license:GPL-2.0.txt`
+        else -> if (route.startsWith("license:")) {
+            LicenseTextPage(
+                file = route.removePrefix("license:"),
+                title = route.removePrefix("license:"),
+                onBack = onBack,
+            )
+        } else NobodyPage(route, onBack)
     }
 }
 
