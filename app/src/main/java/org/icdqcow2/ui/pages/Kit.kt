@@ -1284,7 +1284,7 @@ fun NumberDialog(
             }
         },
     ) {
-        Box(Modifier.fillMaxWidth().dismissCardDropdownOnTap()) {
+        Box(Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -1529,81 +1529,12 @@ private fun rememberCardMenuAnim(show: Boolean, ready: Boolean = true): CardMenu
 }
 
 /**
- * 当前打开的卡片下拉（同一时刻只会有一个）。
+ * 弹出方向：位置计算出来后写在这里，动画据此决定"从哪一角长出来"。
  *
- * 为什么要全局登记：收回旁听器必须挂在**页面根**（祖先）上，而菜单是页面深处的组件 ——
- * Compose 没有"向上挂修饰符"的 API。所以由菜单登记、页面根（[SmallTitlePage] /
- * [LargeTitlePage]）和对话框内容统一旁听，见 [dismissCardDropdownOnTap]。
+ * 为什么不用 MutableState：它是在布局阶段被写的，用 State 会在布局里写状态、
+ * 触发额外重组。这里只需要在**绘制**阶段被读到，普通字段足够。
  */
-object CardDropdownState {
-    private var owner: Any? = null
-    private var dismisser: (() -> Unit)? = null
-
-    /**
-     * 登记"点外面收回"。
-     *
-     * 不需要"放行打开手势"：打开发生在 UP 的 Main 阶段，而旁听器在同一次事件派发的
-     * Final 阶段跑 —— 那时 [open] 还没被调用（它要等重组后的 DisposableEffect），
-     * 所以打开那一下不会被自己关掉。
-     */
-    fun open(token: Any, dismiss: () -> Unit) {
-        owner = token
-        dismisser = dismiss
-    }
-
-    fun close(token: Any) {
-        if (owner === token) {
-            owner = null
-            dismisser = null
-        }
-    }
-
-    /** 旁听器每次"抬起"调一次；菜单没开就是空操作。 */
-    fun dispatchUp() {
-        dismisser?.invoke()
-    }
-
-    /** 测：当前是否有菜单打开（对话框用它决定 scrim 点击先收谁）。 */
-    val isOpen: Boolean get() = dismisser != null
-}
-
-/**
- * "点卡片外收回" 的旁听器。挂在页面/对话框内容的**祖先**上，随时装、不消费事件。
- *
- * 为什么用 `PointerEventPass.Final` + 抬起时收回：
- *   · 不消费 → 点到的按钮/输入框照常生效（"选组件的同时收回卡片"）；
- *   · 抬起时下层已经处理完 → 点胶囊自己时它已经把菜单关掉，这里再调只会是空操作，
- *     不会出现"关了又开"；
- *   · 卡片本体在独立 Popup 窗口里，点它的事件根本不进这个窗口 —— 不用判断坐标。
- */
-fun Modifier.dismissCardDropdownOnTap(): Modifier = this.pointerInput(Unit) {
-    awaitPointerEventScope {
-        var downPos: Offset? = null
-        var already = false
-        while (true) {
-            val e = awaitPointerEvent(PointerEventPass.Final)
-            val c = e.changes.firstOrNull() ?: continue
-            if (c.pressed && downPos == null) {
-                downPos = c.position
-                already = false
-            }
-            // 拖动/滚动越过 touch slop 就立刻收回：之前只在"抬起"时收，
-            // 所以滑动过程中卡片会跟着锚点一起滑（用户 2026-11-09 反馈）
-            if (c.pressed && !already) {
-                val d = downPos
-                if (d != null && (c.position - d).getDistance() > viewConfiguration.touchSlop) {
-                    already = true
-                    CardDropdownState.dispatchUp()
-                }
-            }
-            if (!c.pressed && c.previousPressed) {
-                if (!already) CardDropdownState.dispatchUp()   // 单击：抬起时收回
-                downPos = null
-                already = false
-            }
-        }
-    }
-}
+private class CardDir { var down = true }
 
 /**
  * 卡片本体。两个位置模式共用，保证样式完全一致。
@@ -1620,6 +1551,7 @@ private fun CardDropdownSurface(
     t: Float,
     onSelected: (Int) -> Unit,
     onPlaced: () -> Unit = {},
+    dir: CardDir? = null,
 ) {
     val colors = MiuixTheme.colorScheme
     val haptic = LocalHapticFeedback.current
@@ -1649,10 +1581,13 @@ private fun CardDropdownSurface(
                     val s = 0.82f + 0.18f * p
                     scaleX = s
                     scaleY = s
-                    translationX = (1f - p) * drift      // 从右上 → 左下
-                    translationY = -(1f - p) * drift
+                    // 方向决定"从哪一角长出来"：向下开 → 右上角；向上开 → 右下角。
+                    // 之前写死 (1,0) 且位移只往上，向上弹出的卡片看起来还是从右上角冒出来。
+                    val down = dir?.down ?: true
+                    translationX = (1f - p) * drift
+                    translationY = (1f - p) * drift * (if (down) -1f else 1f)
                     alpha = p
-                    transformOrigin = TransformOrigin(1f, 0f)
+                    transformOrigin = TransformOrigin(1f, if (down) 0f else 1f)
                 }
                 .clip(shape)
                 .background(cardColor),
@@ -1695,10 +1630,11 @@ private fun CardDropdownSurface(
  * 贴锚点的卡片下拉。
  *
  * 定位规则（用户口径，**不要改**）：向下开时卡片顶边 = 条目顶边 + 16dp、右边 = 条目右边；
- * 下面放不下才翻到上方。
+ * 下面放不下才翻到上方（翻上去时入场动画也要从**右下角**长出来，见 [CardDir]）。
  *
- * `focusable = false`：不抢焦点，点外面的事件才能落到下层组件（下层照常生效），
- * 收回交给 [dismissCardDropdownOnTap]；返回键用宿主窗口的 BackHandler 兜。
+ * `focusable = true`：弹出后这个窗口**吃掉卡片外的所有触摸** ——
+ * 下层（包括对话框）收不到，所以"点卡片外只收卡片，不收回下面的卡片"（用户 2026-11-09 定）。
+ * 也就是说：不提"点外面还能同时激活下层组件"那套了，一律捕获。
  */
 @Composable
 fun CardDropdown(
@@ -1712,23 +1648,13 @@ fun CardDropdown(
     offsetY: androidx.compose.ui.unit.Dp = 0.dp,
 ) {
     var placed by remember { mutableStateOf(false) }
-    // 每次关闭都把闸门复位：否则第二次打开会沿用上一次的 placed=true，闸门形同虚设
+    // 关闭时复位闸门，否则第二次打开会沿用上一次的 placed=true
     LaunchedEffect(show) { if (!show) placed = false }
+    val dir = remember { CardDir() }
     val anim = rememberCardMenuAnim(show, ready = placed || !show)
-    val token = remember { Any() }
-    val latestDismiss by rememberUpdatedState(onDismiss)
     val haptic = LocalHapticFeedback.current
-
-    // 打开这一次震动放在菜单里（而不是胶囊里）：不管用胶囊、整行还是 ⋮ 打开，都震一次
+    // 打开这一次震动放在菜单里：不管用胶囊、整行还是 ⋮ 打开，都震一次
     LaunchedEffect(show) { if (show) haptic.performHapticFeedback(HapticFeedbackType.ToggleOn) }
-
-    // 登记给页面根的旁听器（同一时刻只有一个菜单）
-    DisposableEffect(show, token) {
-        if (show) CardDropdownState.open(token, latestDismiss)
-        else CardDropdownState.close(token)
-        onDispose { CardDropdownState.close(token) }
-    }
-    // 系统返回键：菜单开着就只收菜单（Popup 不抢焦点，所以要挂在宿主窗口上）
     if (show) BackHandler { onDismiss() }
     if (!anim.visible) return
 
@@ -1758,20 +1684,23 @@ fun CardDropdown(
                     val upTop = anchorBounds.bottom - gapPx - cardH + dy
                     // 放不放得下要用**卡片**判断，不能用带阴影留白的窗口高度
                     val fitsDown = downTop + cardH <= windowSize.height - marginPx
+                    // 记下方向：入场动画要按它决定从哪一角长出来
+                    dir.down = fitsDown
                     val maxTop = windowSize.height - marginPx - cardH
                     val cardTop = (if (fitsDown) downTop else upTop)
                         .coerceIn(marginPx, maxTop.coerceAtLeast(marginPx))
-                    // 诊断用：弹出时定位跑了几次、每次落在哪 —— 闪烁多半是首帧尺寸/坐标不对
                     android.util.Log.i(
                         "IcdqcowMenu",
-                        "anchor=$anchorBounds content=$popupContentSize " +
+                        "anchor=$anchorBounds content=$popupContentSize fitsDown=$fitsDown " +
                             "card=${cardW}x$cardH -> ($x,${cardTop - padPx})",
                     )
                     return IntOffset(x, cardTop - padPx)
                 }
             }
         },
-        properties = PopupProperties(focusable = false),
+        // ★ 焦点化：卡片外的触摸被这个窗口吃掉 → 下层收不到（不收回下面的卡片）
+        properties = PopupProperties(focusable = true),
+        onDismissRequest = onDismiss,
     ) {
         Box(Modifier.padding(pad)) {
             CardDropdownSurface(
@@ -1784,6 +1713,7 @@ fun CardDropdown(
                     onDismiss()
                 },
                 onPlaced = { placed = true },
+                dir = dir,
             )
         }
     }
@@ -1792,8 +1722,8 @@ fun CardDropdown(
 /**
  * 钉在容器右上角的卡片下拉（文件页 ⋮ / 编辑器）。
  *
- * 位置由调用方给的 padding 决定，**与改造前完全一致**；只换了样式、动效、震动和收回语义。
- * 旁听器直接装在这一层的全屏 Box 上。
+ * 位置由调用方给的 padding 决定，**与改造前完全一致**。
+ * 收回：全屏透明蒙层**吃掉**触摸（点击与滑动都收回，且不穿透到下面的文件行）。
  */
 @Composable
 fun CardDropdownTopEnd(
@@ -1807,25 +1737,46 @@ fun CardDropdownTopEnd(
     onSelected: (Int) -> Unit,
 ) {
     var placed by remember { mutableStateOf(false) }
-    // 每次关闭都把闸门复位：否则第二次打开会沿用上一次的 placed=true，闸门形同虚设
     LaunchedEffect(show) { if (!show) placed = false }
     val anim = rememberCardMenuAnim(show, ready = placed || !show)
-    val token = remember { Any() }
-    val latestDismiss by rememberUpdatedState(onDismiss)
     val haptic = LocalHapticFeedback.current
     LaunchedEffect(show) { if (show) haptic.performHapticFeedback(HapticFeedbackType.ToggleOn) }
-    DisposableEffect(show, token) {
-        if (show) CardDropdownState.open(token, latestDismiss)
-        else CardDropdownState.close(token)
-        onDispose { CardDropdownState.close(token) }
-    }
     if (show) BackHandler { onDismiss() }
     if (!anim.visible) return
 
     Box(
         modifier
             .fillMaxSize()
-            .dismissCardDropdownOnTap(),
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    var down: Offset? = null
+                    var done = false
+                    while (true) {
+                        val e = awaitPointerEvent()
+                        val c = e.changes.firstOrNull() ?: continue
+                        if (c.pressed && down == null) {
+                            down = c.position
+                            done = false
+                        }
+                        // 滑动越过阈值就收回（拖动时卡片不会再跟着页面走）
+                        if (c.pressed && !done) {
+                            val d0 = down
+                            if (d0 != null &&
+                                (c.position - d0).getDistance() > viewConfiguration.touchSlop
+                            ) {
+                                done = true
+                                onDismiss()
+                            }
+                        }
+                        if (!c.pressed && c.previousPressed) {
+                            if (!done) onDismiss()
+                            down = null
+                        }
+                        // 一律捕获：下层（文件行、滚动）收不到这次触摸
+                        c.consume()
+                    }
+                }
+            },
     ) {
         Box(Modifier.align(Alignment.TopEnd).padding(top = topPadding, end = endPadding)) {
             CardDropdownSurface(
@@ -1837,6 +1788,7 @@ fun CardDropdownTopEnd(
                     onSelected(i)
                     onDismiss()
                 },
+                onPlaced = { placed = true },
             )
         }
     }
