@@ -4,7 +4,7 @@
 
 **Manage qcow2 VM disks on an Android device, offline: create, partition, install, edit, repair.**
 
-[English](README.md) | [中文](README_ZH.md)
+[**English**](README.md) | [中文 🇨🇳](README_ZH.md)
 
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)](LICENSE)
 [![Android](https://img.shields.io/badge/Android-13%2B%20(API%2033)-3DDC84)](https://developer.android.com)
