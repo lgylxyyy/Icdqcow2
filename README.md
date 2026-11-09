@@ -1,154 +1,194 @@
 # Icdqcow2
 
-**不用电脑、不用 root，在手机上直接管理你的 qcow2 虚拟机磁盘。**
+[![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)](LICENSES/GPL-2.0.txt)
+[![Android](https://img.shields.io/badge/Android-13%2B%20(API%2033)-3DDC84)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF)](https://kotlinlang.org)
 
-建盘、分区、格式化、把 Windows 装进去、改盘里的文件、修引导 —— 全部在一个 App 里完成。
-它不启动虚拟机（那是 VectrasVM / Limbo 的事），只负责**把盘做好、改好**，
-做完的镜像直接丢给虚拟机启动。
+**在 Android 设备上离线管理 qcow2 虚拟机磁盘：建盘、分区、装系统、改文件、修引导。**
 
-> 底层是自研的 C 库 [imgtool](https://github.com/lgylxyyy/imgtool)，
-> Android 交叉编译在同一仓库（[imgtool](https://github.com/lgylxyyy/imgtool)）里，用 `./android-cross.sh`。
-> 完全离线，不联网、不上传任何东西。
+不启动虚拟机，不依赖 root，不联网。产出的镜像可直接交给 VectrasVM / Limbo / QEMU 启动。
+
+> 底层库：[imgtool](https://github.com/lgylxyyy/imgtool)（C11）。
+> Android 版由同一仓库的 `./android-cross.sh` 交叉编译为 `libimgtool.so`。
 
 ---
 
-## 它能做什么
+## 快速开始
 
-| 功能 | 说明 |
+| 步骤 | 操作 |
 |---|---|
-| **建盘** | 选容量，自动按 MBR（BIOS）或 GPT（UEFI）排好 ESP / MSR / 系统 / 恢复分区 |
-| **分区管理** | 查看、新建、删除、调整大小、改分区属性、导出/导入整张分区表 |
-| **格式化** | FAT32 / NTFS / exFAT |
-| **释放映像** | 把官方 Windows 的 `install.wim` / `.esd` / ISO 直接灌进分区（三步向导，带进度） |
-| **不格式化安装** | 保留旧系统：自动把根目录搬进 `Windows.old`，不弹错误、不丢数据 |
-| **引导** | 一键铺 `bootmgr` / `bootmgfw.efi` / `boot.sdi` / 字体 + 生成 BCD；支持 **BIOS / UEFI 64 / UEFI 32** |
-| **引导自检** | 按启动方式逐项检查（引导管理器、ESP 兜底、BCD、加载器、分区表），红叉点进去自动修复 |
-| **WinRE** | 把 `winre.wim` 装进恢复分区或系统分区，生成 `ReAgent.xml` 与恢复脚本 |
-| **文件管理** | 双栏浏览盘内 FAT32 / NTFS，也支持直接浏览 ISO、WIM 与 zip/7z/tar/RAR 压缩包 |
-| **文件操作** | 复制、移动、改名、删除（进回收站）、压缩成 zip、跨栏拖拽，多选批量 |
-| **压缩回收** | 把镜像里空洞压实，体积能小几个 GB |
-| **文本编辑器** | 内置编辑器，能直接改盘里的 `boot.ini`、`unattend.xml`、`BCD` 之外的配置文件；行号、查找替换、语法高亮 |
-| **全量自检** | 一次检查分区表、文件系统、引导链，给出结论说明 |
+| 1 | 从 [Releases](https://github.com/lgylxyyy/Icdqcow2/releases) 下载 APK |
+| 2 | 安装后授予「管理所有文件」权限（Android 11+ 必需） |
+| 3 | 首页 → 「全流程装机」→ 按向导选择 ISO、建盘、释放、自检 |
 
-## 界面怎么用
+| 页面 | 内容 |
+|---|---|
+| [功能](#功能) | 磁盘、部署、引导、文件、自检 |
+| [界面](#界面) | 三个主标签与操作手势 |
+| [构建](#构建) | 从源码构建 APK |
+| [许可证](#许可证) | 本项目与全部第三方组件 |
 
-底部三个标签：**主页 / 文件 / 设置**。所有操作都进二级页（从右往左推入）。
+---
 
-**主页** —— 顶部是「全流程装机」大卡，它会按 选镜像 → 建盘/选盘 → 释放 → 全量自检
-的顺序带你走完一次安装，中途退出会问你保不保存进度。下面按组排列：
+## 功能
 
-```
-磁盘      建新盘 · 分区管理 · 导出分区表 · 压缩镜像
-系统部署  释放映像 · 引导修复 · 恢复环境(WinRE) · 全量自检
-```
+| 类别 | 能力 |
+|---|---|
+| **磁盘** | 建盘（MBR/BIOS 与 GPT/UEFI 自动布局）；分区查看、新建、删除、调整、属性修改、导出/导入整表；压缩回收空洞 |
+| **文件系统** | 格式化 FAT32 / NTFS；浏览与读写盘内文件；复制、移动、改名、删除（入回收站）、压缩为 zip |
+| **系统部署** | `install.wim` / `.esd` / ISO 直接灌入分区；非格式化安装（旧系统移入 `Windows.old`） |
+| **引导** | 一键铺设 `bootmgr` / `bootmgfw.efi` / `boot.sdi` / 字体并生成 BCD；支持 BIOS、UEFI 64、UEFI 32 |
+| **引导自检** | 按启动方式逐项检查引导管理器、ESP 兜底入口、BCD、加载器、分区表；失败项可一键修复 |
+| **恢复环境** | 将 `winre.wim` 装入恢复分区或系统分区，生成 `ReAgent.xml` 与恢复脚本 |
+| **容器浏览** | 直接浏览 ISO、WIM/ESD 与 zip / 7z / tar / tgz / RAR 压缩包；解压、打包、跨容器复制 |
+| **全量自检** | 一次检查分区表、文件系统、引导链，给出结论与修复建议 |
+| **文本编辑** | 编辑盘内配置文件，支持行号、查找替换 |
 
-**文件** —— 左右两栏各自独立浏览，可以一边开镜像 A 的 NTFS、一边开镜像 B 的 FAT32：
+**格式支持**
+
+| 格式 | 读取 | 写入 | 建盘 |
+|---|---|---|---|
+| qcow2 | ✅ | ✅ | ✅ |
+| raw（.img / .raw） | ✅ | ✅ | ✅ |
+| VHD | ✅ | ✅ | ⚠️ 需由 raw 转换 |
+| VMDK | ✅ | ✅ | ✅ |
+
+**设计边界**
+
+- 不运行虚拟机，仅准备与修改镜像；
+- 镜像必须**关机**：App 与虚拟机不得同时访问同一镜像；
+- 全程离线，无网络请求，无遥测。
+
+---
+
+## 界面
+
+底部三个主标签，所有操作进入二级页（右滑返回）。
+
+| 标签 | 内容 |
+|---|---|
+| **主页** | 顶部「全流程装机」引导卡（选镜像 → 建盘 → 释放 → 自检，可保存进度）；下方按组排列磁盘、系统部署、引导、恢复、自检入口 |
+| **文件** | 双栏独立浏览，可同时打开镜像 A 的 NTFS 与镜像 B 的 FAT32 |
+| **设置** | 主题、语言、特效开关、错误码手册、运行日志、开源许可 |
+
+**文件页手势**
 
 | 操作 | 手势 |
 |---|---|
-| 进目录 / 打开文件 | 单击（回收站里的文件是"是否还原"） |
-| 复制 / 移动 / 改名 / 删除 / 压缩 | 长按弹菜单（只读位置会把不能做的项直接藏起来，不是灰） |
-| 多选 | 长按 → 选「多选」，选集钉在发起的那一栏，切到对面照常浏览 |
-| 复制到对面 | 多选后点「复制」，产物落在**对面那栏的当前目录** |
+| 进入目录 / 打开文件 | 单击 |
+| 复制 / 移动 / 改名 / 删除 / 压缩 | 长按弹出菜单（不可用项直接隐藏） |
+| 多选 | 长按 → 「多选」；选集固定在发起栏，另一栏可继续浏览 |
+| 复制到对面 | 多选后选「复制」，目标为对面栏当前目录 |
 
-长任务（复制/移动/压缩/删除/灌系统）会弹**阻塞式进度卡**：进度条 +「N / M 项 · 已用/总量」+
-当前文件名，挡住触摸和返回键，只留「取消」。
+长任务（复制、移动、压缩、删除、灌系统）弹出阻塞式进度卡：进度条、`已完成 / 总数`、
+当前文件名，仅保留「取消」。
 
-**设置** —— 主题（跟随系统/浅色/深色）、语言（中/英）、渐变与液态玻璃特效开关、
-错误码手册、运行日志、开源许可。
+---
 
-## 安装
+## 构建
 
-- **要求**：Android 13（API 33）及以上，arm64-v8a。
-- **权限**：首次启动会申请"所有文件访问权限"（`MANAGE_EXTERNAL_STORAGE`），
-  因为要直接读写 `/sdcard` 下的 `.qcow2` / `.iso` / `.wim`。不给就只能在 App 私有目录里操作。
-- 装好后的包名：`org.icdqcow2`。
+### 前置
 
-> ⚠️ **操作前请在虚拟机里关机**。App 直接改镜像字节，虚拟机运行时改会损坏文件系统。
+- JDK 17、Android SDK（compileSdk 37、targetSdk 35、minSdk 33）
+- Android NDK r28c（编译 `libimgtool.so`）
+- CMake ≥ 3.16、宿主 clang
 
-## 自己构建
-
-前置：JDK 17、Android SDK（platform 37、build-tools 37.0.0）、Gradle 9.8。
+### 步骤
 
 ```bash
-# 1) 先拿到 C 库（本仓库不含 .so）
+# 1) 取得 C 库（本仓库不含预编译 .so）
 git clone https://github.com/lgylxyyy/imgtool
 cd imgtool && ./android-deps.sh && ./android-cross.sh arm64-v8a
 
-# 2) 放进 App 的 jniLibs
+# 2) 放入 App
 cp build/android/arm64-v8a/libimgtool.so \
-   ../Icdqcow2/app/src/main/jniLibs/arm64-v8a/libimgtool.so
+   ../Icdqcow2/app/src/main/jniLibs/arm64-v8a/
 
-# 3) 构建
-cd ../Icdqcow2
-ANDROID_HOME=/path/to/android-sdk ./gradlew :app:assembleDebug
-# 产物 app/build/outputs/apk/debug/app-debug.apk
+# 3) 构建 APK
+cd ../Icdqcow2 && ./gradlew :app:assembleDebug
+# 产物：app/build/outputs/apk/debug/app-debug.apk
 ```
 
-装机与核对：
+`.so` 为构建产物，不入库。更换后须重新安装 APK。核对是否生效：
 
 ```bash
-adb install -r app/build/outputs/apk/debug/app-debug.apk
-adb shell dumpsys package org.icdqcow2 | grep lastUpdateTime
+md5sum build/android/arm64-v8a/libimgtool.so
+adb shell "md5sum /data/app/*/org.icdqcow2-*/lib/arm64/libimgtool.so"
 ```
 
-**文案表校验**（改了任何界面文案都要跑）：
-
-```bash
-python3 tools/check_strings.py     # 缺 key / 多 key / 占位符不一致都会失败
-```
+---
 
 ## 技术栈
 
-| 组件 | 版本 |
+| 层 | 实现 |
 |---|---|
-| Android Gradle Plugin / Kotlin | 9.4.1 / 2.4.20 |
-| Compose BOM | 2025.09.00（只用了 foundation/ui，不用 Material 主题） |
-| Miuix（小米 HyperOS 风格组件库） | 0.9.4 |
-| 编辑器内核 sora-editor | 0.23.6 |
-| 液态玻璃 | `io.github.kyant0:backdrop` 2.0.1 / `shapes` 1.2.1 |
-| JNI | 自研薄层（`jni/`），`.so` 由 imgtool 的 android-cross.sh 产出 |
+| UI | Kotlin + Jetpack Compose（Material 3） |
+| JNI | 自研薄层（`jni/`），调用 `libimgtool.so` |
+| 核心 | C11 静态库 [`imgtool`](https://github.com/lgylxyyy/imgtool)，NDK 交叉编译 |
+| 存储 | 通过 SAF / 直接路径访问用户目录 |
 
-## 用到的开源项目
+---
 
-| 组件 | 许可证 | 用途 |
+## 许可证
+
+本项目为 **GPL-2.0-or-later**。
+
+### 本项目
+
+| 范围 | 许可证 | 全文 |
 |---|---|---|
-| [AndroidX / Jetpack Compose](https://developer.android.com/jetpack) | Apache-2.0 | UI 框架 |
-| [Kotlin / kotlinx.coroutines](https://kotlinlang.org) | Apache-2.0 | 语言与协程 |
-| [Miuix](https://github.com/miuix-kotlin-multiplatform/miuix) | Apache-2.0 | 组件、图标、毛玻璃、偏好设置 |
-| [sora-editor](https://github.com/Rosemoe/sora-editor) | LGPL-2.1 | 代码编辑器内核（按行虚拟化，能开 19 KB 一行的 XML） |
-| [AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass) | Apache-2.0 | 底部导航的折射背景 |
-| [Shizuku](https://github.com/RikkaApps/Shizuku) | Apache-2.0 | 可选：借 shell 权限访问普通应用进不去的目录 |
-| [libntfs-3g](https://github.com/tuxera/ntfs-3g) | LGPL-2.1+ | NTFS 读写（在 `libimgtool.so` 内） |
-| [wimlib](https://wimlib.net) | LGPL-2.1+ | WIM/ESD 解压（同上） |
-| [zlib](https://zlib.net) | Zlib | qcow2 压缩簇（同上） |
-| [UnRAR](https://www.rarlab.com/rar_add.htm) | UnRAR 自由软件许可 | 只读解 RAR（同上） |
-| [mkntfs](https://github.com/tuxera/ntfs-3g/tree/master/ntfsprogs) | **GPL-2.0+** | NTFS 格式化（同上，可选） |
-| [Fluent UI System Icons](https://github.com/microsoft/fluentui-system-icons) | MIT | 文件类型图标 |
+| 全部 Kotlin / JNI 代码 | GPL-2.0-or-later | [GPL-2.0.txt](LICENSES/GPL-2.0.txt) |
 
-## 许可
+### 随 APK 分发的第三方组件
 
-- App 自有代码：**GPL-2.0-or-later**。
-  原因：随 App 分发的 `libimgtool.so` 默认带 `mkntfs`（GPL-2.0+），
-  整个二进制按 GPL 分发是最省事的合规口径。
-- 许可证全文在 `LICENSES/`：GPL-2.0 / LGPL-2.1 / Apache-2.0 / BSD-3-Clause / MIT / Zlib / UnRAR。
-- 逐项版权与修改说明见 `THIRD_PARTY.md`。
-- **LGPL 组件**（sora-editor、libntfs-3g、wimlib）的源码与构建脚本都在 GitHub 上，
-  你可以自行替换/重新链接。
+`libimgtool.so` 内静态链接以下组件：
+
+| 组件 | 许可证 | 用途 | 全文 |
+|---|---|---|---|
+| [zlib](https://zlib.net) | Zlib | qcow2 压缩簇 | [Zlib.txt](LICENSES/Zlib.txt) |
+| [libntfs-3g](https://github.com/tuxera/ntfs-3g) | LGPL-2.1-or-later | NTFS 读写 | [LGPL-2.1.txt](LICENSES/LGPL-2.1.txt) |
+| [ntfsprogs / mkntfs](https://github.com/tuxera/ntfs-3g/tree/master/ntfsprogs) | GPL-2.0-or-later | NTFS 格式化 | [GPL-2.0.txt](LICENSES/GPL-2.0.txt) |
+| [wimlib](https://wimlib.net) | LGPL-2.1-or-later | WIM / ESD | [LGPL-2.1.txt](LICENSES/LGPL-2.1.txt) |
+| [libarchive](https://libarchive.org) | BSD-2-Clause / BSD-3-Clause | zip / 7z / tar | [BSD-3-Clause.txt](LICENSES/BSD-3-Clause.txt) |
+| [hivex](https://github.com/libguestfs/hivex) | LGPL-2.1-or-later | 注册表 hive（BCD） | [LGPL-2.1.txt](LICENSES/LGPL-2.1.txt) |
+| [libxml2](https://gitlab.gnome.org/GNOME/libxml2) | MIT | hivex 依赖 | [MIT.txt](LICENSES/MIT.txt) |
+| [libiconv](https://www.gnu.org/software/libiconv/) | LGPL-2.1-or-later | 字符集转换 | [LGPL-2.1.txt](LICENSES/LGPL-2.1.txt) |
+| [UnRAR](https://www.rarlab.com/rar_add.htm) | UnRAR 自由软件许可 | 只读解 RAR | [UnRAR.txt](LICENSES/UnRAR.txt) |
+| [xz / liblzma](https://tukaani.org/xz/) | 0BSD（及个别 PD 文件） | libarchive 依赖 | [xz 上游声明](https://git.tukaani.org/?p=xz.git;a=blob_plain;f=COPYING;hb=HEAD) |
+| AndroidX / Jetpack Compose | Apache-2.0 | UI 框架 | [Apache-2.0.txt](LICENSES/Apache-2.0.txt) |
+| [Kotlin](https://kotlinlang.org) | Apache-2.0 | 语言与运行时 | [Apache-2.0.txt](LICENSES/Apache-2.0.txt) |
+| Android NDK（sysroot） | Apache-2.0 + 各组件自带 | 交叉编译目标环境 | [Apache-2.0.txt](LICENSES/Apache-2.0.txt) |
+
+### 合规说明
+
+- **LGPL 义务**：`libntfs-3g`、`wimlib`、`hivex`、`libiconv` 静态编入 `libimgtool.so`。
+  对应源码与构建脚本在 [imgtool](https://github.com/lgylxyyy/imgtool) 公开提供，
+  可据此重新生成 `.so`。
+- **GPL 义务**：本项目整体按 GPL-2.0-or-later 分发；
+  如需非 GPL 版本，可用 `-DIMG_WITH_NTFS=OFF` 重新构建 `libimgtool.so`。
+- **UnRAR 限制**：仅用于解压，不得用于开发 RAR 兼容压缩器或重建 RAR 压缩算法。
+- 逐项版权与修改说明见 imgtool 仓库的 `THIRD_PARTY.md`。
+
+---
 
 ## 隐私与安全
 
-- **不联网**：没有网络权限，没有统计、没有账号、没有云同步。
-- **不上传**：所有读写都在本机。
-- **不含签名**：仓库里没有任何 `.jks` / `.keystore` / `*.p12`（见 `.gitignore`），
-  正式签名请自己生成并放在仓库外。
-- **改盘有风险**：修改前请关机、备份重要镜像。App 会在写前检查宿主剩余空间，
-  但它不是文件系统驱动，做不到断电保护。
+| 项 | 说明 |
+|---|---|
+| 网络权限 | 未申请 |
+| 数据上传 | 无 |
+| 遥测 / 统计 | 无 |
+| 存储访问 | 仅访问用户显式选择或授权的路径 |
+| 权限 | 「管理所有文件」（Android 11+ 读写任意路径的磁盘镜像所需） |
+
+---
 
 ## 已知限制
 
-- 只支持 qcow2；VMDK / VHDX / raw 请先转换。
-- 压缩包只读（能浏览、解压，不能新建）；RAR 不支持写。
-- 32 位 UEFI 只支持 Windows 8 x86 及以上；Vista / Win7 的 x86 版本物理上没有 EFI 引导文件。
-- 加密的 WIM / ESD 不支持。
-- 编辑盘内文本文件后写回容器：目前支持"保存到对面一栏"，直接写回原容器在计划中。
+| 限制 | 说明 |
+|---|---|
+| 镜像必须关机 | 与虚拟机同时写入会损坏元数据 |
+| VHD 建盘 | 暂不支持，需由 raw 镜像转换 |
+| 无在线挂载 | 不提供 FUSE / 挂载点，全部离线读写 |
+| 大镜像耗时 | 数十 GB 的镜像在移动设备上操作可能需数分钟 |
+| 临时目录空间 | 从容器解压、WIM 捕获等操作需与目标体积相当的临时空间 |
