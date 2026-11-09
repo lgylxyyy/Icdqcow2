@@ -1521,10 +1521,10 @@ private fun rememberCardMenuAnim(show: Boolean, ready: Boolean = true): CardMenu
             }
         } else if (rendered) {
             // 收回：动画**跑完**才移除，别用 delay 硬删（那样看不到过程）。
-            // 时长换算：spring 周期 ≈ 2π/√k，即**速度 ∝ √k**。
-            //   1500（Medium）→ 400（MediumLow）：慢 1.94 倍，≈0.16s → 0.31s
-            //   400 → 200（Low）：速度 ×√(200/400)=0.71 ≈ 0.7（用户 2026-11-09 要求），≈0.44s
-            p.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessLow))
+            // 时长（实测数值积分，ζ=0.85，到 |x|<0.01 为止）：
+            //   k=1500 → 0.148s ；k=400 → 0.274s ；k=200 → 0.376s ；k=800 → 0.198s
+            // 用户口径"时长 ×0.7"= 0.274×0.7 ≈ 0.19s → k=800（时长 ∝ 1/√k）。
+            p.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = 800f))
             rendered = false
         }
     }
@@ -1701,8 +1701,11 @@ fun CardDropdown(
                 }
             }
         },
-        // ★ 焦点化：卡片外的触摸被这个窗口吃掉 → 下层收不到（不收回下面的卡片）
-        properties = PopupProperties(focusable = true),
+        // ★ 只在**展开状态**拦截触摸：卡片外的触摸被这个窗口吃掉，下层收不到
+        //   （所以"点外面只收卡片，不收回下面的卡片"）。
+        //   收回动画期间必须放开 —— 否则动画那 0.2s 里整个页面点不动，
+        //   感觉上会比动画本身慢得多（用户 2026-11-09 反馈"为什么比之前更慢"）。
+        properties = PopupProperties(focusable = show),
         onDismissRequest = onDismiss,
     ) {
         Box(Modifier.padding(pad)) {
@@ -1750,36 +1753,44 @@ fun CardDropdownTopEnd(
     Box(
         modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    var down: Offset? = null
-                    var done = false
-                    while (true) {
-                        val e = awaitPointerEvent()
-                        val c = e.changes.firstOrNull() ?: continue
-                        if (c.pressed && down == null) {
-                            down = c.position
-                            done = false
-                        }
-                        // 滑动越过阈值就收回（拖动时卡片不会再跟着页面走）
-                        if (c.pressed && !done) {
-                            val d0 = down
-                            if (d0 != null &&
-                                (c.position - d0).getDistance() > viewConfiguration.touchSlop
-                            ) {
-                                done = true
-                                onDismiss()
+            // 收回动画期间不再消费事件：否则文件页那 0.2s 里也点不动
+            .then(
+                if (!show) {
+                    Modifier
+                } else {
+                    Modifier.pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            var down: Offset? = null
+                            var done = false
+                            while (true) {
+                                val e = awaitPointerEvent()
+                                val c = e.changes.firstOrNull() ?: continue
+                                if (c.pressed && down == null) {
+                                    down = c.position
+                                    done = false
+                                }
+                                // 滑动越过阈值就收回（拖动时卡片不会再跟着页面走）
+                                if (c.pressed && !done) {
+                                    val d0 = down
+                                    if (d0 != null &&
+                                        (c.position - d0).getDistance() >
+                                        viewConfiguration.touchSlop
+                                    ) {
+                                        done = true
+                                        onDismiss()
+                                    }
+                                }
+                                if (!c.pressed && c.previousPressed) {
+                                    if (!done) onDismiss()
+                                    down = null
+                                }
+                                // 一律捕获：下层（文件行、滚动）收不到这次触摸
+                                c.consume()
                             }
                         }
-                        if (!c.pressed && c.previousPressed) {
-                            if (!done) onDismiss()
-                            down = null
-                        }
-                        // 一律捕获：下层（文件行、滚动）收不到这次触摸
-                        c.consume()
                     }
-                }
-            },
+                },
+            ),
     ) {
         Box(Modifier.align(Alignment.TopEnd).padding(top = topPadding, end = endPadding)) {
             CardDropdownSurface(
