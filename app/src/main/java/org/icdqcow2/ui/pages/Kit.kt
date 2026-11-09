@@ -1521,9 +1521,10 @@ private fun rememberCardMenuAnim(show: Boolean, ready: Boolean = true): CardMenu
             }
         } else if (rendered) {
             // 收回：动画**跑完**才移除，别用 delay 硬删（那样看不到过程）。
-            // 时长：spring 的周期 ≈ 2π/√k，k 降到 1/4 就是慢一倍 ——
-            // 1500 → 400（StiffnessMediumLow），约 0.16s → 0.31s（用户 2026-11-09 要求延长两倍）。
-            p.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow))
+            // 时长换算：spring 周期 ≈ 2π/√k，即**速度 ∝ √k**。
+            //   1500（Medium）→ 400（MediumLow）：慢 1.94 倍，≈0.16s → 0.31s
+            //   400 → 200（Low）：速度 ×√(200/400)=0.71 ≈ 0.7（用户 2026-11-09 要求），≈0.44s
+            p.animateTo(0f, spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessLow))
             rendered = false
         }
     }
