@@ -286,6 +286,7 @@ class Strings(val code: String) {
     fun noteFailed(code: String) = tpl("create.note.failed", code)
     fun toastCreated(name: String, sizeGb: Int) = tpl("create.toast.created", name, sizeGb)
     fun toastCreatedWarn(name: String, warn: String) = tpl("create.toast.createdWarn", name, warn)
+    fun toastCreatedSize(name: String, size: String) = tpl("create.toast.createdSize", name, size)
     val toastExtraMissing get() = raw("create.toast.extraMissing")
     val toastPickNoPath get() = raw("create.toast.pickNoPath")
     val toastPickUnwritable get() = raw("create.toast.pickUnwritable")
@@ -986,6 +987,7 @@ class Strings(val code: String) {
     val fmtQcow2Hint get() = raw("fmt.qcow2Hint")
     val fmtRawHint get() = raw("fmt.rawHint")
     val fmtVmdkHint get() = raw("fmt.vmdkHint")
+    val fmtVhdHint get() = raw("fmt.vhdHint")
 
     // ── 开源许可证页 ──
     val licensesTitle get() = raw("licenses.title")
@@ -1010,6 +1012,8 @@ class Strings(val code: String) {
     val regTruncated get() = raw("reg.truncated")
     val regReadOnlyNote get() = raw("reg.readOnlyNote")
     val regSummary get() = raw("reg.summary")
+    val tmpDirTitle get() = raw("tmpDir.title")
+    val tmpDirQuery get() = raw("tmpDir.query")
     // ── 捕获映像页 ──
     val regCaptureTitle get() = raw("reg.captureTitle")
     val regCaptureSummary get() = raw("reg.captureSummary")
@@ -1022,7 +1026,6 @@ class Strings(val code: String) {
     val capName get() = raw("cap.name")
     val capEstimate get() = raw("cap.estimate")
     val capEstNeed get() = raw("cap.estNeed")
-    val capEstFree get() = raw("cap.estFree")
     fun capNoSpace(need: String) = tpl("cap.noSpace", need)
     val capRun get() = raw("cap.run")
     val capDone get() = raw("cap.done")
@@ -1031,6 +1034,11 @@ class Strings(val code: String) {
     val capRatio get() = raw("cap.ratio")
     val capInOut get() = raw("cap.inOut")
     val capFiles get() = raw("cap.files")
+    val capTmpFree get() = raw("cap.tmpFree")
+    val capOutFree get() = raw("cap.outFree")
+    fun capNoSpaceTmp(need: String, free: String) = tpl("cap.noSpaceTmp", need, free)
+    fun capNoSpaceOut(need: String) = tpl("cap.noSpaceOut", need)
+    val capWarnSpace get() = raw("cap.warnSpace")
     /** 组件用途：key 形如 `licPurpose.tool`。 */
     fun licPurpose(suffix: String): String = raw(suffix)
 

@@ -9,6 +9,13 @@ obj/
 *.o
 *.a
 *.so
+# 例外：两个 native 库必须入库。
+#   libimgtool.so —— 工具端 C 库（imgtool 仓库构建产物）
+#   libimgapp.so  —— App 自己的 JNI 桥（jni/*.c 编译）
+# 曾因整体忽略 *.so，导致新 clone 的仓库构建出的 APK **一个库都没有**：
+# 装到新机上所有工具命令全部 UnsatisfiedLinkError，整个 App 不可用。
+!app/src/main/jniLibs/arm64-v8a/libimgtool.so
+!app/src/main/jniLibs/arm64-v8a/libimgapp.so
 *.apk
 *.aab
 *.ap_

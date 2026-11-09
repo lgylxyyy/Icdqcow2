@@ -759,39 +759,48 @@ private fun CreateDiskForm(
                 Choice("qcow2", s.fmtQcow2Hint),
                 Choice("raw", s.fmtRawHint),
                 Choice("vmdk", s.fmtVmdkHint),
+                // VHD 建盘：工具端 2026-11-09 已支持（HANDOFF-vhd-create-and-format-fields），
+                // 此前按 REPLY-59 §5 标灰的限制已解除。
+                Choice("vhd", s.fmtVhdHint),
             )
         }
         var fmtAsk by remember { mutableStateOf(false) }
-        TextField(
-            value = draft.name,
-            onValueChange = {
-                // 允许空格与括号：重名顺延会生成 `名称 （1）`，编辑时不能把它吃掉
-                draft.name = it.filter { c -> c.isLetterOrDigit() || c in "-_ ()（）" }
-                    .take(DiskLimits.NAME_MAX)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            trailingIcon = {
-                Text(
-                    "." + draft.format,
-                    style = MiuixTheme.textStyles.body2,
-                    color = MiuixTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .clickable { fmtAsk = true }
-                        .padding(end = 12.dp),
-                )
-            },
-        )
+        // ★ 弹窗必须和输入框装在同一个 Box 里：
+        //   CardMenuPopup 用 PopupPositionProvider 定位，锚点是它在 Compose 树里的**父节点**。
+        //   直接挂在页面 Column 下，锚点就变成整列 —— 菜单会飞到屏幕别处。
+        //   设置页（SettingsScreen 的历史条数）就是 Box { 行; CardMenuPopup }，此处照抄。
+        Box {
+            TextField(
+                value = draft.name,
+                onValueChange = {
+                    // 允许空格与括号：重名顺延会生成 `名称 （1）`，编辑时不能把它吃掉
+                    draft.name = it.filter { c -> c.isLetterOrDigit() || c in "-_ ()（）" }
+                        .take(DiskLimits.NAME_MAX)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = {
+                    Text(
+                        "." + draft.format,
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clickable { fmtAsk = true }
+                            .padding(end = 12.dp),
+                    )
+                },
+            )
+            CardMenuPopup(
+                show = fmtAsk,
+                items = fmtItems.map { it.title },
+                selectedIndex = fmtItems.indexOfFirst { it.title == draft.format }.coerceAtLeast(0),
+                onDismiss = { fmtAsk = false },
+                onSelected = { i ->
+                    draft.format = fmtItems[i].title
+                    fmtAsk = false
+                },
+            )
+        }
         Note(s.nameHint)
-        CardMenuPopup(
-            show = fmtAsk,
-            items = fmtItems.map { it.title },
-            selectedIndex = fmtItems.indexOfFirst { it.title == draft.format }.coerceAtLeast(0),
-            onDismiss = { fmtAsk = false },
-            onSelected = { i ->
-                draft.format = fmtItems[i].title
-                fmtAsk = false
-            },
-        )
 
         GroupTitle(s.secCapacity)
         NumberField(value = draft.sizeGb, onValueChange = { draft.sizeGb = it }, unit = "GB", maxDigits = 4)
@@ -1024,8 +1033,13 @@ private fun CreateDiskForm(
                     else -> null
                 }
                 onToast(
-                    if (warn == null) s.toastCreated(draft.name, sizeGb)
-                    else s.toastCreatedWarn(draft.name, warn),
+                    if (warn == null) {
+                        // ★ 用工具返回的**实际**容量，不是 size-gb × 1024³：
+                        //   VHD 会向上补齐到整柱面（工具端 HANDOFF-vhd-create-and-format-fields §1）。
+                        val bytes = out.result.data?.optLong("size_bytes", 0L) ?: 0L
+                        if (bytes > 0) s.toastCreatedSize(draft.name, fmtBytes(bytes))
+                        else s.toastCreated(draft.name, sizeGb)
+                    } else s.toastCreatedWarn(draft.name, warn),
                 )
                 // 向导里：建好就直接进下一步，不要走 onBack（那会触发"是否退出"）
                 if (onCreated != null) onCreated(created) else onBack()

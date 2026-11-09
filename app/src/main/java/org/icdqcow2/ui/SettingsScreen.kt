@@ -216,6 +216,29 @@ fun SettingsScreen(
                     szTick++
                 }
             }
+            // 临时目录：工具端当前**实际**用的目录（sys.tmpdir）。
+            // 用户能自查"临时文件到底落在哪、那卷还剩多少"，出问题时也便于报障。
+            var tmpInfo by remember { mutableStateOf<String?>(null) }
+            var tmpTick by remember { mutableIntStateOf(0) }
+            LaunchedEffect(tmpTick) {
+                tmpInfo = runCatching {
+                    val r = org.icdqcow2.core.ImageRepo.sysTmpdir()
+                    if (!r.ok) {
+                        null
+                    } else {
+                        val p = r.data?.optString("path").orEmpty()
+                        val free = r.data?.optLong("free_bytes", 0L) ?: 0L
+                        val src = r.data?.optString("source").orEmpty()
+                        "$p · " + org.icdqcow2.ui.pages.fmtBytes(free) + " · " + src
+                    }
+                }.getOrNull()
+            }
+            BasicComponent(
+                title = s.tmpDirTitle,
+                summary = tmpInfo ?: s.tmpDirQuery,
+                onClick = { tmpTick++ },
+            )
+
             BasicComponent(
                 title = s.szTitle,
                 summary = when {

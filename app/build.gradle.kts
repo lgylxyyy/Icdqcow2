@@ -1,3 +1,5 @@
+import java.util.zip.ZipFile
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
@@ -75,4 +77,56 @@ dependencies {
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
     debugImplementation("androidx.compose.ui:ui-tooling")
+}
+// ── native 库护栏（2026-11-09 加）────────────────────────────────────────────
+// 背景：`.gitignore` 曾整体忽略 `*.so`，两个 native 库不在版本库里。
+//   而 AGP 的 jniLibs 合并任务会产出陈旧结果 —— APK **静默**不含库，
+//   装到新机上所有工具命令全部 UnsatisfiedLinkError，整个 App 不可用。
+//   这个坑已经踩过两次（一次丢 libimgapp.so，一次新 clone 出来零库）。
+//
+// 这里做两道校验：
+//   ① 打包前：源文件必须在（否则提前失败，别等打包完才发现）
+//   ② 打包后：APK 里必须真的含这两个库（否则构建失败，坏包不许流出去）
+val requiredNativeLibs = listOf(
+    "lib/arm64-v8a/libimgtool.so",
+    "lib/arm64-v8a/libimgapp.so",
+)
+
+tasks.matching { it.name == "preBuild" }.configureEach {
+    doLast {
+        val missing = requiredNativeLibs.mapNotNull { entry ->
+            val name = entry.substringAfterLast('/')
+            val f = file("src/main/jniLibs/arm64-v8a/$name")
+            if (!f.exists()) entry else null
+        }
+        if (missing.isNotEmpty()) {
+            throw GradleException(
+                "缺少 native 库：${missing.joinToString()}\n" +
+                    "  这两个库必须入库（.gitignore 已放行）。若确实要重新生成：\n" +
+                    "    1) 工具端库：clone https://github.com/lgylxyyy/imgtool && " +
+                    "./android-deps.sh && ./android-cross.sh arm64-v8a\n" +
+                    "    2) App 的 JNI 桥：见 tools/build-native-libs.sh\n" +
+                    "  版本与来源记录在 tools/native-libs.md5。"
+            )
+        }
+    }
+}
+
+tasks.matching { it.name == "assembleDebug" || it.name == "assembleRelease" }.configureEach {
+    doLast {
+        val outDir = layout.buildDirectory.dir("outputs/apk").get().asFile
+        val apks = outDir.walkTopDown().filter { it.isFile && it.name.endsWith(".apk") }.toList()
+        apks.forEach { apk ->
+            ZipFile(apk).use { z ->
+                val missing = requiredNativeLibs.filter { z.getEntry(it) == null }
+                if (missing.isNotEmpty()) {
+                    throw GradleException(
+                        "APK ${apk.name} 缺少 native 库：${missing.joinToString()}\n" +
+                            "  装到机器上会 UnsatisfiedLinkError。检查 jniLibs 是否被 gitignore、" +
+                            "以及 mergeNativeLibs 任务是否产出陈旧结果（可 --rerun-tasks）。"
+                    )
+                }
+            }
+        }
+    }
 }

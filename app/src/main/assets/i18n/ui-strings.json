@@ -4802,11 +4802,6 @@
       "en": "Estimated required",
       "note": "捕获页 · 估算结果行标题"
     },
-    "cap.estFree": {
-      "zh": "可用空间",
-      "en": "Available space",
-      "note": "捕获页 · 可用空间行标题"
-    },
     "cap.noSpace": {
       "zh": "空间不足：至少需要 {0} 可用空间",
       "en": "Not enough space: at least {0} free is required",
@@ -4846,6 +4841,51 @@
       "zh": "个文件",
       "en": "files",
       "note": "捕获页 · 文件数单位"
+    },
+    "fmt.vhdHint": {
+      "zh": "vhd：动态盘，VirtualBox/Hyper-V 直接认；容量会向上补齐到整柱面",
+      "en": "vhd: dynamic disk for VirtualBox/Hyper-V; capacity is rounded up to a cylinder multiple",
+      "note": "建盘页 · 格式选择器 vhd 说明"
+    },
+    "cap.tmpFree": {
+      "zh": "临时目录可用",
+      "en": "Free in temp dir",
+      "note": "捕获页 · 临时目录剩余空间行标题"
+    },
+    "cap.outFree": {
+      "zh": "输出盘可用",
+      "en": "Free at output",
+      "note": "捕获页 · 输出盘剩余空间行标题"
+    },
+    "cap.noSpaceTmp": {
+      "zh": "临时目录空间不足：需要 {0}，可用 {1}",
+      "en": "Not enough space in the temp dir: {0} required, {1} free",
+      "note": "捕获页 · 临时目录预检失败"
+    },
+    "cap.noSpaceOut": {
+      "zh": "输出盘空间不足：压缩后仍需约 {0}",
+      "en": "Not enough space at the output: about {0} is needed even after compression",
+      "note": "捕获页 · 输出盘预检失败"
+    },
+    "cap.warnSpace": {
+      "zh": "输出盘空间偏小，压缩后可能仍写不下",
+      "en": "The output volume is tight; the compressed image may still not fit",
+      "note": "捕获页 · 输出盘偏小提醒"
+    },
+    "tmpDir.title": {
+      "zh": "临时目录",
+      "en": "Temporary directory",
+      "note": "设置页 · 临时目录卡标题"
+    },
+    "tmpDir.query": {
+      "zh": "点击查询当前生效的临时目录",
+      "en": "Tap to query the active temp directory",
+      "note": "设置页 · 临时目录卡未加载时"
+    },
+    "create.toast.createdSize": {
+      "zh": "已创建 {0} · {1}",
+      "en": "Created {0} · {1}",
+      "note": "建盘 · 文案位 · 用工具返回的实际容量"
     }
   }
 }

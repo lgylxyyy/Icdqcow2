@@ -1,5 +1,7 @@
 package org.icdqcow2.ui.pages
 
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -11,23 +13,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.icdqcow2.core.ImageRepo
+import org.icdqcow2.core.ToolRunner
 import org.icdqcow2.ui.LocalStrings
 import org.icdqcow2.ui.SmallTitlePage
 import top.yukonga.miuix.kmp.basic.TextField
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.ui.Modifier
-import org.icdqcow2.core.ToolRunner
 
 /**
  * 捕获映像：把系统分区整树打包成 WIM（`wim.capture`）。
  *
- * 流程（REQ-60 §2.3）：
+ * 流程（REQ-60 §2.3 + REQ-61 §3）：
  *   ① 选盘 + 输出文件
- *   ② estimate=true 拿 bytes_needed_mb（秒级，不写盘）
- *   ③ 空间预检：临时目录所在分区剩余 ≥ bytes_needed × 1.2，不足直接拒绝
- *   ④ 正式捕获（comp 可选 none/xpress/lzx/lzms）
+ *   ② estimate=true 拿 bytes_needed（**未压缩树**的体积，秒级，不写盘）
+ *   ③ 空间预检：两个地方都要查 ——
+ *      · 工具端的临时目录（`sys.tmpdir` 给 free_bytes）：中间树落在这里，
+ *        要装下整棵未压缩的树，是**硬需求**；
+ *      · 输出文件所在盘：装压缩后的 WIM，体积事先算不出来，只能给下限。
+ *   ④ 正式捕获（none/xpress/lzx/lzms）
  *
- * 临时目录走 [TempDirs]（App 缓存），启动时会清扫，App 崩溃也不会污染用户盘。
+ * 临时目录走 `TempDirs`（App 私有 filesDir），启动时会清扫，App 崩溃也不会污染用户盘。
  */
 @Composable
 fun CapturePage(
@@ -47,10 +50,14 @@ fun CapturePage(
     var capName by remember { mutableStateOf("Windows") }
     var outPath by remember { mutableStateOf("") }
 
-    /** 估算结果（MB）。null = 还没估。 */
-    var needMb by remember { mutableStateOf<Long?>(null) }
+    /** 估算结果（字节）。null = 还没估。 */
+    var needBytes by remember { mutableStateOf<Long?>(null) }
     var needFiles by remember { mutableStateOf(0L) }
-    var hostFreeMb by remember { mutableStateOf<Long?>(null) }
+    /** 工具端临时目录所在卷的剩余空间（sys.tmpdir 给的权威值）。 */
+    var tmpFree by remember { mutableStateOf<Long?>(null) }
+    var tmpPath by remember { mutableStateOf("") }
+    /** 输出文件所在卷的剩余空间。 */
+    var outFree by remember { mutableStateOf<Long?>(null) }
 
     var running by remember { mutableStateOf(false) }
     var result by remember { mutableStateOf<ToolRunner.Result?>(null) }
@@ -63,7 +70,7 @@ fun CapturePage(
         }
         loading = true
         err = null
-        needMb = null
+        needBytes = null
         val r = runCatching { loadSnap(img) }.getOrNull()
         winLba = r?.windows()?.lba
         if (r?.pt == null) err = s.brNoTable else if (winLba == null) err = s.regNoWindows
@@ -74,7 +81,7 @@ fun CapturePage(
         loading = false
     }
 
-    /** 估算 + 空间预检。 */
+    /** 估算 + 空间预检（两个卷都查）。 */
     fun estimate() {
         val img = image ?: return
         val lba = winLba ?: return
@@ -87,18 +94,43 @@ fun CapturePage(
                 err = toolErrorText(s, r)
                 return@launch
             }
-            val d = r.data
-            needMb = d?.optLong("bytes_needed_mb", 0L) ?: 0L
-            needFiles = d?.optLong("files", 0L) ?: 0L
-            // 输出文件所在分区剩余空间
-            hostFreeMb = runCatching {
-                val f = java.io.File(outPath).parentFile
-                f.usableSpace / (1024L * 1024L)
+            needBytes = r.data?.optLong("bytes_needed", 0L) ?: 0L
+            needFiles = r.data?.optLong("files", 0L) ?: 0L
+            // 工具端真正的临时目录在哪、那一卷还剩多少 —— 问它本人，别自己猜
+            val t = withContext(Dispatchers.IO) { ImageRepo.sysTmpdir() }
+            if (t.ok) {
+                tmpPath = t.data?.optString("path").orEmpty()
+                tmpFree = t.data?.optLong("free_bytes", -1L)?.takeIf { it >= 0 }
+            }
+            // 输出文件所在卷
+            outFree = runCatching {
+                java.io.File(outPath).parentFile?.usableSpace
             }.getOrNull()
         }
     }
 
-    /** 开始捕获（已经过空间预检）。 */
+    /** 硬门槛：临时目录装不下整棵树 = 必然失败，别让用户白等。 */
+    fun tmpShort(): Boolean {
+        val need = needBytes ?: return false
+        val free = tmpFree ?: return false
+        return free < need * 12L / 10L
+    }
+
+    /** 输出盘明显不够（低于未压缩体积的 35%）= 压缩后也放不下。 */
+    fun outHopeless(): Boolean {
+        val need = needBytes ?: return false
+        val free = outFree ?: return false
+        return free < need * 35L / 100L
+    }
+
+    /** 输出盘偏小（低于 60%）：压缩后大概率够，但提醒一句。 */
+    fun outTight(): Boolean {
+        val need = needBytes ?: return false
+        val free = outFree ?: return false
+        return free < need * 60L / 100L
+    }
+
+    /** 开始捕获（已过空间预检）。 */
     fun runCapture() {
         val img = image ?: return
         val lba = winLba ?: return
@@ -106,23 +138,29 @@ fun CapturePage(
             onToast(s.capNeedOut)
             return
         }
-        val need = needMb ?: return
-        val free = hostFreeMb ?: return
-        // 工具端要临时目录 ≈ 原始体积 + 输出文件 ≈ 压缩后体积，1.2 倍余量兜底
-        if (free < need * 12L / 10L) {
-            err = s.capNoSpace(fmtBytes(need * 1024L * 1024L))
+        if (tmpShort()) {
+            err = s.capNoSpaceTmp(fmtBytes((needBytes ?: 0L)), fmtBytes(tmpFree ?: 0L))
+            return
+        }
+        if (outHopeless()) {
+            err = s.capNoSpaceOut(fmtBytes((needBytes ?: 0L)))
             return
         }
         running = true
         err = null
         scope.launch {
             val r = withContext(Dispatchers.IO) {
-                ImageRepo.capture(lba = lba, out = outPath, comp = comp, name = capName.ifBlank { "Windows" }, img = img)
+                ImageRepo.capture(
+                    lba = lba,
+                    out = outPath,
+                    comp = comp,
+                    name = capName.ifBlank { "Windows" },
+                    img = img,
+                )
             }
             running = false
             result = r
-            if (r.ok) onToast(s.capDone)
-            else err = toolErrorText(s, r)
+            if (r.ok) onToast(s.capDone) else err = toolErrorText(s, r)
         }
     }
 
@@ -164,16 +202,38 @@ fun CapturePage(
             }
             BlockEnter(4) {
                 when {
-                    needMb == null -> Action(text = s.capEstimate, enabled = !loading && !running) { estimate() }
+                    needBytes == null ->
+                        Action(text = s.capEstimate, enabled = !loading && !running) { estimate() }
                     else -> {
                         GroupCard {
-                            Item(s.capEstNeed, fmtBytes(needMb!! * 1024L * 1024L) + " · " + needFiles + " " + s.capFiles)
-                            Item(s.capEstFree, hostFreeMb?.let { fmtBytes(it * 1024L * 1024L) } ?: "—")
+                            Item(
+                                s.capEstNeed,
+                                fmtBytes(needBytes!!) + " · " + needFiles + " " + s.capFiles,
+                            )
+                            Item(
+                                s.capTmpFree,
+                                (tmpFree?.let { fmtBytes(it) } ?: "—") +
+                                    if (tmpPath.isBlank()) "" else " · " + tmpPath,
+                            )
+                            Item(s.capOutFree, outFree?.let { fmtBytes(it) } ?: "—")
                         }
-                        if (hostFreeMb != null && hostFreeMb!! < needMb!! * 12L / 10L) {
-                            Note(s.capNoSpace(fmtBytes(needMb!! * 1024L * 1024L)), warn = true)
-                        } else {
-                            Action(text = s.capRun, enabled = !running) { runCapture() }
+                        when {
+                            tmpShort() -> {
+                                Note(
+                                    s.capNoSpaceTmp(
+                                        fmtBytes(needBytes!!),
+                                        fmtBytes(tmpFree ?: 0L),
+                                    ),
+                                    warn = true,
+                                )
+                            }
+                            outHopeless() -> {
+                                Note(s.capNoSpaceOut(fmtBytes(needBytes!!)), warn = true)
+                            }
+                            else -> {
+                                Action(text = s.capRun, enabled = !running) { runCapture() }
+                                if (outTight()) Note(s.capWarnSpace, warn = true)
+                            }
                         }
                     }
                 }
@@ -186,9 +246,11 @@ fun CapturePage(
                         GroupTitle(s.capResult)
                         GroupCard {
                             Item(s.capRatio, (d?.optInt("ratio_pct", 0) ?: 0).toString() + "%")
-                            Item(s.capInOut,
+                            Item(
+                                s.capInOut,
                                 fmtBytes(d?.optLong("bytes_in", 0L) ?: 0L) + " → " +
-                                    fmtBytes(d?.optLong("bytes_out", 0L) ?: 0L))
+                                    fmtBytes(d?.optLong("bytes_out", 0L) ?: 0L),
+                            )
                         }
                     }
                 }

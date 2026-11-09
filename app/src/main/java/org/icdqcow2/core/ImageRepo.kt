@@ -690,6 +690,22 @@ object ImageRepo {
         writable = false,
     )
 
+    /**
+     * `sys.tmpdir`：工具端当前生效的临时目录（REQ-61 §3）。
+     *
+     * 返回字段：`path` / `source`（命中的档位）/ `writable` /
+     * `free_bytes` / `total_bytes` / `stale_removed`（本次清掉的残留数）。
+     *
+     * ★ 空间预检必须跟它给的 `free_bytes` 比 —— 那是**工具真正会用的那一卷**。
+     *   之前 App 拿输出文件所在卷的剩余空间去比，而 `wim.capture` 的中间树
+     *   落在 tmpdir（另一卷），两边可能一个够一个不够。
+     */
+    suspend fun sysTmpdir(): ToolRunner.Result = exec(
+        "sys.tmpdir",
+        path = null,
+        writable = false,
+    )
+
     // ── wim.capture（REQ-60 §2.3）──────────────────────────────────────────
 
     /** 支持的压缩方式。 */
