@@ -4,7 +4,7 @@
 
 **在 Android 设备上离线管理 qcow2 虚拟机磁盘：建盘、分区、装系统、改文件、修引导。**
 
-[English 🇬🇧](README_EN.md) | [**中文**](README.md)
+[English](README_EN.md) | [**中文**](README.md)
 
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)](LICENSE)
 [![Android](https://img.shields.io/badge/Android-13%2B%20(API%2033)-3DDC84)](https://developer.android.com)
