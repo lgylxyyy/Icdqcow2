@@ -196,7 +196,10 @@ fun CapturePage(
                     Note(s.regNeedImage)
                     PickImagePage(onPicked = { p, uri -> image = p ?: uri })
                 } else {
-                    CurrentFileCard(name = pickName(image!!), path = image, onToast = onToast)
+                    CurrentFileCard(
+                        name = pickName(image!!), path = image, onToast = onToast,
+                        title = "",   // 外层已经有「磁盘映像」
+                    )
                 }
             }
 

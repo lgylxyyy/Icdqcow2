@@ -476,6 +476,12 @@ fun CurrentFileCard(
     name: String,
     path: String?,
     onToast: (String) -> Unit,
+    /**
+     * 卡片上方的小标题（分组小标题）。默认「当前磁盘」——
+     * 用户 2026-11-11：有的页面有这一行、有的没有，统一补回来。
+     * 传空串 = 这一块外面已经有自己的分组标题（如捕获映像页的「磁盘映像」）。
+     */
+    title: String? = null,
 ) {
     val s = LocalStrings.current
     val ctx = androidx.compose.ui.platform.LocalContext.current
@@ -491,6 +497,8 @@ fun CurrentFileCard(
 
     // 和正文块同一个模板：它就是第 0 块（0ms 起步），正文块从 70ms 起依次跟上。
     BlockEnter(0) {
+        val head = title ?: s.curDisk
+        if (head.isNotBlank()) GroupTitle(head)
         GroupCard {
             Item(
                 title = s.fileCard(name),

@@ -973,12 +973,9 @@ fun WinRePage(
                                         mode = "fix"
                                         result = null
                                     }
-                                    Item(
-                                        s.wrScript,
-                                        if (!script) s.depRecScriptHint
-                                        else s.depScriptWhere("Windows/System32/Recovery"),
-                                        end = { Switch(checked = script, onCheckedChange = { script = it }) },
-                                    )
+                                    // ★ 这里不再放「创建开启 WinRE 脚本」开关：
+                                    //   它和上面两条（重新写入 / 修复）不沾边，脚本只在
+                                    //   「重新写入」和「修复」各自的卡片里出现（用户 2026-11-11）。
                                 }
                             }
                         }

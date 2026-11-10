@@ -5056,6 +5056,16 @@
       "zh": "修复只针对恢复分区里的 WinRE；没有 WinRE 时请用上面的重新写入",
       "en": "Repair only works on a WinRE that already exists; use rewrite when there is none",
       "note": "没有 WinRE 时为什么看不到\"修复\"的说明"
+    },
+    "cur.disk": {
+      "zh": "当前磁盘",
+      "en": "Current disk",
+      "note": "「当前操作的文件」卡片上方的分组小标题（所有页面统一，用户 2026-11-11 要求补回）"
+    },
+    "draft.leave": {
+      "zh": "放弃这些改动并返回？",
+      "en": "Discard these changes and go back?",
+      "note": "分区管理页有待保存改动时，点返回的确认弹窗标题"
     }
   }
 }

@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -611,6 +612,8 @@ fun PartsPage(
     var saveAt by remember { mutableStateOf(0 to 0) }
     // 对话框
     var typeMenu by remember { mutableStateOf(false) }
+    /** 有待保存的改动时点返回 → 先确认（用户 2026-11-11） */
+    var askLeave by remember { mutableStateOf(false) }
     // 这一次新建**只能落在点中的那块**未分配区：起点 / 大小 / 落位
     var newAt by remember { mutableStateOf(0L) }
     var newRoom by remember { mutableStateOf(0) }
@@ -1240,7 +1243,27 @@ fun PartsPage(
         is DraftOp.Format -> withLabel(op.fs.uppercase(), op.label)
     }
 
-    SmallTitlePage(title = s.parts, onBack = onBack) {
+    // ★ 有待保存的改动：返回（按钮 / 系统手势）都要先确认，别默默丢掉草稿。
+    BackHandler(enabled = draft.isNotEmpty()) { askLeave = true }
+    if (askLeave) {
+        ConfirmDialog(
+            title = s.draftLeave,
+            summary = s.draftDiscardBody(draft.size),
+            confirmText = s.draftDiscard,
+            cancelText = s.cancel,
+            onDismiss = { askLeave = false },
+            onConfirm = {
+                askLeave = false
+                draft = emptyList()
+                onBack()
+            },
+        )
+    }
+
+    SmallTitlePage(
+        title = s.parts,
+        onBack = { if (draft.isEmpty()) onBack() else askLeave = true },
+    ) {
         if (!granted || justGranted) {
             GroupTitle(s.partsPermTitle)
             GroupCard {

@@ -1,7 +1,11 @@
 package org.icdqcow2.ui.pages
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -379,6 +383,31 @@ internal suspend fun buildFcReport(
             },
         )
     }
+    // 恢复分区里**已经有** WinRE、只缺 boot.sdi / ReAgent.xml：
+    // 以前这类问题只挂"跳转"，fixes 是空的 → 底部「一键修复」按钮一直是灰的（用户 2026-11-11）。
+    // 现在按原地补齐执行：不格式化、不重写 winre.wim。
+    if (rec != null && recWim && (!sdiOk || !agentOk) && win != null) {
+        val recLba = rec.lba
+        val winLba = win.lba
+        val needSdi = !sdiOk
+        val needAgent = !agentOk
+        fixes += FcFix(
+            title = s.wrFixTitle,
+            detail = s.wrFixSummary,
+            run = {
+                val rep = repairRecInPlace(
+                    ctx = ctx,
+                    img = img,
+                    sysLba = winLba,
+                    recLba = recLba,
+                    needSdi = needSdi,
+                    needAgent = needAgent,
+                    withScript = false,
+                )
+                ToolRunner.Result(cmd = "copy", ok = rep.ok, code = if (rep.ok) null else rep.err)
+            },
+        )
+    }
     if (win != null && (bootBad > 0 || !loader || !kernel || (!table.equals("GPT", true) && !bootmgr))) {
         val winLba = win.lba
         val espLba = esp?.lba ?: 0L
@@ -604,21 +633,29 @@ fun FullCheckPage(
         tick += 1
     }
 
+    // ★ 系统返回（手势/返回键）也要回自检页：以前这一层没接，事件冒到 MainActivity 的
+    //   BackHandler（page = null）→ 直接回主页（用户 2026-11-11）。
+    BackHandler(enabled = sub != "main") { backFromSub() }
+
     Box(Modifier.fillMaxSize()) {
         AnimatedContent(
             modifier = Modifier.fillMaxSize(),
             targetState = sub,
             transitionSpec = {
-                // 进场：新页从右边推进来（二级页面）
-                // 退场：旧页往**左**滑走。以前两个方向的位移都是 `it`（往右），
-                // 看起来就像"先关掉自检页再打开新页"，而不是压栈（用户 2026-11-11）。
-                (
-                    slideInHorizontally(tween(230, easing = LinearOutSlowInEasing)) { it } +
-                        fadeIn(tween(120))
-                    ).togetherWith(
-                    slideOutHorizontally(tween(230, easing = LinearOutSlowInEasing)) { -it / 3 } +
-                        fadeOut(tween(160)),
-                )
+                // 和「主页点卡片进二级页」完全同一套（用户 2026-11-11）：
+                //   进入：主页面**原地不动**（ExitTransition.None），新页从右侧压上来；
+                //   返回：二级页往右滑走，主页面原地出现。
+                // 之前两边都在动，进入显得"太快"、返回还会跳一下。
+                when {
+                    targetState == "main" -> EnterTransition.None.togetherWith(
+                        slideOutHorizontally(tween(230, easing = FastOutLinearInEasing)) { it } +
+                            fadeOut(tween(160)),
+                    )
+                    else -> (
+                        slideInHorizontally(tween(230, easing = LinearOutSlowInEasing)) { it } +
+                            fadeIn(tween(120))
+                        ).togetherWith(ExitTransition.None)
+                }
             },
             label = "fcSub",
         ) { target ->

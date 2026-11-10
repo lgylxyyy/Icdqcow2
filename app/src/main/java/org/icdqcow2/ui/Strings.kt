@@ -444,6 +444,8 @@ class Strings(val code: String) {
     val draftDiscardHint get() = raw("draft.discardHint")
     fun draftDiscardBody(n: Int) = tpl("draft.discardBody", n)
     val draftPendingTitle get() = raw("draft.pendingTitle")
+    val curDisk get() = raw("cur.disk")
+    val draftLeave get() = raw("draft.leave")
     val draftPendingTag get() = raw("draft.pendingTag")
     val draftUndoAction get() = raw("draft.undoAction")
     val draftPartName get() = raw("draft.partName")
