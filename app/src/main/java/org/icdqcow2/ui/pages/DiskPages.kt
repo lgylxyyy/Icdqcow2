@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import org.icdqcow2.core.StorageAccess
 import java.io.File
@@ -465,6 +466,9 @@ internal fun DiskBar(
     val cMsr = Color(0xFFA8B2C1)
     val cRec = Color(0xFFB39DDB)
 
+    // 选中框：暗色用白框（和深底色对比强）；亮色用灰框，白框在浅底上看不见
+    val selStroke = if (colors.surface.luminance() > 0.5f) Color(0xFF9AA0A6) else Color.White
+
     val sum = segments.sumOf { it.sectors }.coerceAtLeast(1L)
     val gap = 2.dp
     val minW = 30.dp
@@ -505,7 +509,7 @@ internal fun DiskBar(
                             if (selectedLba != null && seg.part != null && seg.part.lba == selectedLba) {
                                 Modifier.drawBehind {
                                     drawRoundRect(
-                                        color = Color.White,
+                                        color = selStroke,
                                         cornerRadius = CornerRadius(6.dp.toPx()),
                                         style = Stroke(width = 3.dp.toPx()),
                                     )

@@ -188,9 +188,9 @@
       "note": "释放映像 · 提示行 · dep.need"
     },
     "dep.needUnknown": {
-      "zh": "选映像后可见",
-      "en": "Choose an image to see",
-      "note": "释放映像 · 信息行 · dep.needUnknown"
+      "zh": "选择映像后可见",
+      "en": "Visible after you pick an image",
+      "note": "释放映像 · 未选映像时的占位说明"
     },
     "dep.partSmall": {
       "zh": "分区太小：至少要 {0}",
@@ -348,9 +348,9 @@
       "note": "引导修复/恢复环境、释放映像 · 文案位 · dep.winrePick"
     },
     "dep.winreScope": {
-      "zh": "支持 ISO / WIM / ESD / 裸 winre.wim",
-      "en": "ISO, WIM, ESD or a bare winre.wim",
-      "note": "引导修复/恢复环境、释放映像 · 文案位 · dep.winreScope"
+      "zh": "支持包含 winre.wim 的 ISO / WIM / ESD 或 winre.wim 文件",
+      "en": "ISO / WIM / ESD containing winre.wim, or a winre.wim file",
+      "note": "释放映像 · 恢复环境页 · 支持的映像类型"
     },
     "dep.winreCur": {
       "zh": "当前使用",
