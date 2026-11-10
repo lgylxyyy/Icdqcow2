@@ -12,18 +12,14 @@ import kotlinx.coroutines.flow.asStateFlow
  * 这里只做**能力降级**，不收集、不上传任何数据，也不申请 QUERY_ALL_PACKAGES ——
  * 名单里点名的包写进了 AndroidManifest 的 `<queries>`，Android 11+ 才查得到。
  *
- * 两层来源：
- *   ① 编译期名单（[PartnerList.PACKAGES]，来自仓库根 partners.json）
- *   ② 运行期签名标记（[PartnerMarker]，协议见 docs/partner-marker.md）
- *      当前**置空**：[MARKERS_ENABLED] = false，协议与代码都在，等伙伴接入后再打开。
+ * 唯一来源：编译期名单（[PartnerList.PACKAGES]，来自仓库根 partners.json）。
+ * 没有运行期开关、没有外部标记文件、没有任何可被第三方写入的通道 ——
+ * 名单只改一次就要发一次版，主动权完全在发布方手里。
  *
  * 闸门位置：命令层唯一入口 [ToolRunner.exec]，不是 UI —— 藏按钮能被别的页面绕过，
  * 命令层绕不过去。
  */
 object PartnerGate {
-
-    /** 方案二开关。打开前必须先把伙伴公钥 pin 进 [PartnerMarker.TRUSTED_KEYS]。 */
-    const val MARKERS_ENABLED = false
 
     private val _active = MutableStateFlow<List<String>>(emptyList())
 
@@ -43,11 +39,8 @@ object PartnerGate {
 
     fun refresh() {
         val ctx = appCtx ?: return
-        val hits = PartnerList.PACKAGES.filter { installed(ctx, it) }.toMutableList()
-        if (MARKERS_ENABLED) {
-            hits += PartnerMarker.scan(ctx)
-        }
-        _active.value = hits.distinct()
+        val hits = PartnerList.PACKAGES.filter { installed(ctx, it) }
+        _active.value = hits
         // 真机调试用：adb logcat -s IcdqcowPartner
         runCatching {
             android.util.Log.i("IcdqcowPartner", "hits=" + _active.value.joinToString(","))
