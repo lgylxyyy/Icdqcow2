@@ -163,8 +163,8 @@ fun BootRepairPage(
             }
             mode = m
             var bc = withContext(Dispatchers.IO) { ImageRepo.bootCheck(path = img, mode = m.wire) }
-            // 工具端 --mode 只认 auto | uefi | bios（内置 .so 的用法串里就这么写），
-            // 传 uefi32 会被判「参数不合法」；32 位盘的检查项与 uefi 相同，退回再跑一次。
+            // 库 2026.11.10 起 --mode 认 auto | uefi | uefi32 | bios；更早的库传 uefi32
+            // 会被判「参数不合法」，那就退回 uefi 再跑一次（检查项两套一致）。
             if (!bc.ok && m == BootMode.UEFI32) {
                 bc = withContext(Dispatchers.IO) { ImageRepo.bootCheck(path = img, mode = "uefi") }
             }
