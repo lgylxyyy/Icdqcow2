@@ -1074,6 +1074,7 @@ private fun DeployRunPage(
 ) {
     val s = LocalStrings.current
     var askCancel by remember { mutableStateOf(false) }
+    // 工具端事件里没有 elapsed（JNI 桥没发）→ 本地计时兜底
 
     /** 还在跑（没完成、也没出错）：这时返回必须先确认，否则会"页面没了、任务还在写"。 */
     val active = !run.done && run.error == null
@@ -1137,7 +1138,10 @@ private fun DeployRunPage(
         // 统一进度模板（圆盘 + 蓝边 + 圆心百分比 + 内下方时间 + 外下方当前文件）
         RunProgressBlock(
             pct = pct,
-            timeText = progressTimeText(progress?.elapsedMs ?: 0L, etaSec),
+            timeText = progressTimeText(
+                maxOf(progress?.elapsedMs ?: 0L, rememberElapsedMs(!run.done && run.error == null)),
+                etaSec,
+            ),
             phase = progressPhaseText(progress?.phase),
             countsText = if (expandNow > 0L && done > 0L) {
                 "${fmtBytes(done)}/${fmtBytes(expandNow)}"

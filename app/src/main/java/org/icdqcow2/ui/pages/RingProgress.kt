@@ -15,7 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -44,6 +49,27 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  * `pct` / `elapsed` / `eta_s` / `phase` / `item`。App 不自己计时、不自己数文件 ——
  * 只在工具端算不出来时退化成「估算中」和不定态圆环。
  */
+
+/**
+ * 「已用」时间（毫秒）：从进入这个页面/开始这个任务算起。
+ *
+ * ★ 为什么不用工具端的 `elapsed`：App 这边的 JNI 桥（`jni/imgapp_bridge.c`）**没发这个字段**
+ *   （只有 `pct` / `eta_s` / `item` …），JSON 里根本没有 `elapsed`，`ToolEvents` 读出来恒为 0。
+ *   工具端事件里有就给（`elapsed` 单位是**秒**，`img_prog_json` 那条路），没有就用本地计时。
+ *   两条都不至于让圆盘里那格停在 0:00。
+ */
+@Composable
+fun rememberElapsedMs(active: Boolean): Long {
+    val start = remember { System.currentTimeMillis() }
+    var now by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(active) {
+        while (active) {
+            now = System.currentTimeMillis()
+            delay(500)
+        }
+    }
+    return if (active) (now - start).coerceAtLeast(0L) else 0L
+}
 
 /** 秒 → `m:ss`（超过 1 小时给 `h:mm:ss`）。 */
 internal fun fmtClock(sec: Long): String {

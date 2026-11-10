@@ -64,6 +64,8 @@ fun CapturePage(
     var outFree by remember { mutableStateOf<Long?>(null) }
 
     var running by remember { mutableStateOf(false) }
+    // 工具端事件里没有 elapsed（JNI 桥没发）→ 本地计时兜底
+    val elapsedMine = rememberElapsedMs(running)
     var result by remember { mutableStateOf<ToolRunner.Result?>(null) }
 
     // 选盘 → 自动定位 Windows 分区；输出文件默认放宿主 Download
@@ -174,7 +176,10 @@ fun CapturePage(
             BlockEnter(0) {
                 RunProgressBlock(
                     pct = prog?.pct ?: -1,
-                    timeText = progressTimeText(prog?.elapsedMs ?: 0L, prog?.eta ?: -1),
+                    timeText = progressTimeText(
+                        maxOf(prog?.elapsedMs ?: 0L, elapsedMine),
+                        prog?.eta ?: -1,
+                    ),
                     phase = progressPhaseText(prog?.phase),
                     countsText = prog?.let { g ->
                         val tb = g.totalBytes
