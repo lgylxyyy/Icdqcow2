@@ -836,6 +836,7 @@ class Strings(val code: String) {
     val brSrPart get() = raw("br.srPart")
     fun brPartValue(a0: Any?, a1: Any?) = tpl("br.partValue", a0, a1)
     val brChecks get() = raw("br.checks")
+    val brCheckFail get() = raw("br.checkFail")
     val brDiagOk get() = raw("br.diagOk")
     val brUefiWhat get() = raw("br.uefiWhat")
     val brBiosWhat get() = raw("br.biosWhat")

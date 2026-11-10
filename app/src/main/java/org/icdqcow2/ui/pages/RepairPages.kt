@@ -118,6 +118,8 @@ fun BootRepairPage(
     var loading by remember { mutableStateOf(false) }
     var err by remember { mutableStateOf<String?>(null) }
     var checks by remember { mutableStateOf<List<Triple<String, String?, Boolean>>>(emptyList()) }
+    /** boot.check 本身没跑成时的原因；非空就直接报错，不伪装成「没有检查项」。 */
+    var checkErr by remember { mutableStateOf<String?>(null) }
     var bootOk by remember { mutableStateOf<Boolean?>(null) }
     /** 检测出来的启动方式（BIOS / UEFI 64 / UEFI 32）—— 见 core/BootMode.kt。 */
     var mode by remember { mutableStateOf<BootMode?>(null) }
@@ -139,6 +141,7 @@ fun BootRepairPage(
         val img = image ?: run {
             snap = null
             checks = emptyList()
+            checkErr = null
             bootOk = null
             mode = null
             return@LaunchedEffect
@@ -161,6 +164,7 @@ fun BootRepairPage(
             mode = m
             val bc = withContext(Dispatchers.IO) { ImageRepo.bootCheck(path = img, mode = m.wire) }
             bootOk = bc.ok && (bc.data?.optInt("required_fail", 0) ?: 0) == 0
+            checkErr = if (bc.ok) null else toolErrorText(s, bc)
             checks = bootCheckRows(s, bc.data, m.isUefi, withRecovery = true)
             // UEFI 32 的盘顺手看一眼固件状态（不在这里释放，用户点卡片里的按钮才做）
             if (m == BootMode.UEFI32) {
@@ -169,6 +173,7 @@ fun BootRepairPage(
         } else {
             bootOk = null
             checks = emptyList()
+            checkErr = null
             mode = null
         }
         loading = false
@@ -229,8 +234,12 @@ fun BootRepairPage(
                     BlockEnter(2) {
                         GroupTitle(s.brChecks)
                         GroupCard {
-                            if (checks.isEmpty()) {
-                                Item(s.brChecks, s.fcBootNone)
+                            if (checkErr != null) {
+                                // 命令失败：报出来在哪儿失败的，别显示成「没有检查项」
+                                Item(s.brCheckFail, checkErr, titleColor = MiuixTheme.colorScheme.error)
+                            } else if (checks.isEmpty()) {
+                                // 确实没有可显示的项：只留一行，不复读上面的小标题
+                                Item(s.fcBootNone)
                             } else {
                                 checks.forEach { (name, detail, pass) ->
                                     Item(
@@ -284,72 +293,72 @@ fun BootRepairPage(
                 }
             }
         }
-        Spacer(Modifier.height(24.dp))
-    }
-
-    // ── UEFI 32 位：固件 + 注入参数 ────────────────────────────────────────
-    // 32 位 UEFI 不是默认能力，得给 VM 换 32 位固件（pflash 挂两颗芯片）。
-    // 这张卡只在检测到 UEFI 32 时出现，别的盘一眼都看不到。
-    if (mode == BootMode.UEFI32 && win != null) {
-        BlockEnter(5) {
-            GroupTitle(s.fw32Title)
-            GroupCard {
-                Item(
-                    s.fw32State,
-                    if (fwState.ready) s.fw32Ready else s.fw32Missing,
-                    titleColor = if (fwState.ready) null else MiuixTheme.colorScheme.error,
-                )
-                Item(s.fw32Where, org.icdqcow2.core.FirmwareStore.DIR)
-                if (!fwState.ready) {
+        // ── UEFI 32 位：固件 + 注入参数 ────────────────────────────────────────
+        // 32 位 UEFI 不是默认能力，得给 VM 换 32 位固件（pflash 挂两颗芯片）。
+        // 这张卡只在检测到 UEFI 32 时出现，别的盘一眼都看不到。
+        if (mode == BootMode.UEFI32 && win != null) {
+            BlockEnter(5) {
+                GroupTitle(s.fw32Title)
+                GroupCard {
                     Item(
-                        s.fw32Install,
-                        s.fw32InstallHint,
-                        onClick = {
-                            if (fwBusy) return@Item
-                            fwBusy = true
-                            scope.launch {
-                                val e = withContext(Dispatchers.IO) {
-                                    org.icdqcow2.core.FirmwareStore.ensure(ctx)
+                        s.fw32State,
+                        if (fwState.ready) s.fw32Ready else s.fw32Missing,
+                        titleColor = if (fwState.ready) null else MiuixTheme.colorScheme.error,
+                    )
+                    Item(s.fw32Where, org.icdqcow2.core.FirmwareStore.DIR)
+                    if (!fwState.ready) {
+                        Item(
+                            s.fw32Install,
+                            s.fw32InstallHint,
+                            onClick = {
+                                if (fwBusy) return@Item
+                                fwBusy = true
+                                scope.launch {
+                                    val e = withContext(Dispatchers.IO) {
+                                        org.icdqcow2.core.FirmwareStore.ensure(ctx)
+                                    }
+                                    fwBusy = false
+                                    fwState = org.icdqcow2.core.FirmwareStore.state()
+                                    onToast(
+                                        when (e) {
+                                            null -> s.fw32Done
+                                            "no-access" -> s.fw32NoAccess
+                                            else -> s.fw32Fail
+                                        },
+                                    )
                                 }
-                                fwBusy = false
-                                fwState = org.icdqcow2.core.FirmwareStore.state()
-                                onToast(
-                                    when (e) {
-                                        null -> s.fw32Done
-                                        "no-access" -> s.fw32NoAccess
-                                        else -> s.fw32Fail
-                                    },
-                                )
+                            },
+                        )
+                    }
+                    Item(
+                        s.fw32Copy,
+                        s.fw32CopyHint,
+                        onClick = {
+                            val text = org.icdqcow2.core.FirmwareStore.qemuArgs()
+                            val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                                as? android.content.ClipboardManager
+                            if (cm == null) onToast(s.fw32Fail) else {
+                                cm.setPrimaryClip(android.content.ClipData.newPlainText("qemu", text))
+                                onToast(s.fw32Copied)
                             }
                         },
                     )
                 }
-                Item(
-                    s.fw32Copy,
-                    s.fw32CopyHint,
-                    onClick = {
-                        val text = org.icdqcow2.core.FirmwareStore.qemuArgs()
-                        val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
-                            as? android.content.ClipboardManager
-                        if (cm == null) onToast(s.fw32Fail) else {
-                            cm.setPrimaryClip(android.content.ClipData.newPlainText("qemu", text))
-                            onToast(s.fw32Copied)
-                        }
-                    },
-                )
+            }
+            BlockEnter(6) {
+                GroupTitle(s.fw32HowTitle)
+                GroupCard {
+                    Text(
+                        s.fw32How,
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
             }
         }
-        BlockEnter(6) {
-            GroupTitle(s.fw32HowTitle)
-            GroupCard {
-                Text(
-                    s.fw32How,
-                    style = MiuixTheme.textStyles.footnote1,
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-            }
-        }
+
+        Spacer(Modifier.height(24.dp))
     }
 
     // ── 引导没问题的二次确认 ──────────────────────────────────────────────

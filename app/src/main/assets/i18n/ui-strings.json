@@ -4926,6 +4926,11 @@
       "zh": "主页功能暂不可用（合规限制）",
       "en": "Home features unavailable (policy restriction)",
       "note": "提示条 · 点击被停用入口时 · 说明是合规限制，不是故障，不显示应用名"
+    },
+    "br.checkFail": {
+      "zh": "引导检查没跑成",
+      "en": "Boot check did not run",
+      "note": "引导修复 · 信息行 · boot.check 命令失败时的标题，下面跟具体错误"
     }
   }
 }
