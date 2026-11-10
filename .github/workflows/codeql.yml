@@ -1,16 +1,12 @@
 # CodeQL —— Kotlin/Java 静态分析
 #
-# 为什么不用 GitHub 的「默认设置」：默认设置走 autobuild，而本项目要求
-# Gradle 9.6+，自动化侦察抓到的是 runner 自带的 8.6，构建阶段直接失败：
-#   Minimum supported Gradle version is 9.6.0. Current version is 8.6.
+# 历史：仓库没有 Gradle wrapper 时，GitHub「默认设置」的 autobuild 抓到 runner 自带的
+# Gradle 8.6，而本项目用 AGP 9.4.1（要求 ≥ 9.6），构建阶段直接失败。
+# 当时的绕行是 build-mode: none（只扫源码、不编译），代价是 CodeQL 自己去 Maven Central
+# 猜依赖 —— 猜不到就报 "Fetching a dependency jar failed"，界面上就是那几条黄色诊断。
 #
-# 这里改用 build-mode: none —— 只对源码做数据流分析，不需要真正编译，
-# 也就不需要 Android SDK / 签名 / NDK。代价是看不到构建期生成的东西
-# （对我们这套代码没影响：分析对象是 Kotlin 源码本身）。
-#
-# 想改成完整构建版（能覆盖生成的代码）：把 build-mode 换成 manual，
-# 并在 init 之后插入与 release.yml 相同的 JDK/SDK/Gradle 步骤，最后
-# 跑 gradle :app:assembleDebug --no-daemon。
+# 2026-11-10 wrapper（9.8.2）入库后，改成 build-mode: manual：由我们真正跑一次编译，
+# CodeQL 从真实 classpath 提取，不再猜依赖。两个模块都编译，testbench 也要被扫到。
 name: CodeQL
 
 on:
@@ -33,17 +29,47 @@ jobs:
   analyze:
     name: 分析 Kotlin/Java
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: 安装 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: 安装 SDK 组件
+        run: |
+          set -eu
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKM" ] || SDKM=$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | sort -V | tail -1)
+          [ -x "$SDKM" ] || SDKM=$(command -v sdkmanager)
+          yes | "$SDKM" --licenses > /dev/null 2>&1 || true
+          "$SDKM" "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" \
+            || "$SDKM" "platform-tools" "platforms;android-37" "build-tools;37.0.0"
+
+      # 版本来自 gradle/wrapper/gradle-wrapper.properties
+      - name: 准备 Gradle（缓存）
+        uses: gradle/actions/setup-gradle@v4
 
       - name: 初始化 CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: java-kotlin
-          build-mode: none
+          build-mode: manual
           queries: security-and-quality
+
+      # 真正编译一次：CodeQL 据此提取真实 classpath，不再靠猜依赖
+      - name: 编译主 App
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      # testbench 是独立工程（自己的 settings.gradle），也要扫
+      - name: 编译 testbench
+        run: ./gradlew -p testbench :app:assembleDebug --no-daemon --stacktrace
 
       - name: 分析并上传结果
         uses: github/codeql-action/analyze@v3
