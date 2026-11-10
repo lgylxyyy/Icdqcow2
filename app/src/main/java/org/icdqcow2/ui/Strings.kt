@@ -241,7 +241,7 @@ class Strings(val code: String) {
     val signatureOther get() = raw("settings.signatureOther")
     val buildStamp get() = raw("settings.buildStamp")
     val partnerNoticeTitle get() = raw("partner.noticeTitle")
-    fun partnerNoticeBody(name: String) = tpl("partner.noticeBody", name)
+    val partnerNoticeBody get() = raw("partner.noticeBody")
     val partnerBlockedToast get() = raw("partner.blockedToast")
 
     // ── 创建磁盘 ──

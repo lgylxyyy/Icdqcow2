@@ -82,11 +82,7 @@ fun HomeScreen(onOpen: (String) -> Unit) {
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            s.partnerNoticeBody(
-                                partners.joinToString("、") {
-                                    org.icdqcow2.core.PartnerList.labelOf(it)
-                                },
-                            ),
+                            s.partnerNoticeBody,
                             style = MiuixTheme.textStyles.body2,
                             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         )

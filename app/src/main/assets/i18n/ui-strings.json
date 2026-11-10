@@ -4913,19 +4913,19 @@
       "note": "设置 · 关于 · 构建标识：local = 本机构建，ci-N = GitHub Actions 第 N 次构建"
     },
     "partner.noticeTitle": {
-      "zh": "功能受限",
-      "en": "Feature limited",
-      "note": "主页 · 顶部提示卡标题 · 检测到伙伴应用时出现"
+      "zh": "部分功能不可用",
+      "en": "Some features are unavailable",
+      "note": "主页 · 顶部提示卡标题 · 当前环境不支持写入类功能时出现（不显示具体应用名）"
     },
     "partner.noticeBody": {
-      "zh": "已检测到 %1$s。为避免影响其付费功能，本应用不提供镜像写入、引导修复等能力，浏览与导出不受影响。",
-      "en": "Detected %1$s. To avoid affecting its paid features, image writing and boot repair are unavailable; browsing and exporting still work.",
-      "note": "主页 · 顶部提示卡正文 · %1$s = 伙伴应用显示名"
+      "zh": "当前环境暂不提供镜像写入、引导修复等能力；浏览、自检与导出不受影响。",
+      "en": "Image writing and boot repair are unavailable in this environment; browsing, verification and exporting still work.",
+      "note": "主页 · 顶部提示卡正文 · 中性表述，不透露被检测的应用"
     },
     "partner.blockedToast": {
-      "zh": "该功能已停用：检测到 Vectras VM",
-      "en": "This feature is disabled: Vectras VM detected",
-      "note": "重试按钮 · 命中伙伴时尝试进入写入类页面弹出的提示"
+      "zh": "该功能当前不可用",
+      "en": "This feature is currently unavailable",
+      "note": "提示条 · 点击被停用入口时的提示 · 不显示具体应用名"
     }
   }
 }

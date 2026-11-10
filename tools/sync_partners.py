@@ -35,9 +35,8 @@ def manifest_block(packages):
     return "\n".join(out)
 
 
-def kotlin_file(packages, labels):
+def kotlin_file(packages):
     pkg_lines = "\n".join('        "' + p + '",' for p in packages)
-    label_lines = "\n".join('        "' + p + '" to "' + labels[p] + '",' for p in packages)
     head = (
         "package " + PKG + ".core\n\n"
         "/**\n"
@@ -45,21 +44,12 @@ def kotlin_file(packages, labels):
         " *\n"
         " * 这些包名同时写进了 AndroidManifest 的 `<queries>`，否则 Android 11+ 查不到；\n"
         " * 只声明这一份名单，不用 QUERY_ALL_PACKAGES。\n"
+        " * 注意：这里是**内部判定**用的数据，界面上不显示这些名称。\n"
         " */\n"
         "internal object PartnerList {\n"
         "    val PACKAGES: List<String> = listOf(\n"
     )
-    mid = (
-        "\n    )\n\n"
-        "    /** 包名 → 显示名，用于界面提示。 */\n"
-        "    val LABELS: Map<String, String> = mapOf(\n"
-    )
-    tail = (
-        "\n    )\n\n"
-        "    fun labelOf(pkg: String): String = LABELS[pkg] ?: pkg\n"
-        "}\n"
-    )
-    return head + pkg_lines + mid + label_lines + tail
+    return head + pkg_lines + "\n    )\n}\n"
 
 
 def main() -> int:
@@ -67,13 +57,12 @@ def main() -> int:
     data = json.loads(DATA.read_text(encoding="utf-8"))
     partners = data["partners"]
     packages = [p["package"] for p in partners]
-    labels = {p["package"]: p["label"] for p in partners}
 
     manifest = MANIFEST.read_text(encoding="utf-8")
     start = manifest.index(BEGIN)
     end = manifest.index(END) + len(END)
     want_manifest = manifest[:start] + manifest_block(packages).lstrip() + manifest[end:]
-    want_kotlin = kotlin_file(packages, labels)
+    want_kotlin = kotlin_file(packages)
 
     stale = []
     if manifest != want_manifest:

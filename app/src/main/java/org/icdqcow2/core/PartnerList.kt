@@ -5,16 +5,10 @@ package org.icdqcow2.core
  *
  * 这些包名同时写进了 AndroidManifest 的 `<queries>`，否则 Android 11+ 查不到；
  * 只声明这一份名单，不用 QUERY_ALL_PACKAGES。
+ * 注意：这里是**内部判定**用的数据，界面上不显示这些名称。
  */
 internal object PartnerList {
     val PACKAGES: List<String> = listOf(
         "com.vectrasllc.vm",
     )
-
-    /** 包名 → 显示名，用于界面提示。 */
-    val LABELS: Map<String, String> = mapOf(
-        "com.vectrasllc.vm" to "Vectras VM",
-    )
-
-    fun labelOf(pkg: String): String = LABELS[pkg] ?: pkg
 }
