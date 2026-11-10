@@ -64,6 +64,7 @@ import kotlinx.coroutines.withContext
 import org.icdqcow2.core.TempDirs
 import org.icdqcow2.core.ImageRepo
 import org.icdqcow2.core.ShizukuShell
+import org.icdqcow2.core.StorageAccess
 import org.icdqcow2.core.ToolCaps
 import org.icdqcow2.core.ToolEvents
 import org.icdqcow2.core.ToolRunner
@@ -455,6 +456,17 @@ fun FilesScreen(
     val density = LocalDensity.current
     val statusBarTop = with(density) {
         WindowInsets.statusBars.getTop(density).toDp()
+    }
+
+    // 「管理所有文件」：启动时已经问过一次；用户当时拒了的话，进到文件页再问一次。
+    // 不用 active 本身当条件 —— 横向滑动会让它反复真假，那样会连环弹；
+    // 这里记一个「本次进页已问过」的标记，一次会话里最多打扰一次。
+    var permAsked by remember { mutableStateOf(false) }
+    LaunchedEffect(active) {
+        if (active && !permAsked && !StorageAccess.hasAllFiles()) {
+            permAsked = true
+            StorageAccess.requestAllFiles(ctx)
+        }
     }
 
     val left = remember { PaneState(Loc(Kind.HOST, label = s.filesHost), "/storage/emulated/0") }

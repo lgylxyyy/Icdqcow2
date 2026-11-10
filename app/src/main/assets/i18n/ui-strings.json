@@ -1812,31 +1812,6 @@
       "en": "Pick an image file",
       "note": "选镜像 · 信息行 · pick.pick"
     },
-    "settings.secPerm": {
-      "zh": "权限",
-      "en": "Permissions",
-      "note": "设置 · 文案位 · settings.secPerm"
-    },
-    "settings.permTitle": {
-      "zh": "管理所有文件",
-      "en": "All files access",
-      "note": "设置 · 文案位 · settings.permTitle"
-    },
-    "settings.permGranted": {
-      "zh": "已授权，重启应用后生效",
-      "en": "Granted; takes effect after the app restarts",
-      "note": "设置 · 文案位 · settings.permGranted"
-    },
-    "settings.permMissing": {
-      "zh": "未授权，无法读取其他应用创建的映像",
-      "en": "Not granted; images created by other apps cannot be read",
-      "note": "设置 · 文案位 · settings.permMissing"
-    },
-    "settings.permGrant": {
-      "zh": "去授权",
-      "en": "Grant",
-      "note": "设置 · 文案位 · settings.permGrant"
-    },
     "perm.dlgTitle": {
       "zh": "需要「管理所有文件」权限",
       "en": "All-files access required",

@@ -36,13 +36,11 @@ import androidx.compose.ui.zIndex
 import org.icdqcow2.core.I18n
 import kotlinx.coroutines.launch
 import org.icdqcow2.core.SettingsStore
-import org.icdqcow2.core.StorageAccess
 import org.icdqcow2.core.ThemeMode
 import org.icdqcow2.ui.pages.Choice
 import org.icdqcow2.ui.pages.ChoiceCard
 import org.icdqcow2.ui.pages.CardDropdown
 import org.icdqcow2.ui.pages.OptionRow
-import org.icdqcow2.ui.pages.rememberAllFilesGranted
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
@@ -84,9 +82,6 @@ fun SettingsScreen(
     }
     var confirmDelete by remember { mutableStateOf(settings.confirmDelete) }
     var showHidden by remember { mutableStateOf(settings.showHidden) }
-    // 点「管理所有文件」先弹说明卡片，再跳系统设置（系统本身不会有运行时弹窗）
-    var permDlg by remember { mutableStateOf(false) }
-    val allFilesGranted = rememberAllFilesGranted()
     val historyCount by settings.historyCount.collectAsState()
     var historyDlg by remember { mutableStateOf(false) }
     // 开源许可（含 UnRAR：REPLY-49 明确要求随二进制附 license 说明）
@@ -147,51 +142,6 @@ fun SettingsScreen(
             ) { i ->
                 settings.setLanguage(if (i == 0) I18n.SYSTEM_LANG else langs[i - 1].code)
             }
-        }
-
-        section(s.secPerm)
-        card {
-            BasicComponent(
-                title = s.settingsPermTitle,
-                summary = if (allFilesGranted) s.settingsPermGranted else s.settingsPermMissing,
-                endActions = {
-                    if (!allFilesGranted) {
-                        top.yukonga.miuix.kmp.basic.Text(
-                            s.settingsPermGrant,
-                            style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.body2,
-                            color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.primary,
-                            modifier = Modifier.padding(start = 8.dp),
-                        )
-                    } else {
-                        top.yukonga.miuix.kmp.basic.Text(
-                            "✓",
-                            style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.body2,
-                            color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                            modifier = Modifier.padding(start = 8.dp),
-                        )
-                    }
-                },
-                onClick = { permDlg = true },
-            )
-        }
-
-        if (permDlg) item {
-            org.icdqcow2.ui.pages.ConfirmDialog(
-                title = s.permDlgTitle,
-                summary = s.permDlgBody,
-                confirmText = if (allFilesGranted) s.partsPermRestartAction else s.permDlgGo,
-                cancelText = s.permDlgLater,
-                danger = false,
-                onDismiss = { permDlg = false },
-                onConfirm = {
-                    permDlg = false
-                    if (StorageAccess.hasAllFiles()) {
-                        StorageAccess.restartApp(ctx)
-                    } else if (!StorageAccess.requestAllFiles(ctx)) {
-                        onToast(s.permManual)
-                    }
-                },
-            )
         }
 
         section(s.secFiles)
