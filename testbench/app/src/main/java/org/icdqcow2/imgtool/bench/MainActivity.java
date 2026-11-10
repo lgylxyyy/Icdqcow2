@@ -148,7 +148,12 @@ public class MainActivity extends Activity {
         q.addView(btn("格式化 ESP→FAT32", v -> quickFormatEsp()));
         q.addView(btn("展开全部", v -> setAll(true)));
         q.addView(btn("收起全部", v -> setAll(false)));
-        q.addView(btn("清空结果", v -> { for (CmdCard c : cards) c.result.setText(""); logView.setText(""); }));
+        q.addView(btn("清空结果", v -> {
+            for (CmdCard c : cards) {
+                c.result.setText("");
+            }
+            logView.setText("");
+        }));
 
         /* ---------- 命令行：敲一条就跑，测功能最快的路 ---------- */
         root.addView(section("命令行（直接敲，回车右边「运行」）"));
@@ -359,7 +364,8 @@ public class MainActivity extends Activity {
             } catch (Throwable e) {
                 r = "{\"ok\":false,\"err\":\"" + e + "\"}";
             }
-            final String res = r;
+            // r 理论上不会为 null，但 CodeQL 按数据流看得到 null 分支 —— 统一兜成空串
+            final String res = r == null ? "" : r;
             final long ms = System.currentTimeMillis() - t0;
             ui.post(() -> {
                 busy = false;
@@ -554,6 +560,12 @@ public class MainActivity extends Activity {
         if (req != REQ_PICK || res != RESULT_OK || data == null || data.getData() == null) return;
         Uri uri = data.getData();
         lastUri = uri;
+        // 只认 content:// + 有 authority 的 URI。外部应用可以通过 ACTION_* 塞进任意 URI
+        // （file://、裸路径、伪造 scheme），直接交给 ContentResolver 就是给它一次越权读取的机会。
+        if (!isTrustedContentUri(uri)) {
+            appendLog("拒绝打开：不是合法的 content:// URI（" + uri + "）");
+            return;
+        }
         String disp = displayName(uri);
         /* ★ "rw" 先试、失败退 "r"（2026-10-23 真机实测）：
          *   HyperOS 的 com.android.fileexplorer 的 FileExplorerFileProvider 只授【读】授权，
@@ -628,9 +640,23 @@ public class MainActivity extends Activity {
         for (CmdCard c : cards) c.check.setChecked(on);
     }
 
+    /**
+     * URI 白名单校验：必须 content:// 且带非空 authority 与 path。
+     * 见 CodeQL java/android/unsafe-content-uri-resolution —— 外部应用塞进来的 URI
+     * 不能直接喂给 ContentResolver。
+     */
+    private static boolean isTrustedContentUri(Uri u) {
+        if (u == null) return false;
+        if (!"content".equals(u.getScheme())) return false;
+        String auth = u.getAuthority();
+        return auth != null && !auth.isEmpty() && u.getPath() != null && !u.getPath().isEmpty();
+    }
+
     private void appendLog(String s) {
         if (s == null) return;
-        android.util.Log.i("BENCH", s.length() > 900 ? s.substring(0, 900) + "…" : s);
+        // 日志行里绝不能带换行：s 来自工具端回显/异常信息，含 \n 就能伪造一整条 Log 记录
+        String flat = s.replace('\n', ' ').replace('\r', ' ');
+        android.util.Log.i("BENCH", flat.length() > 900 ? flat.substring(0, 900) + "…" : flat);
         String cur = logView.getText().toString();
         if (cur.length() > 40000) cur = cur.substring(cur.length() - 20000);
         logView.setText(cur + "\n" + s);

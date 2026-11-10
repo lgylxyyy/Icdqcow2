@@ -27,6 +27,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 指纹在 Signing.kt / 本文件 / README 中英两版各写了一遍，
+      # 改一处漏一处会让「CI 验签通过」和「文档里写的指纹」自相矛盾。
+      - name: 校验签名指纹来源一致
+        run: python3 tools/check_signing_fingerprint.py
+
       - name: 安装 JDK 17
         uses: actions/setup-java@v4
         with:
