@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/icon.png" width="140" height="140" alt="Icdqcow2 app icon" />
+
 # Icdqcow2
 
 **Manage qcow2 VM disks on an Android device, offline: create, partition, install, edit, repair.**

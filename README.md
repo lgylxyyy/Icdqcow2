@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/icon.png" width="140" height="140" alt="Icdqcow2 应用图标" />
+
 # Icdqcow2
 
 **在 Android 设备上离线管理 qcow2 虚拟机磁盘：建盘、分区、装系统、改文件、修引导。**
