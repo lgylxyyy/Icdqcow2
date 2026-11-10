@@ -338,7 +338,7 @@ fun TextEditorPage(
                                 colors = ButtonDefaults.buttonColors(),
                             ) { Text(s.edPrev, style = textStyles.button, maxLines = 1) }
                             Button(
-                                onClick = { editor?.searcher?.replaceThis(replQ) },
+                                onClick = { editor?.searcher?.replaceCurrentMatch(replQ) },
                                 colors = ButtonDefaults.buttonColors(),
                             ) { Text(s.edReplace, style = textStyles.button, maxLines = 1) }
                             Button(

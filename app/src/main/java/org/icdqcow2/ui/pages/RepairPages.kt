@@ -653,7 +653,7 @@ fun WinRePage(
     val recIndex = snap?.parts?.indexOfFirst { it.lba == rec?.lba } ?: -1
     /** 最终目标：false = 恢复分区，true = 系统分区。 */
     val useSys = !uefi || rec == null || toSys
-    val targetLba = if (useSys) win?.lba ?: 0L else rec?.lba ?: 0L
+    val targetLba = (if (useSys) win else rec)?.lba ?: 0L
     val hasSource = srcFile != null || sysWim
     /** 恢复分区里 WinRE + boot.sdi + ReAgent.xml 全齐：只显示「重新写入」。 */
     val reReady = recWim?.let { it && sdiOk && agentOk } ?: false
