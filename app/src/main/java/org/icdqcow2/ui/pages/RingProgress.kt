@@ -93,6 +93,21 @@ fun progressTimeText(elapsedMs: Long, etaSec: Int): String {
     return if (etaSec > 0) s.progTime(used, fmtClock(etaSec.toLong())) else s.progTimeUnknown(used)
 }
 
+/**
+ * 进度事件里的 `item` 可能带**宿主临时目录前缀**：
+ * `/tmp/imgtool-tmp-wimcap-1234-ab12/Windows/System32/x.dll`
+ * （真机上就是 `/data/user/0/org.xxx/files/tooltmp/imgtool-tmp-wimcap-…/…`）。
+ * 这是实现细节，不该出现在界面上 —— 只留盘内路径 `/Windows/System32/x.dll`。
+ */
+internal fun prettyProgressItem(raw: String): String {
+    val marker = "imgtool-tmp-"
+    val i = raw.indexOf(marker)
+    if (i < 0) return raw
+    val slash = raw.indexOf('/', i)
+    if (slash < 0 || slash + 1 >= raw.length) return raw
+    return "/" + raw.substring(slash + 1)
+}
+
 /** `phase` → 人话（工具端没给认得的 phase 就返回 null，不显示这一行）。 */
 @Composable
 fun progressPhaseText(phase: String?): String? {

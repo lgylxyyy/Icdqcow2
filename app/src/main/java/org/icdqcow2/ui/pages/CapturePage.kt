@@ -185,7 +185,7 @@ fun CapturePage(
                         val tb = g.totalBytes
                         if (tb > 0L) fmtBytes(g.curBytes) + "/" + fmtBytes(tb) else null
                     },
-                    item = prog?.item?.takeIf { it.isNotBlank() },
+                    item = prog?.item?.takeIf { it.isNotBlank() }?.let { prettyProgressItem(it) },
                 )
             }
             Action(text = s.cancel, danger = true) { ToolRunner.cancel() }
