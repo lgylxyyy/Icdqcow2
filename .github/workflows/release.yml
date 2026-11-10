@@ -47,7 +47,10 @@ jobs:
           [ -x "$SDKM" ] || SDKM=$(command -v sdkmanager)
           echo "sdkmanager: $SDKM"
           yes | "$SDKM" --licenses > /dev/null 2>&1 || true
-          "$SDKM" "platform-tools" "platforms;android-37" "build-tools;37.0.0"
+          # 注意平台包的命名：SDK 仓库里叫 platforms;android-37.0（带次版本号），
+          # 写成 platforms;android-37 会报 "Failed to find package"（实测）。
+          "$SDKM" "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" \
+            || "$SDKM" "platform-tools" "platforms;android-37" "build-tools;37.0.0"
           ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools"
 
       - name: 安装 Gradle
