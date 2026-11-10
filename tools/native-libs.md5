@@ -6,7 +6,7 @@
 # 校验：md5sum app/src/main/jniLibs/arm64-v8a/*.so
 
 8169dfd903eaa7f9d3aff27e71bc1c0f  app/src/main/jniLibs/arm64-v8a/libimgtool.so
-5eeb74b28833be0bec2d474866706f02  app/src/main/jniLibs/arm64-v8a/libimgapp.so
+a1798199a5115653de846d515be54598  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 
 # ── 来源 ──
 # libimgtool.so （6,795,136 B）
@@ -18,7 +18,7 @@
 #           sys.tmpdir / img.create --format=qcow2|raw|vhd|vmdk / VHD 读写
 #   REPLY-20261109-59 / REPLY-20261109-61 / HANDOFF-20261109-vhd-create-and-format-fields.md
 #
-# libimgapp.so （27,840 B）
+# libimgapp.so （27,344 B；16 KB LOAD 对齐）
 #   来源：本仓库 jni/（imgapp_jni.c + imgapp_bridge.c + img_vfd_real.c）
 #   构建：tools/build-native-libs.sh（arm64 宿主会自动退到"宿主 clang + NDK sysroot"）
 #   本版新增：progress 事件里的 elapsed / elapsed_ms / msg / overall_*（REQ-69 §5）

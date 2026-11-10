@@ -26,9 +26,13 @@ echo "==> 构建工具端库（$IMGTOOL）"
 cd "$IMGTOOL"
 ./android-deps.sh
 ./android-cross.sh "$ABI"
-LIB="$(find build -path "*/$ABI/libimgtool.so" | head -1)"
-if [ -z "$LIB" ]; then
-  echo "没找到构建产物 build/android/$ABI/libimgtool.so" >&2
+# 产物可能不在仓库内（imgtool 的 scripts/env.sh 把 IMGTOOL_BUILD_ROOT 指到工作区外）
+LIB="$(find build -path "*/$ABI/libimgtool.so" 2>/dev/null | head -1)"
+if [ -z "$LIB" ] && [ -f "${IMGTOOL_BUILD_ROOT:-$IMGTOOL/build}/android/$ABI/libimgtool.so" ]; then
+  LIB="${IMGTOOL_BUILD_ROOT:-$IMGTOOL/build}/android/$ABI/libimgtool.so"
+fi
+if [ -z "$LIB" ] || [ ! -f "$LIB" ]; then
+  echo "没找到 libimgtool.so（找过 build/ 与 \${IMGTOOL_BUILD_ROOT:-<repo>/build}/android/$ABI）" >&2
   exit 1
 fi
 
@@ -61,13 +65,30 @@ else
   SYS="$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
   TARGET="aarch64-linux-android24"
   [ "$ABI" = "arm64-v8a" ] || { echo "该回退只覆盖 arm64-v8a" >&2; exit 1; }
+  # ★ 16 KB 页：与 jni/CMakeLists.txt 里的 target_link_options 同一组参数
   clang --target="$TARGET" --sysroot="$SYS" -rtlib=compiler-rt -O2 -fPIC -shared \
+    -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 \
     -I jni -I "$IMGTOOL/include" \
     jni/imgapp_bridge.c jni/imgapp_jni.c jni/img_vfd_real.c \
-    -L"$IMGTOOL/build/android/$ABI" -limgtool \
+    -L"$(dirname "$LIB")" -limgtool \
     -o "$DEST/libimgapp.so"
 fi
 md5sum "$DEST/libimgapp.so"
+
+# ---- 16 KB 页对齐自检（Android 16 起是硬要求）----
+# 判定：每个 PT_LOAD 的 p_align 必须是 0x4000；不是就当场失败，别等装到手机上才发现。
+check_16k() {
+  local f="$1"
+  local aligns
+  aligns="$(readelf -lW "$f" | awk '/LOAD/{print $NF}' | sort -u | tr '\n' ' ')"
+  if [ "$aligns" != "0x4000 " ]; then
+    echo "  ❌ $(basename "$f") 的 LOAD 对齐是 [$aligns]（要求 0x4000）" >&2
+    return 1
+  fi
+  echo "  ✅ $(basename "$f") LOAD 对齐 0x4000（16 KB）"
+}
+check_16k "$DEST/libimgtool.so" || exit 1
+check_16k "$DEST/libimgapp.so" || exit 1
 echo
 echo "把下面两行同步进 tools/native-libs.md5（并更新「来源」里的体积/提交）："
 md5sum "$DEST/libimgtool.so" "$DEST/libimgapp.so"

@@ -26,6 +26,12 @@ target_include_directories(imgapp PRIVATE
 )
 
 if(ANDROID)
+    # ★ 2026-11-10：Android 16（16 KB 页）要求每个 PT_LOAD 段的 p_align >= 16384。
+    #   不加这个，系统装机会弹「此应用不满足 16 KB 页大小要求」，并点名
+    #   libimgapp.so「LOAD 区段未对齐」（实测 p_align=0x1000）。
+    target_link_options(imgapp PRIVATE
+        "-Wl,-z,max-page-size=16384"
+        "-Wl,-z,common-page-size=16384")
     # NDK sysroot 自带 jni.h，不需要主机 JDK
 else()
     # 不用 find_package(JNI)：headless JDK 没有 AWT，FindJNI 会误判失败；
