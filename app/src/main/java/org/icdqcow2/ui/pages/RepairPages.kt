@@ -359,7 +359,8 @@ fun BootRepairPage(
     // ── 引导没问题的二次确认 ──────────────────────────────────────────────
     if (askHealthy) {
         ConfirmDialog(
-            title = s.brHealthyTitle,
+            // 只有一段话，不要再拆成标题 + 正文两行
+            title = null,
             summary = s.brHealthyBody,
             confirmText = s.brHealthyGo,
             cancelText = s.cancel,

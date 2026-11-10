@@ -1040,7 +1040,8 @@ fun RowScope.DropdownArrow() {
  */
 @Composable
 fun ConfirmDialog(
-    title: String,
+    /** null = 不显示标题，正文就是全部内容（只留一段话时用）。 */
+    title: String?,
     summary: String,
     confirmText: String,
     cancelText: String,

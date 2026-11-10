@@ -4437,15 +4437,10 @@
       "en": "1. Extract the firmware above, then copy the arguments.\n2. Open the VM settings and set the CPU architecture to I386.\n3. Turn the UEFI switch off (the 32-bit firmware is supplied by the arguments).\n4. Paste the arguments into \"Custom QEMU arguments\", save, and boot.\n\nThe 32-bit firmware only loads 32-bit .efi files. 64-bit systems keep using the launcher's own 64-bit firmware — do not mix them.",
       "note": "引导修复/恢复环境 · 区块标题 · br.fw32.how"
     },
-    "br.healthy.title": {
-      "zh": "当前引导没有问题",
-      "en": "Boot looks healthy",
-      "note": "引导修复/恢复环境 · 文案位 · br.healthy.title"
-    },
     "br.healthy.body": {
-      "zh": "自检没有发现引导问题。仍然要重新写入引导吗？\n\n重写会覆盖现有的引导文件和 BCD；如果只是想确认状态，直接返回即可。",
-      "en": "No boot problems were found. Rewrite the boot files anyway?\n\nThis overwrites the existing boot files and BCD. If you only wanted to check the status, just go back.",
-      "note": "引导修复/恢复环境 · 文案位 · br.healthy.body"
+      "zh": "自检没有发现引导问题，仍要重新写入引导吗？重写会覆盖现有的引导文件和 BCD，要继续吗？",
+      "en": "No boot problems were found. Rewrite the boot files anyway? This overwrites the existing boot files and BCD. Continue?",
+      "note": "引导修复 · 引导正常时点「开始修复」的确认卡正文（无标题）"
     },
     "br.healthy.go": {
       "zh": "仍然重写",
