@@ -259,6 +259,10 @@ fun CapturePage(
                                 fmtBytes(d?.optLong("bytes_in", 0L) ?: 0L) + " → " +
                                     fmtBytes(d?.optLong("bytes_out", 0L) ?: 0L),
                             )
+                            // 工具端 REPLY-65：重解析点（junction）与宿主符号链接合并计数，
+                            // 这些内容没有进 WIM，得告诉用户一声
+                            val skipped = d?.optLong("skipped", 0L) ?: 0L
+                            if (skipped > 0L) Item(s.capSkippedTitle, s.capSkipped(skipped))
                         }
                     }
                 }

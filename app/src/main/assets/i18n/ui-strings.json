@@ -4946,6 +4946,16 @@
       "zh": "先选一个映像",
       "en": "Pick an image first",
       "note": "清理空间页 · 没选映像就点按钮的 toast"
+    },
+    "cap.skipped": {
+      "zh": "跳过 {0} 个链接（junction / 符号链接）",
+      "en": "{0} links skipped (junctions / symlinks)",
+      "note": "捕获映像 · 结果卡 · 工具端 data.skipped（没被拷进去的重解析点/符号链接）"
+    },
+    "cap.skippedTitle": {
+      "zh": "跳过的链接",
+      "en": "Skipped links",
+      "note": "捕获映像 · 结果卡 · 「跳过 N 个链接」那一行的标题"
     }
   }
 }

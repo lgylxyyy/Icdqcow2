@@ -1043,6 +1043,8 @@ class Strings(val code: String) {
     val capNeedOut get() = raw("cap.needOut")
     val capResult get() = raw("cap.result")
     val capRatio get() = raw("cap.ratio")
+    val capSkippedTitle get() = raw("cap.skippedTitle")
+    fun capSkipped(n: Long) = tpl("cap.skipped", n.toString())
     val capInOut get() = raw("cap.inOut")
     val capFiles get() = raw("cap.files")
     val capTmpFree get() = raw("cap.tmpFree")
