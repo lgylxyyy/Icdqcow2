@@ -86,7 +86,8 @@ object ToolEvents {
                 op = f.optString("op"),
                 item = f.optString("item"),
                 msg = f.optString("msg"),
-                elapsedMs = f.optLong("elapsed", 0L),
+                // REQ-69 §5：优先毫秒字段；老桥只有 elapsed（秒）→ 乘 1000 兜底
+                elapsedMs = f.optLong("elapsed_ms", f.optLong("elapsed", 0L) * 1000L),
                 overallPct = f.optInt("overall_pct", -1),
                 overallCurBytes = f.optLong("overall_cur_bytes", 0L),
                 overallTotalBytes = f.optLong("overall_total_bytes", 0L),

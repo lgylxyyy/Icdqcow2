@@ -105,7 +105,7 @@ static void prog_to_json(void *ud, const img_progress_t *p){
     imgapp_event_cb cb = g_ev_cb;
     if(!cb || !p) return;
     if((int)IMG_LV_INFO > g_ev_lv) return;
-    char line[1024];
+    char line[2048];   /* REQ-69 §5：补了 elapsed/overall/msg，留够余量 */
     jw w = { line, line + sizeof line - 1 };
     jw_ch(&w,'{');
     jw_key(&w,"level");  jw_str(&w,"INFO");  jw_ch(&w,',');
@@ -121,6 +121,14 @@ static void prog_to_json(void *ud, const img_progress_t *p){
     jw_key(&w,"total_bytes"); jw_num(&w,(long long)p->total_bytes); jw_ch(&w,',');
     jw_key(&w,"pct");    jw_num(&w,p->pct);   jw_ch(&w,',');
     jw_key(&w,"eta_s");  jw_num(&w,p->eta_s); jw_ch(&w,',');
+    /* ★ REQ-69 §5：App 要"已用"和"阶段说明"。
+     *   elapsed 是**秒**（老字段，别改含义）；elapsed_ms 是毫秒，页面用这个。*/
+    jw_key(&w,"elapsed");    jw_num(&w,p->elapsed_s); jw_ch(&w,',');
+    jw_key(&w,"elapsed_ms"); jw_num(&w,(long long)p->elapsed_s*1000LL); jw_ch(&w,',');
+    jw_key(&w,"overall_pct"); jw_num(&w,p->overall_pct); jw_ch(&w,',');
+    jw_key(&w,"overall_cur_bytes");   jw_num(&w,(long long)p->overall_cur_bytes);   jw_ch(&w,',');
+    jw_key(&w,"overall_total_bytes"); jw_num(&w,(long long)p->overall_total_bytes); jw_ch(&w,',');
+    jw_key(&w,"msg");    jw_str(&w, p->msg ? p->msg : ""); jw_ch(&w,',');
     jw_key(&w,"item");   jw_str(&w, p->item ? p->item : "");
     jw_ch(&w,'}'); jw_ch(&w,'}');
     *w.p = 0;
