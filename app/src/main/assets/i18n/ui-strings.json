@@ -89,8 +89,8 @@
     },
     "home.setupSummary": {
       "zh": "建盘、分区、格式化、部署、引导",
-      "en": "Create, partition, format, deploy, boot",
-      "note": "主页 · 文案位 · home.setupSummary"
+      "en": "Create, partition, deploy, boot",
+      "note": "主页 · 全流程装机副标题 · 英文压缩到一行"
     },
     "home.console": {
       "zh": "控制台",
@@ -489,13 +489,13 @@
     },
     "home.exportTable": {
       "zh": "导出分区表",
-      "en": "Export partition table",
-      "note": "主页、全盘自检、分区表 · 入口卡 · home.exportTable"
+      "en": "Export table",
+      "note": "主页 · 导出分区表标题 · 英文原为 Export partition table，半宽卡片一行放不下"
     },
     "home.exportTableSummary": {
       "zh": "把分区表存成文件，不含数据",
-      "en": "Save the table as a file; data not included",
-      "note": "主页 · 入口卡 · home.exportTableSummary"
+      "en": "Table only, no data",
+      "note": "主页 · 导出分区表副标题 · 英文压缩到一行"
     },
     "ptx.title": {
       "zh": "导出分区表",
@@ -569,8 +569,8 @@
     },
     "home.cloneSummary": {
       "zh": "回收镜像里的空闲块，缩小体积",
-      "en": "Reclaim unused blocks to shrink the file",
-      "note": "主页 · 压缩镜像副标题 · 对应工具端 img.compact"
+      "en": "Reclaim unused blocks",
+      "note": "主页 · 压缩镜像副标题 · 英文压缩到一行"
     },
     "home.deploy": {
       "zh": "释放映像",
@@ -579,8 +579,8 @@
     },
     "home.deploySummary": {
       "zh": "WIM / ESD / ISO 展开到分区",
-      "en": "WIM / ESD / ISO to a partition",
-      "note": "主页 · 释放映像副标题 · 三种来源都支持，原写“ISO / ESD”漏了 WIM"
+      "en": "WIM / ESD / ISO to partition",
+      "note": "主页 · 释放映像副标题 · 英文压缩到一行"
     },
     "home.bootRepair": {
       "zh": "引导修复",
@@ -604,8 +604,8 @@
     },
     "home.winreSummary": {
       "zh": "装入恢复分区或系统分区",
-      "en": "Into the recovery or system partition",
-      "note": "主页 · 写入 WinRE 副标题 · 说明写入目标，原“恢复环境，默认关闭”含义不清"
+      "en": "Recovery or system partition",
+      "note": "主页 · 写入 WinRE 副标题 · 英文压缩到一行"
     },
     "home.logs": {
       "zh": "导出日志",
@@ -2788,9 +2788,9 @@
       "note": "主页 · 入口卡 · home.selfCheck"
     },
     "home.selfCheckSummary": {
-      "zh": "分区、Windows、恢复环境与引导一次查完，异常项可直接跳去修复",
-      "en": "Parts, Windows, recovery and boot in one pass — jump straight to a fix",
-      "note": "主页 · 入口卡 · home.selfCheckSummary"
+      "zh": "分区、Windows、恢复环境与引导一次查完",
+      "en": "Parts, Windows, recovery, boot",
+      "note": "主页 · 全量自检副标题 · 英文压缩到一行"
     },
     "fc.title": {
       "zh": "全量自检",
@@ -4734,8 +4734,8 @@
     },
     "reg.summary": {
       "zh": "只读浏览系统盘的注册表",
-      "en": "Browse the system disk's registry read-only",
-      "note": "主页 · 功能入口卡副标题"
+      "en": "Read-only registry browser",
+      "note": "主页 · 注册表格副标题 · 英文压缩到一行"
     },
     "reg.captureTitle": {
       "zh": "捕获映像",
@@ -4744,8 +4744,8 @@
     },
     "reg.captureSummary": {
       "zh": "把系统盘打包成 WIM",
-      "en": "Pack the system disk into a WIM",
-      "note": "主页 · 捕获映像入口卡副标题"
+      "en": "Pack system disk to WIM",
+      "note": "主页 · 捕获映像副标题 · 英文压缩到一行"
     },
     "cap.title": {
       "zh": "捕获映像",
