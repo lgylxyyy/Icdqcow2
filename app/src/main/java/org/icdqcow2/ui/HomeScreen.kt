@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
@@ -143,6 +144,12 @@ private fun LazyListScope.section(title: String) {
     }
 }
 
+/**
+ * 副标题预留的高度（约两行正文）。一行就能写完的文案会在这个高度里上下居中，
+ * 不会出现「文字贴顶、下面留白」的观感；两行文案正好占满。
+ */
+private val DESC_SLOT_MIN_HEIGHT = 34.dp
+
 /** 一行两张卡。 */
 private fun LazyListScope.grid(left: Tile, right: Tile) {
     item {
@@ -176,13 +183,18 @@ private fun TileCard(tile: Tile, modifier: Modifier = Modifier) {
                 overflow = TextOverflow.Ellipsis,
             )
             Spacer(Modifier.height(2.dp))
-            Text(
-                tile.desc,
-                style = text.body2,
-                color = colors.onSurfaceVariantSummary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Box(
+                modifier = Modifier.fillMaxWidth().heightIn(min = DESC_SLOT_MIN_HEIGHT),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                Text(
+                    tile.desc,
+                    style = text.body2,
+                    color = colors.onSurfaceVariantSummary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
