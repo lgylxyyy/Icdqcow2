@@ -338,17 +338,8 @@ fun BootRepairPage(
                                         }
                                     },
                                 )
-                            }
-                        }
-                        BlockEnter(5) {
-                            GroupTitle(s.fw32HowTitle)
-                            GroupCard {
-                                Text(
-                                    s.fw32How,
-                                    style = MiuixTheme.textStyles.footnote1,
-                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                )
+                                // 使用方法：只读说明，点不动
+                                Item(s.fw32HowTitle, s.fw32How)
                             }
                         }
                     }

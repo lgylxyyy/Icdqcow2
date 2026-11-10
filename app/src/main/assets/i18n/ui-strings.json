@@ -4926,6 +4926,16 @@
       "zh": "最少需要",
       "en": "Needs at least",
       "note": "建盘 · 应用分区表 · 信息行 · 该分区表要求的最小容量"
+    },
+    "fw32.howTitle": {
+      "zh": "使用方法",
+      "en": "How to use",
+      "note": "引导修复 · 32 位 UEFI 固件卡 · 最后一条的标题"
+    },
+    "fw32.how": {
+      "zh": "1、复制上方 QEMU 参数。\n2、打开虚拟机设置，将处理器架构改成 I386。\n3、关闭 UEFI 启动开关（32 位固件由参数接管）。\n4、将参数粘贴到「自定义 QEMU 参数」中，保存后启动。\n\n注意：32 位固件只能加载 32 位 .efi，64 位系统无需添加此参数，保持默认设置即可。",
+      "en": "1. Copy the QEMU arguments above.\n2. Open the VM settings and set the CPU architecture to I386.\n3. Turn off the UEFI boot switch; the 32-bit firmware comes from the arguments.\n4. Paste the arguments into \"Custom QEMU arguments\", then save and boot.\n\nNote: the 32-bit firmware loads 32-bit .efi files only. 64-bit systems need no extra arguments; the default settings work.",
+      "note": "引导修复 · 32 位 UEFI 固件卡 · 使用方法正文"
     }
   }
 }
