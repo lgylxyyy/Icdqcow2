@@ -13,11 +13,17 @@ package org.icdqcow2.core
  */
 object WinEdition {
 
-    /** 内部版本号 → 产品家族名（"Windows 10" 这种）。判不出返回 null，别瞎猜。 */
+    /**
+     * 内部版本号 → 产品家族名（"Windows 10" 这种）。判不出返回 null，别瞎猜。
+     *
+     * ★ 区间**必须有上界**：以前写成 `build >= 22000 -> Windows 11`，将来 Windows 12
+     *   （比如 build 30000）会被标成 11。现在超出现有区间就返回 null，
+     *   让 [label] 退回去用注册表里的 `ProductName`（Windows 自己写的名字）。
+     */
     fun family(build: Int): String? = when {
-        build >= 28000 -> "Windows 11"          // 26H1 起的预览线
-        build >= 22000 -> "Windows 11"          // 21H2 ~ 25H2（22000/22621/22631/26100/26200）
-        build in 10240..19099 -> "Windows 10"   // 1507 ~ 22H2
+        build in 28000..28999 -> "Windows 11"   // 26H1 起的预览线
+        build in 22000..26999 -> "Windows 11"   // 21H2 ~ 25H2（22000/22621/22631/26100/26200）
+        build in 10240..19999 -> "Windows 10"   // 1507 ~ 22H2
         build == 9600 -> "Windows 8.1"
         build == 9200 -> "Windows 8"
         build in 7600..7602 -> "Windows 7"
@@ -28,8 +34,15 @@ object WinEdition {
         else -> null
     }
 
-    /** 10/11 的功能更新代号（22H2 这种）。老系统没有，返回 null。 */
-    fun release(build: Int): String? = when (build) {
+    /**
+     * 10/11 的功能更新代号（22H2 这种）。
+     *
+     * ⚠ 这张表**需要跟着新版本维护**，但它只用于"锦上添花"——界面上那行显示的是
+     * 「版本名 · 内部版本号」，build 一定在、代号可以缺席，所以新版本来了最多是不显示代号，
+     * 不会显示错的版本。真要彻底不维护，等工具端把注册表 `DisplayVersion`（Windows 自己
+     * 就知道自己是 22H2/24H2）带回来，这张表就能删掉（已发 REQ-72）。
+     */
+    fun releaseOrNull(build: Int): String? = when (build) {
         28000 -> "26H1"
         26200 -> "25H2"
         26100 -> "24H2"
@@ -52,6 +65,9 @@ object WinEdition {
         10240 -> "1507"
         else -> null
     }
+
+    /** 兼容旧名（内部只用到 [releaseOrNull]）。 */
+    fun release(build: Int): String? = releaseOrNull(build)
 
     /** 注册表 `EditionID` → 中文版本名。 */
     fun editionZh(editionId: String?): String? = when (editionId?.trim()?.lowercase()) {
@@ -90,7 +106,7 @@ object WinEdition {
      * 4. build 也不认识 → null（界面显示"读不出"，不瞎猜）。
      */
     fun label(productName: String?, editionId: String?, build: Int): String? {
-        val fam = family(build)
+        val fam = family(build)          // 认识的 build 才给家族名，不认识就是 null
         val ed = editionZh(editionId)
         val pn = cleanProductName(productName)
         if (fam != null && ed != null) return "$fam $ed"

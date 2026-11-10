@@ -305,10 +305,11 @@ internal suspend fun buildFcReport(
             } else {
                 null
             }
-            winRows += if (name != null) {
-                FcItem(s.fcWinVer, "$name · $build", FcLevel.Ok)
-            } else {
-                FcItem(s.fcWinVer, s.fcWinVerUnknown, FcLevel.Info)
+            winRows += when {
+                name != null -> FcItem(s.fcWinVer, "$name · $build", FcLevel.Ok)
+                // 名字认不出但版本号读到了：至少把内部版本号摆出来（以后的新系统就靠这个）
+                build > 0 -> FcItem(s.fcWinVer, s.fcWinVerBuild(build.toString()), FcLevel.Info)
+                else -> FcItem(s.fcWinVer, s.fcWinVerUnknown, FcLevel.Info)
             }
         }
         winRows += FcItem(s.fcWinLoader, null, if (loader) FcLevel.Ok else FcLevel.Bad, jump = if (loader) null else "deploy")

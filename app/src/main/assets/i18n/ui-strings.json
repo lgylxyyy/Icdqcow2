@@ -5076,6 +5076,11 @@
       "zh": "读不出（系统盘里没有版本信息）",
       "en": "unknown (no version info on the system partition)",
       "note": "全量自检 · Windows 版本读不出来时的说明"
+    },
+    "fc.winVerBuild": {
+      "zh": "未知版本 · {0}",
+      "en": "unknown version · {0}",
+      "note": "全量自检 · Windows 版本：认得出 build 但认不出产品名时（比如以后的新系统）"
     }
   }
 }

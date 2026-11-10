@@ -785,6 +785,7 @@ class Strings(val code: String) {
     val fcWinKernel get() = raw("fc.winKernel")
     val fcWinVer get() = raw("fc.winVer")
     val fcWinVerUnknown get() = raw("fc.winVerUnknown")
+    fun fcWinVerBuild(b: String) = tpl("fc.winVerBuild", b)
     val fcWinBootmgr get() = raw("fc.winBootmgr")
     val fcSecRe get() = raw("fc.secRe")
     val fcReNone get() = raw("fc.reNone")
