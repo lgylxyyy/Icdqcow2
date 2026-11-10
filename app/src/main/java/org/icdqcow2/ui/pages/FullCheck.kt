@@ -290,6 +290,27 @@ internal suspend fun buildFcReport(
         bad++
     } else {
         winRows += FcItem(s.fcWinSys(parts.indexOfFirst { it.lba == win.lba } + 1), fmtBytes(win.bytes), FcLevel.Ok)
+        // Windows 版本：注册表 + 内核 PE 交叉验证（工具端 win.version），
+        // 显示成「Windows 10 家庭中文版 · 19045」（版本名 · 内部版本号）。
+        run {
+            val v = ImageRepo.winVersion(win.lba, img)
+            val vd = v.data
+            val build = vd?.optInt("registry.current_build", 0) ?: 0
+            val name = if (v.ok && build > 0) {
+                org.icdqcow2.core.WinEdition.label(
+                    productName = vd?.optString("registry.product_name"),
+                    editionId = vd?.optString("registry.edition_id"),
+                    build = build,
+                )
+            } else {
+                null
+            }
+            winRows += if (name != null) {
+                FcItem(s.fcWinVer, "$name · $build", FcLevel.Ok)
+            } else {
+                FcItem(s.fcWinVer, s.fcWinVerUnknown, FcLevel.Info)
+            }
+        }
         winRows += FcItem(s.fcWinLoader, null, if (loader) FcLevel.Ok else FcLevel.Bad, jump = if (loader) null else "deploy")
         winRows += FcItem(s.fcWinKernel, null, if (kernel) FcLevel.Ok else FcLevel.Bad, jump = if (kernel) null else "deploy")
         if (!table.equals("GPT", true)) {
@@ -842,7 +863,12 @@ private fun FcRow(item: FcItem, onJump: (String) -> Unit) {
     val colors = MiuixTheme.colorScheme
     val route = item.jump
     if (route != null) {
-        LinkItem(item.title, item.summary) { onJump(route) }
+        // 有问题的项目连标题一起染红（以前只有右侧的 "!" 是红的，标题看不出来）
+        LinkItem(
+            title = item.title,
+            summary = item.summary,
+            titleColor = if (item.level == FcLevel.Bad) colors.error else null,
+        ) { onJump(route) }
     } else {
         Item(
             title = item.title,

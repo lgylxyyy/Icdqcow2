@@ -271,11 +271,19 @@ fun ChoiceCard(options: List<Choice>, selected: Int, onSelect: (Int) -> Unit) {
 
 /** 卡片里的一行，右侧带箭头 —— 点进去还有一层（分区设置…）。 */
 @Composable
-fun LinkItem(title: String, summary: String?, enabled: Boolean = true, onClick: () -> Unit) {
+fun LinkItem(
+    title: String,
+    summary: String?,
+    enabled: Boolean = true,
+    /** 标题颜色；null = 主题默认。自检页用它把「有问题」的项目标题染红。 */
+    titleColor: androidx.compose.ui.graphics.Color? = null,
+    onClick: () -> Unit,
+) {
     Item(
         title = title,
         summary = summary,
         enabled = enabled,
+        titleColor = titleColor,
         end = {
             Icon(
                 MiuixIcons.ChevronForward,

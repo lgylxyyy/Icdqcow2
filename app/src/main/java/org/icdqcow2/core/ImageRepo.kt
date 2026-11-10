@@ -767,6 +767,22 @@ object ImageRepo {
     )
 
     /**
+     * `win.version`：读已装盘的真实 Windows 版本。
+     *
+     * 工具端交叉验证四路：注册表 `CurrentVersion`、`ntoskrnl` 的 PE 版本、`ntdll`、`winload.exe`，
+     * 回包里给 `registry.product_name` / `registry.edition_id` / `registry.current_build` / `arch`。
+     * 展示名用 [WinEdition.label] 拼（**不看** build 之外的猜测）。
+     */
+    suspend fun winVersion(
+        lba: Long,
+        path: String? = _current.value,
+    ): ToolRunner.Result = exec(
+        "win.version",
+        args = mapOf("lba" to lba.toString()),
+        path = path,
+    )
+
+    /**
      * `winre.auto`：写/删「首次开机 reagentc /enable」脚本（`SetupComplete.cmd`）。
      *
      * 修复路径用它 —— `recovery.populate` 那条会**先格式化分区**，修一下反而丢文件。

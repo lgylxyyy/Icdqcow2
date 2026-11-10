@@ -5066,6 +5066,16 @@
       "zh": "放弃这些改动并返回？",
       "en": "Discard these changes and go back?",
       "note": "分区管理页有待保存改动时，点返回的确认弹窗标题"
+    },
+    "fc.winVer": {
+      "zh": "Windows 版本",
+      "en": "Windows version",
+      "note": "全量自检 · Windows 卡片里那一行（版本名 · 内部版本号）"
+    },
+    "fc.winVerUnknown": {
+      "zh": "读不出（系统盘里没有版本信息）",
+      "en": "unknown (no version info on the system partition)",
+      "note": "全量自检 · Windows 版本读不出来时的说明"
     }
   }
 }
