@@ -466,8 +466,8 @@ internal fun DiskBar(
     val cMsr = Color(0xFFA8B2C1)
     val cRec = Color(0xFFB39DDB)
 
-    // 选中框：暗色用白框（和深底色对比强）；亮色用灰框，白框在浅底上看不见
-    val selStroke = if (colors.surface.luminance() > 0.5f) Color(0xFF9AA0A6) else Color.White
+    // 选中框：暗色用白框（和深底色对比强）；亮色用纯黑框（灰框在浅底上不够醒目）
+    val selStroke = if (colors.surface.luminance() > 0.5f) Color.Black else Color.White
 
     val sum = segments.sumOf { it.sectors }.coerceAtLeast(1L)
     val gap = 2.dp

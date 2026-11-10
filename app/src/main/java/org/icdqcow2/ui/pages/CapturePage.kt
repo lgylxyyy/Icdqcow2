@@ -190,7 +190,15 @@ fun CapturePage(
                 ChoiceCard(
                     options = ImageRepo.CAPTURE_COMP.map { Choice(it, s.capCompHint(it)) },
                     selected = ImageRepo.CAPTURE_COMP.indexOf(comp).coerceAtLeast(0),
-                ) { i -> comp = ImageRepo.CAPTURE_COMP[i] }
+                ) { i ->
+                    if (comp != ImageRepo.CAPTURE_COMP[i]) {
+                        comp = ImageRepo.CAPTURE_COMP[i]
+                        // 换压缩方式 → 估算作废，把「估算大小」按钮放回来重估一次
+                        needBytes = null
+                        result = null
+                        err = null
+                    }
+                }
             }
             BlockEnter(3) {
                 GroupTitle(s.capName)
