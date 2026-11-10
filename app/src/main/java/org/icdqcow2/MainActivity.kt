@@ -133,6 +133,13 @@ class MainActivity : ComponentActivity(), NavigationEventDispatcherOwner {
             runCatching { FirmwareStore.ensure(this@MainActivity) }
         }
 
+        // 默认镜像目录换成 /sdcard/Documents/Icdqcow2/Images：启动时把旧目录（应用私有
+        // files/images、以及更早的 Android/data/.../Documents/images）里的盘搬过去，
+        // 搬空后删掉旧目录 —— 私有 images 不再创建（用户 2026-11-11）。
+        lifecycleScope.launch(Dispatchers.IO) {
+            runCatching { org.icdqcow2.core.ImageRepo.migrateLegacyDirs() }
+        }
+
         // ★ Android 没有 /tmp：BCD 读写、恢复分区填充都要一个可写临时目录
         // 临时目录：统一用 App 缓存目录（用户 2026-11-09 定），不用工具端的"容器同目录"兜底。
         // 每次启动先清扫上次残留 —— 放在 setTmpdir 之前，避免删到本轮要用的目录。

@@ -11,9 +11,12 @@ import org.json.JSONObject
  * 镜像仓库：当前镜像 + 建盘 / 读信息。
  *
  * 保存位置两档（用户可见的说法）：
- * - **默认路径** `/data/user/0/<pkg>/files/images`：应用私有，最稳，文件管理器进不去；
+ * - **默认路径** `/sdcard/Documents/Icdqcow2/Images`：公共目录，文件管理器里能直接看到
+ *   （2026-11-11 改：以前是应用私有 `files/images`，用户拿不到自己的盘）；
  * - **自定义路径**：用户用 SAF 挑的任意目录（`/sdcard/xxx`、SD 卡…），
- *   文件管理器里能直接看到镜像，**需要「所有文件访问」权限**（C 层要真实路径）。
+ *   也一样**需要「所有文件访问」权限**（C 层要真实路径）。
+ *
+ * 升级时 `migrateLegacyDirs()` 会把旧的私有 `files/images` 搬过来并删掉那个空目录。
  *
  * 当前镜像路径与保存位置都持久化在 SharedPreferences，杀进程后还能接上。
  */
@@ -102,8 +105,65 @@ object ImageRepo {
         sp.edit().putString("current", path).apply()
     }
 
-    /** 默认目录：应用私有，最稳。 */
-    fun defaultDir(): File = File(appCtx.filesDir, "images").apply { mkdirs() }
+    /**
+     * 默认目录：`/storage/emulated/0/Documents/Icdqcow2/Images`（用户 2026-11-11 定）。
+     *
+     * 以前是应用私有 `files/images` —— 文件管理器进不去，用户拿不到自己的盘。
+     * 现在放公共 Documents 下（和 `Firmware` 目录并排），**不再创建**私有 `images` 目录。
+     * 没有「所有文件访问」时 `mkdirs` 会失败，那是权限问题，界面上会提示，不再偷偷退回私有目录。
+     */
+    fun defaultDir(): File = publicImagesDir().apply { if (!isDirectory) mkdirs() }
+
+    /** 公共镜像目录对象（不保证已存在）。 */
+    fun publicImagesDir(): File = File(
+        android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOCUMENTS),
+        "Icdqcow2/Images",
+    )
+
+    /**
+     * 把**旧默认目录**里的镜像搬到新的默认目录（幂等，启动时跑一次就够）。
+     *
+     * 旧位置有两处：
+     * 1. 应用私有 `files/images`（2026-10 之前的默认）；
+     * 2. 更早的 `Android/data/<pkg>/files/Documents/images`（`external` 开关时代）。
+     *
+     * 规则：同名不覆盖（让用户自己决定）；跨文件系统 rename 失败就 copy + 删源；
+     * 只有旧目录**空了**才删它 —— 没搬成功的东西留着，宁可留个目录也不丢文件。
+     */
+    fun migrateLegacyDirs() {
+        val dst = if (_mode.value == SaveMode.Custom) imagesDir() else defaultDir()
+        if (!dst.isDirectory) return
+        val olds = listOf(
+            File(appCtx.filesDir, "images"),
+            File(appCtx.getExternalFilesDir("Documents"), "images"),
+        )
+        for (old in olds) {
+            if (!old.isDirectory) continue
+            if (runCatching { old.canonicalPath == dst.canonicalPath }.getOrDefault(false)) continue
+            for (f in old.listFiles().orEmpty()) {
+                if (!f.isFile) continue
+                val to = File(dst, f.name)
+                if (to.exists()) continue
+                val moved = runCatching {
+                    if (f.renameTo(to)) {
+                        true
+                    } else {
+                        f.copyTo(to, overwrite = false)
+                        f.delete()
+                        true
+                    }
+                }.getOrDefault(false)
+                if (!moved) runCatching { to.delete() }
+            }
+            runCatching { if (old.listFiles().orEmpty().isEmpty()) old.delete() }
+        }
+        // 当前镜像正好落在旧目录里：跟着搬到新位置，别让用户"刚升级盘就没了"
+        val cur = _current.value
+        if (cur != null && !File(cur).exists()) {
+            val cand = File(dst, File(cur).name)
+            if (cand.exists()) setCurrent(cand.absolutePath)
+        }
+    }
 
     /** 当前生效目录；自定义目录不可用（被删/没权限）时回落到默认目录。 */
     fun imagesDir(): File {
