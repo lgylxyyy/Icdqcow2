@@ -25,6 +25,8 @@ import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.window.WindowDialog
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import org.icdqcow2.BuildConfig
+import org.icdqcow2.core.Signing
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,6 +71,17 @@ fun SettingsScreen(
     val effects by settings.visualEffects.collectAsState()
     val blurSupported = settings.blurSupported
     val ctx = androidx.compose.ui.platform.LocalContext.current
+    // 「关于」里显示签名与构建来源：本地 debug 包与 CI release 包指纹不同，一眼可辨
+    val apkSha = remember { Signing.sha256(ctx) }
+    val signatureSummary = when {
+        apkSha.isEmpty() -> "—"
+        apkSha.equals(Signing.RELEASE_SHA256, ignoreCase = true) ->
+            s.signatureRelease + " · " + Signing.prettyShort(apkSha)
+        Signing.isDebugBuild(ctx) ->
+            s.signatureDebug + " · " + Signing.prettyShort(apkSha)
+        else ->
+            s.signatureOther + " · " + Signing.prettyShort(apkSha)
+    }
     var confirmDelete by remember { mutableStateOf(settings.confirmDelete) }
     var showHidden by remember { mutableStateOf(settings.showHidden) }
     // 点「管理所有文件」先弹说明卡片，再跳系统设置（系统本身不会有运行时弹窗）
@@ -332,6 +345,8 @@ fun SettingsScreen(
         section(s.secAbout)
         card {
             BasicComponent(title = s.version, summary = s.versionSummary)
+            BasicComponent(title = s.buildStamp, summary = BuildConfig.BUILD_STAMP)
+            BasicComponent(title = s.signature, summary = signatureSummary)
             BasicComponent(title = s.toolVersion, summary = s.toolVersionSummary)
             BasicComponent(title = s.license, summary = s.licenseSummary, onClick = { onOpen("licenses") })
             BasicComponent(title = s.privacy, summary = s.privacySummary)

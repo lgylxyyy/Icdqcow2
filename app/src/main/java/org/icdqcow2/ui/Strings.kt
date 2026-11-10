@@ -235,6 +235,11 @@ class Strings(val code: String) {
     val filesExtracted get() = raw("files.extracted")
     val privacy get() = raw("settings.privacy")
     val privacySummary get() = raw("settings.privacySummary")
+    val signature get() = raw("settings.signature")
+    val signatureRelease get() = raw("settings.signatureRelease")
+    val signatureDebug get() = raw("settings.signatureDebug")
+    val signatureOther get() = raw("settings.signatureOther")
+    val buildStamp get() = raw("settings.buildStamp")
 
     // ── 创建磁盘 ──
     val createTitle get() = raw("create.title")

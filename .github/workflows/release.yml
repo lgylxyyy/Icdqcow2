@@ -88,7 +88,7 @@ jobs:
           echo "SIGNED=1" >> "$GITHUB_ENV"
 
       - name: 构建 release
-        run: gradle :app:assembleRelease --no-daemon --stacktrace
+        run: gradle :app:assembleRelease --no-daemon --stacktrace -PciRun="${{ github.run_number }}"
 
       - name: 验签并核对指纹
         run: |

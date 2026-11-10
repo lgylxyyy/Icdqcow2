@@ -19,6 +19,14 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
+
+        // CI 构建时由 workflow 传 -PciRun=<run_number>，本地构建则是 local。
+        // 配合「设置 · 关于」里的签名指纹，能直接分辨手上这个包是哪儿来的。
+        val ciRun = providers.gradleProperty("ciRun").orNull
+        buildConfigField(
+            "String", "BUILD_STAMP",
+            "\"${if (ciRun.isNullOrBlank()) "local" else "ci-$ciRun"}\"",
+        )
     }
 
     // ── 签名 ──────────────────────────────────────────────────────────────────
@@ -60,7 +68,11 @@ android {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        // 「设置 · 关于」要显示构建标识：local = 本机构建，ci-N = GitHub Actions 第 N 次构建
+        buildConfig = true
+    }
 
     // .so 由 imgtool/android-cross.sh 交叉编译后放进 jniLibs（Gradle 不调 NDK）
     packaging { jniLibs { useLegacyPackaging = false } }
