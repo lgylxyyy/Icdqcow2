@@ -5,15 +5,17 @@
 #
 # 校验：md5sum app/src/main/jniLibs/arm64-v8a/*.so
 
-a8b96f8167f624d583d9c247748e65a8  app/src/main/jniLibs/arm64-v8a/libimgtool.so
+373b88afeba51eb06272c58b61c2f73d  app/src/main/jniLibs/arm64-v8a/libimgtool.so
 a1798199a5115653de846d515be54598  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 
 # ── 来源 ──
 # libimgtool.so （6,797,328 B）
 #   仓库：https://github.com/lgylxyyy/imgtool
-#   提交：92984c9（REQ-72：win.version 多回 DisplayVersion/ReleaseId/UBR/InstallationType；
-#         同时修 reg.get/reg.set 对 REG_SZ 的 UTF-16LE 编解码）
-#         ← 含 354836f（Android API 26）/ 3ed83b0 / cfe29f8 / 3f805b2 的全部内容
+#   提交：d72c4be（构建标识：交叉编译结束打提交号、dirty 树警告）
+#         ← 含 92984c9（REQ-72 四个版本字段 + REG_SZ 编解码）/ 354836f（API 26）
+#   导出符号指纹：nm -D --defined-only libimgtool.so | awk '{print $2,$3}' | sort | sha256sum
+#                 = ef22db3db4ead37adc8b42748e0d7ae23cf2c8e040026b1b674641b356abfff0（1375 个）
+#   ★ md5 只在「同 clang + 同 NDK + 同一套 stage 依赖」下可复现；换机器请比符号指纹 + 提交号
 #   版本串：imgtool 2026.11.10（`imgcmd version` / `--version` 可取，commit 见回包）
 #   构建：./android-deps.sh && TOOLS=1 ./android-cross.sh arm64-v8a
 #   ★ 最低系统版本：Android 8.0（API 26）。stdin/stdout 在 bionic 里是 API 23 起，
