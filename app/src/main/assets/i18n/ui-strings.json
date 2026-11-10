@@ -4403,9 +4403,9 @@
       "note": "引导修复/恢复环境 · 文案位 · br.fw32.copy"
     },
     "br.fw32.copyHint": {
-      "zh": "两段 pflash 参数，粘到虚拟机的自定义参数里",
-      "en": "Two pflash arguments, paste into the VM's custom arguments",
-      "note": "引导修复/恢复环境 · 文案位 · br.fw32.copyHint"
+      "zh": "使用 App 内置的固件启动 32 位 UEFI 系统",
+      "en": "Boot 32-bit UEFI systems with the firmware bundled in the app",
+      "note": "引导修复 · 32 位 UEFI 固件卡 · 「复制 QEMU 参数」这一行的说明"
     },
     "br.fw32.copied": {
       "zh": "参数已复制",
