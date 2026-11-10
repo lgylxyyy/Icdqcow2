@@ -4921,6 +4921,11 @@
       "zh": "已检测到 %1$s。为避免影响其付费功能，本应用不提供镜像写入、引导修复等能力，浏览与导出不受影响。",
       "en": "Detected %1$s. To avoid affecting its paid features, image writing and boot repair are unavailable; browsing and exporting still work.",
       "note": "主页 · 顶部提示卡正文 · %1$s = 伙伴应用显示名"
+    },
+    "partner.blockedToast": {
+      "zh": "该功能已停用：检测到 Vectras VM",
+      "en": "This feature is disabled: Vectras VM detected",
+      "note": "重试按钮 · 命中伙伴时尝试进入写入类页面弹出的提示"
     }
   }
 }

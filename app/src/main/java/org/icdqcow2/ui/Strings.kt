@@ -242,6 +242,7 @@ class Strings(val code: String) {
     val buildStamp get() = raw("settings.buildStamp")
     val partnerNoticeTitle get() = raw("partner.noticeTitle")
     fun partnerNoticeBody(name: String) = tpl("partner.noticeBody", name)
+    val partnerBlockedToast get() = raw("partner.blockedToast")
 
     // ── 创建磁盘 ──
     val createTitle get() = raw("create.title")

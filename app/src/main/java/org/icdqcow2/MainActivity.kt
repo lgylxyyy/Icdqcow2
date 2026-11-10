@@ -233,6 +233,16 @@ private fun AppRoot(settings: SettingsStore) {
         }
     }
     var page by rememberSaveable { mutableStateOf<String?>(null) }
+    // 伙伴联动：写镜像相关的页面直接不放行，点一下就提示，而不是进去以后才失败
+    val openRoute: (String) -> Unit = { route ->
+        if (org.icdqcow2.core.PartnerGate.restricted &&
+            route in org.icdqcow2.core.PartnerGate.BLOCKED_ROUTES
+        ) {
+            toast(s.partnerBlockedToast)
+        } else {
+            page = route
+        }
+    }
     // 文本编辑器要编哪个文件（二级页的参数走这里，路由只认字符串）
     var editorPath by remember { mutableStateOf<String?>(null) }
     // 编辑器是从哪一栏、是不是只读位置点开的（决定保存要不要"挑位置"）
@@ -332,7 +342,7 @@ private fun AppRoot(settings: SettingsStore) {
                                     },
                             ) {
                                 when (index) {
-                                    TAB_HOME -> HomeScreen(onOpen = { page = it })
+                                    TAB_HOME -> HomeScreen(onOpen = openRoute)
                                     TAB_FILES -> FilesScreen(
                                         onToast = toast,
                                         // 一旦开始横滑 / 切走就收回 ⋮ 菜单
@@ -398,7 +408,7 @@ private fun AppRoot(settings: SettingsStore) {
                                     }
                                 } else null,
                             )
-                            else -> PageHost(target, onBack = { page = null }, onToast = toast, onNav = { page = it })
+                            else -> PageHost(target, onBack = { page = null }, onToast = toast, onNav = openRoute)
                         }
                     }
                 }

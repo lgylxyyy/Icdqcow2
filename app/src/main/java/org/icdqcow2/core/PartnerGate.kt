@@ -90,6 +90,23 @@ object PartnerGate {
         "reg.set", "reg.del",
     )
 
+    /**
+     * 命中伙伴时**不允许进入**的页面路由。这些都是"会写镜像"的流程；
+     * 只读页（文件、自检、导出、注册表、控制台）不受影响。
+     */
+    val BLOCKED_ROUTES = setOf(
+        "create",     // 建盘
+        "parts",      // 分区管理（增删改、格式化入口）
+        "deploy",     // 系统部署（释放映像）
+        "clone",      // 镜像克隆
+        "bootrepair", // 引导修复
+        "capture",    // 捕获映像
+        "winre",      // 恢复环境写入
+        "format",     // 格式化
+        "import",     // 导入（写目标盘）
+        "setup",      // 全流程装机
+    )
+
     /** 只读命令（显式列出，便于对照；不在 [BLOCKED_WRITE] 里就默认放行）。 */
     val READ_ONLY = setOf(
         "cmd.list", "sys.tmpdir", "ctl.cancel",
