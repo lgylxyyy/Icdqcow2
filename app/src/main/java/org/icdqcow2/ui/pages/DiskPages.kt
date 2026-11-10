@@ -2137,6 +2137,8 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     var doneText by remember { mutableStateOf<String?>(null) }
     /** 打洞全失败 → 文件没缩，给「重写一次」 */
     var punchFailed by remember { mutableStateOf(false) }
+    /** 工具端 `punch_note` 原文（打洞失败时显示，别自己拼文案）。 */
+    var punchNote by remember { mutableStateOf<String?>(null) }
     var rebuiltNote by remember { mutableStateOf<String?>(null) }
     var err by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -2146,6 +2148,7 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
         doneText = null
         rebuiltNote = null
         punchFailed = false
+        punchNote = null
         err = null
         srcBytes = image?.let { File(it).length() } ?: 0L
         capBytes = image?.let { ImageRepo.info(it).data?.optLong("size_bytes", 0L) } ?: 0L
@@ -2160,6 +2163,7 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             doneText = null
             rebuiltNote = null
             punchFailed = false
+        punchNote = null
             planBytes = null
             val r = withContext(Dispatchers.IO) { ImageRepo.trim(img = img, dryRun = true) }
             analyzing = false
@@ -2194,6 +2198,8 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             // 老库只给 punch_failed。两个都看，别漏了"文件没变小"那种情况。
             punchFailed = (d?.optLong("punch_failed", 0L) ?: 0L) > 0L ||
                 d?.optBoolean("punch_ok", true) == false
+            // REPLY-71 Q2：有 punch_ok=false 就一定有 punch_note，直接原样显示
+            punchNote = d?.optString("punch_note")?.takeIf { it.isNotBlank() }
             doneText = s.trimDone(fmtBytes(freed), fmtBytes(before), fmtBytes(after))
             planBytes = null             // 清完要重新分析才知道还剩多少
             srcBytes = File(img).length()
@@ -2257,7 +2263,7 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             }
             doneText?.let { Note(it) }
             if (punchFailed) {
-                Note(s.trimNoShrink, warn = true)
+                Note(punchNote ?: s.trimNoShrink, warn = true)
                 Action(text = if (rebuilding) s.trimCleaning else s.trimRebuild, enabled = !busy) {
                     rebuild()
                 }
