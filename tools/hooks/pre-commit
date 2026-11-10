@@ -1,0 +1,48 @@
+#!/bin/sh
+# ── 签名密钥护栏 ─────────────────────────────────────────────────────────────
+# 安装：cp tools/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+# 作用：把 *.jks / *.keystore / keystore.properties / PEM 私钥挡在提交之外。
+#       keystore 是二进制，GitHub 的 secret scanning 认不出来，只能靠这一层。
+# 例外：确有正当用途（如测试夹具）时，用 ALLOW_KEY_COMMIT=1 git commit ... 放行。
+# ────────────────────────────────────────────────────────────────────────────
+
+fail=0
+
+# ① 文件名命中
+for f in $(git diff --cached --name-only --diff-filter=ACMR); do
+  case "$f" in
+    *.jks|*.keystore|*.p12|*.pfx|*.bks|*.jceks|*.keystore.bak)
+      echo "✖ 拒绝提交密钥库: $f" >&2; fail=1;;
+    keystore.properties|*/keystore.properties|*signing*.properties)
+      echo "✖ 拒绝提交签名配置（含明文密码）: $f" >&2; fail=1;;
+    *.pem|*.key|*.der)
+      echo "✖ 拒绝提交 PEM/DER 私钥: $f" >&2; fail=1;;
+  esac
+done
+
+# ② 内容嗅探：改名的 keystore（JKS magic 0xFEEDFEED）或 PEM 私钥正文
+for f in $(git diff --cached --name-only --diff-filter=ACMR); do
+  [ -f "$f" ] || continue
+  if [ "$(LC_ALL=C head -c 4 "$f" 2>/dev/null | od -An -tx1 | tr -d ' \n')" = "feedfeed" ]; then
+    echo "✖ 拒绝提交：$f 内容是 JKS 密钥库（改名也拦）" >&2; fail=1
+  fi
+  if [ "$(LC_ALL=C head -c 4096 "$f" 2>/dev/null | grep -c "PRIVATE"" KEY-----")" -gt 0 ] 2>/dev/null; then
+    echo "✖ 拒绝提交：$f 含 PEM 私钥正文" >&2; fail=1
+  fi
+done
+
+# ③ 已经入库的密钥：直接拦所有提交，逼你先清理
+if git ls-files | grep -qiE '\.(jks|keystore|p12|pfx|bks|jceks)$|^keystore\.properties$'; then
+  echo "✖ 库里已经有密钥文件被跟踪，先 git rm --cached 掉它（历史还需 filter-repo 清理）" >&2
+  fail=1
+fi
+
+if [ "$fail" = "1" ]; then
+  if [ "${ALLOW_KEY_COMMIT:-0}" = "1" ]; then
+    echo "… ALLOW_KEY_COMMIT=1，放行" >&2; exit 0
+  fi
+  echo "" >&2
+  echo "提交被拦截。密钥、密码属于'身份'，不进版本库；" >&2
+  echo "keystore 放仓库外，密码走 keystore.properties（已 gitignore）。" >&2
+  exit 1
+fi

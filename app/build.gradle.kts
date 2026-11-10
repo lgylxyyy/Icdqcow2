@@ -1,3 +1,4 @@
+import java.util.Properties
 import java.util.zip.ZipFile
 
 plugins {
@@ -19,11 +20,33 @@ android {
         versionName = "0.1.0"
     }
 
+    // ── 签名 ──────────────────────────────────────────────────────────────────
+    // 密钥与密码一律在仓库外：根目录 keystore.properties（已 .gitignore，含 storeFile 路径
+    // 与四个密码字段）+ 真正的 .jks。别人 clone 下来没有这个文件 → 自动回落 debug 签名，
+    // 照样能编译能装；只有本机放了 properties 才走正式签名。
+    // 具体格式见同目录 keystore.properties.example。
+    val keystorePropsFile = rootProject.file("keystore.properties")
+    val keystoreProps = Properties().apply {
+        if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
+    }
+    signingConfigs {
+        if (keystorePropsFile.exists()) {
+            create("release") {
+                storeFile = file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         debug { isMinifyEnabled = false }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            signingConfig = if (keystorePropsFile.exists())
+                signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
     }
 
