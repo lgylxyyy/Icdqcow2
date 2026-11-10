@@ -240,6 +240,8 @@ class Strings(val code: String) {
     val signatureDebug get() = raw("settings.signatureDebug")
     val signatureOther get() = raw("settings.signatureOther")
     val buildStamp get() = raw("settings.buildStamp")
+    val partnerNoticeTitle get() = raw("partner.noticeTitle")
+    fun partnerNoticeBody(name: String) = tpl("partner.noticeBody", name)
 
     // ── 创建磁盘 ──
     val createTitle get() = raw("create.title")

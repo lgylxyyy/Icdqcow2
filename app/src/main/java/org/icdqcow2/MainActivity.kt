@@ -109,6 +109,8 @@ class MainActivity : ComponentActivity(), NavigationEventDispatcherOwner {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 伙伴联动：启动检测一次（用户可能在后台装了/卸了对方应用）
+        org.icdqcow2.core.PartnerGate.init(this)
         enableEdgeToEdge()
         settings = SettingsStore(this)
         ImageRepo.init(this)
@@ -157,6 +159,11 @@ class MainActivity : ComponentActivity(), NavigationEventDispatcherOwner {
                 }
             }
         }
+    }
+    override fun onResume() {
+        super.onResume()
+        // 用户可能在后台装/卸了伙伴应用，回前台重新判定一次
+        org.icdqcow2.core.PartnerGate.refresh()
     }
 }
 

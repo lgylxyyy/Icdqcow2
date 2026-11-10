@@ -4911,6 +4911,16 @@
       "zh": "构建",
       "en": "Build",
       "note": "设置 · 关于 · 构建标识：local = 本机构建，ci-N = GitHub Actions 第 N 次构建"
+    },
+    "partner.noticeTitle": {
+      "zh": "功能受限",
+      "en": "Feature limited",
+      "note": "主页 · 顶部提示卡标题 · 检测到伙伴应用时出现"
+    },
+    "partner.noticeBody": {
+      "zh": "已检测到 %1$s。为避免影响其付费功能，本应用不提供镜像写入、引导修复等能力，浏览与导出不受影响。",
+      "en": "Detected %1$s. To avoid affecting its paid features, image writing and boot repair are unavailable; browsing and exporting still work.",
+      "note": "主页 · 顶部提示卡正文 · %1$s = 伙伴应用显示名"
     }
   }
 }

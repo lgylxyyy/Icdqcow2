@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "note": "受限制的伙伴应用清单。新增一家 = 加一条记录，跑 tools/sync_partners.py，然后发版。生成结果写入 AndroidManifest.xml 的 <queries> 与 core/PartnerList.kt，两处都由该脚本维护，不要手改。注意：社区版/自编译版不列入 —— 它们没有付费功能，测我们自己时不能被限制。",
+  "partners": [
+    {
+      "package": "com.vectrasllc.vm",
+      "label": "Vectras VM",
+      "dist": "Google Play",
+      "since": "2026-11-10"
+    }
+  ]
+}

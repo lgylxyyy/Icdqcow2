@@ -10,6 +10,9 @@
       不声明就查不到，永远走网页分支。只声明这一个包名，不多要权限。
     -->
     <queries>
+        <!-- PARTNERS:BEGIN 由 tools/sync_partners.py 生成，勿手改 -->
+        <package android:name="com.vectrasllc.vm" />
+    <!-- PARTNERS:END -->
         <package android:name="org.telegram.messenger" />
         <package android:name="org.telegram.messenger.web" />
         <package android:name="org.telegram.plus" />

@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,6 +57,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 fun HomeScreen(onOpen: (String) -> Unit) {
     val s = LocalStrings.current
+    // 伙伴联动状态：必须在 composable 作用域读，LazyListScope 里不能调 collectAsState
+    val partners by org.icdqcow2.core.PartnerGate.active.collectAsState()
     LargeTitlePage(
         title = s.homeTitle,
         actions = {
@@ -63,6 +67,34 @@ fun HomeScreen(onOpen: (String) -> Unit) {
             }
         },
     ) {
+        // 伙伴联动：命中时在顶部给出明确说明。不静默隐藏功能 —— 那会被当成 bug。
+        if (partners.isNotEmpty()) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    insideMargin = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+                ) {
+                    Column {
+                        Text(
+                            s.partnerNoticeTitle,
+                            style = MiuixTheme.textStyles.title4,
+                            color = MiuixTheme.colorScheme.onSurface,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            s.partnerNoticeBody(
+                                partners.joinToString("、") {
+                                    org.icdqcow2.core.PartnerList.labelOf(it)
+                                },
+                            ),
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        )
+                    }
+                }
+            }
+        }
+
         // 主入口：整行大卡 + logo
         item {
             WideCard(

@@ -66,6 +66,11 @@ object ToolRunner {
         /** SAF 文件描述符：>=0 时**取代** imagePath（工具端直接读 fd，绕开路径权限）。 */
         imageFd: Int = -1,
     ): Result = mutex.withLock {
+        // 伙伴联动闸门（方案一）：命中伙伴时，写镜像/改分区/铺引导一律拒绝，只读放行。
+        // 放在唯一入口而不是 UI —— 藏按钮能被控制台、文件页右键等入口绕过，这里绕不过。
+        PartnerGate.deny(cmd)?.let { code ->
+            return@withLock Result(cmd, false, code, null, 0, "", "")
+        }
         _running.value = true
         try {
             withContext(Dispatchers.IO) {
