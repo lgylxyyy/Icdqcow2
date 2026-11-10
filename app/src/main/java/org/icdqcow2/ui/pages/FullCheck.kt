@@ -716,6 +716,8 @@ fun FullCheckPage(
                             Button(
                                 onClick = { (onDone ?: onBack)() },
                                 modifier = Modifier.fillMaxWidth().height(52.dp),
+                                // 主色（蓝）：这颗是「离开这一页」的唯一出口，和上面两颗灰按钮区分开
+                                colors = ButtonDefaults.buttonColorsPrimary(),
                             ) {
                                 Text(
                                     if (onDone != null) s.fcDone else s.fcBack,
