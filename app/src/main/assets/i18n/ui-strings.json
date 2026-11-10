@@ -598,14 +598,14 @@
       "note": "全盘自检、引导修复/恢复环境 · 文案位 · home.bootCheck"
     },
     "home.winre": {
-      "zh": "写入 WinRE",
-      "en": "Write WinRE",
-      "note": "主页 · 入口卡 · home.winre"
+      "zh": "恢复环境",
+      "en": "Recovery environment",
+      "note": "主页卡片标题（2026-11-11 用户改：不再只叫\"写入 WinRE\"）"
     },
     "home.winreSummary": {
-      "zh": "装入恢复分区或系统分区",
-      "en": "Recovery or system partition",
-      "note": "主页 · 写入 WinRE 副标题 · 英文压缩到一行"
+      "zh": "写入或修复 Windows 恢复环境",
+      "en": "Write or repair the Windows recovery environment",
+      "note": "主页卡片副标题"
     },
     "home.logs": {
       "zh": "导出日志",
@@ -4986,6 +4986,76 @@
       "zh": "已用 {0} · 估算中",
       "en": "{0} elapsed · estimating",
       "note": "进度页 · 还没算出剩余时间时的写法"
+    },
+    "wr.fix": {
+      "zh": "修复恢复环境",
+      "en": "Repair the recovery environment",
+      "note": "WinRE 修复卡片的底部按钮（原来错写成\"写入恢复环境\"）"
+    },
+    "wr.fixTitle": {
+      "zh": "修复恢复环境",
+      "en": "Repair the recovery environment",
+      "note": "修复卡片分组标题"
+    },
+    "wr.fixSummary": {
+      "zh": "只补缺失的文件，不格式化、不动已有的 WinRE",
+      "en": "Only fills in the missing files; no formatting, existing WinRE untouched",
+      "note": "自检/恢复环境页里「修复」那一行的副标题"
+    },
+    "wr.fixWillWrite": {
+      "zh": "将写入",
+      "en": "Will write",
+      "note": "修复卡片里那组文件的小标题"
+    },
+    "wr.fixFromSys": {
+      "zh": "缺失 · 从系统盘取",
+      "en": "missing · taken from the Windows partition",
+      "note": "修复卡片：boot.sdi 那一行的状态"
+    },
+    "wr.fixAgent": {
+      "zh": "缺失 · 复制或按官方格式生成",
+      "en": "missing · copied or generated in the official format",
+      "note": "修复卡片：ReAgent.xml 那一行的状态"
+    },
+    "wr.fixSkip": {
+      "zh": "已存在 · 跳过",
+      "en": "present · skipped",
+      "note": "修复卡片：已经齐全、这次不动的文件"
+    },
+    "wr.fixKeep": {
+      "zh": "保留不动",
+      "en": "left untouched",
+      "note": "修复卡片：winre.wim 那一行（修复从不重写它）"
+    },
+    "wr.fixNoSdi": {
+      "zh": "系统盘里找不到 boot.sdi，无法修复",
+      "en": "boot.sdi was not found in the Windows partition; cannot repair",
+      "note": "修复失败原因：系统盘三个标准位置都没有 boot.sdi"
+    },
+    "wr.fixNeedSys": {
+      "zh": "找不到 Windows 分区，无法取 boot.sdi",
+      "en": "No Windows partition found, so boot.sdi cannot be taken",
+      "note": "修复失败原因：没有系统分区"
+    },
+    "wr.fixBody": {
+      "zh": "只补缺失的文件：不格式化恢复分区、不重写 WinRE；写之前会核对一遍目标分区。",
+      "en": "Only the missing files are written: the recovery partition is not formatted and WinRE is not rewritten.",
+      "note": "修复卡片下面的说明"
+    },
+    "wr.fixBack": {
+      "zh": "改回重新写入",
+      "en": "Back to rewriting",
+      "note": "修复模式下退回\"完整写入\"那条路的链接"
+    },
+    "wr.fixDone": {
+      "zh": "已修复",
+      "en": "Repaired",
+      "note": "修复成功后的提示"
+    },
+    "wr.fixElsewhere": {
+      "zh": "修复只针对恢复分区里的 WinRE；没有 WinRE 时请用上面的重新写入",
+      "en": "Repair only works on a WinRE that already exists; use rewrite when there is none",
+      "note": "没有 WinRE 时为什么看不到\"修复\"的说明"
     }
   }
 }

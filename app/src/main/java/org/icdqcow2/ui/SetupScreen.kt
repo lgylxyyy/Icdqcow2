@@ -149,8 +149,9 @@ fun SetupScreen(onBack: () -> Unit, onToast: (String) -> Unit) {
             )
 
             // 第 3 步：全量自检（只读）；「完成」= 流程结束，回主页并清掉续做进度
+            // ★ 返回 = 回第 2 步（释放映像），不是"退出全流程装机"（用户 2026-11-11）
             30 -> FullCheckPage(
-                onBack = { askExit = true },
+                onBack = { stage = 20 },
                 onToast = onToast,
                 subtitle = hint(3),
                 initialImage = ImageRepo.current.value,

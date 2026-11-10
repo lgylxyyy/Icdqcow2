@@ -706,6 +706,22 @@ object ImageRepo {
         writable = true,
     )
 
+    /**
+     * `winre.auto`：写/删「首次开机 reagentc /enable」脚本（`SetupComplete.cmd`）。
+     *
+     * 修复路径用它 —— `recovery.populate` 那条会**先格式化分区**，修一下反而丢文件。
+     */
+    suspend fun winreAuto(
+        lba: Long,
+        enable: Boolean = true,
+        path: String? = _current.value,
+    ): ToolRunner.Result = exec(
+        "winre.auto",
+        args = mapOf("lba" to lba.toString(), "enable" to enable.toString()),
+        path = path,
+        writable = true,
+    )
+
     // ── 统一路径构造（REPLY-55）────────────────────────────────────────────
     // 工具端两种分区写法都认：`!pN:`（第 N 个分区）与 `!lba<N>:`（显式 LBA）。
     // App 内部一律用 lba —— 不依赖分区序号，表变了也不会指错分区。

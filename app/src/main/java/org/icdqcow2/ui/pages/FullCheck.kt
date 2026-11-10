@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -351,10 +352,17 @@ internal suspend fun buildFcReport(
                     ex
                 } else {
                     // boot.sdi 也从系统盘抽一份（工具端只吃本地文件）
+                    // boot.sdi 也从系统盘抽一份（工具端只吃本地文件）。
+                    // ★ 以前写死 `/Windows/Boot/Disk/boot.sdi` —— Windows 里没有这个目录，
+                    //   所以永远取不到，`recovery.populate` 之后恢复分区就少了 boot.sdi。
                     var sdiLocal: File? = null
                     if (!sdiOk) {
-                        val sysSdi = "/Windows/Boot/Disk/boot.sdi"
-                        if (ImageRepo.ntfsExists(winLba, sysSdi, img) == true) {
+                        val sysSdi = listOf(
+                            "/Windows/Boot/DVD/EFI/boot.sdi",
+                            "/Windows/Boot/DVD/PCAT/boot.sdi",
+                            "/Windows/Boot/Disk/boot.sdi",
+                        ).firstOrNull { ImageRepo.ntfsExists(winLba, it, img) == true }
+                        if (sysSdi != null) {
                             val f = File(dir, "boot.sdi")
                             if (ImageRepo.ntfsExport(winLba, sysSdi, f.absolutePath, img).ok) sdiLocal = f
                         }
@@ -601,11 +609,15 @@ fun FullCheckPage(
             modifier = Modifier.fillMaxSize(),
             targetState = sub,
             transitionSpec = {
+                // 进场：新页从右边推进来（二级页面）
+                // 退场：旧页往**左**滑走。以前两个方向的位移都是 `it`（往右），
+                // 看起来就像"先关掉自检页再打开新页"，而不是压栈（用户 2026-11-11）。
                 (
                     slideInHorizontally(tween(230, easing = LinearOutSlowInEasing)) { it } +
                         fadeIn(tween(120))
                     ).togetherWith(
-                    slideOutHorizontally(tween(230, easing = LinearOutSlowInEasing)) { it },
+                    slideOutHorizontally(tween(230, easing = LinearOutSlowInEasing)) { -it / 3 } +
+                        fadeOut(tween(160)),
                 )
             },
             label = "fcSub",

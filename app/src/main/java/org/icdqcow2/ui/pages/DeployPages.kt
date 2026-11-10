@@ -987,6 +987,23 @@ fun DeployPage(
                             path = image,
                         )
                         runCatching { sdiTmp.delete() }
+                        // ★ 工具端 `recovery.populate` **不写 ReAgent.xml**（`img_ntfs_write_reagent`
+                        //   有实现但没有调用者），所以建完盘跑全量自检必报「ReAgent.xml 缺失」。
+                        //   这里顺手补上：只补这一个文件，不格式化、不碰 WinRE（用户 2026-11-11 报的就是这个）。
+                        val imgNow = image
+                        if (rp.ok && recPart != null && imgNow != null) {
+                            runCatching {
+                                repairRecInPlace(
+                                    ctx = ctx,
+                                    img = imgNow,
+                                    sysLba = target.lba,
+                                    recLba = recPart.lba,
+                                    needSdi = false,
+                                    needAgent = true,
+                                    withScript = false,
+                                )
+                            }
+                        }
                         if (!rp.ok) failure = toolErrorText(s, rp)
                         else {
                             step++

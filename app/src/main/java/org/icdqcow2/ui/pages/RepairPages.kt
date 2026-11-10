@@ -433,10 +433,12 @@ private suspend fun recNeedsFill(img: String, recLba: Long): Boolean = withConte
 }
 
 /**
- * 用**系统分区里那份** WinRE 把恢复分区补齐（`recovery.populate`）。
+ * 用**系统分区里那份** WinRE 把恢复分区补齐。
  *
- * 不写开启脚本（`enable-script`）：引导修复页只负责"能启动/能进恢复环境"，
- * 首次开机自动启用是恢复环境页那个开关的事。
+ * 恢复分区里已经有 WinRE、只是缺小件 → 走原地修复（不格式化）；
+ * 连 WinRE 都没有 → 才真的 `recovery.populate`（那一步必须格式化）。
+ *
+ * 不写开启脚本（`enable-script`）：引导修复页只负责"能启动/能进恢复环境"。
  */
 private suspend fun fillRecFromSys(
     ctx: android.content.Context,
@@ -444,6 +446,22 @@ private suspend fun fillRecFromSys(
     sysLba: Long,
     recLba: Long,
 ): ToolRunner.Result = withContext(Dispatchers.IO) {
+    val recHasWim = ImageRepo.ntfsExists(recLba, WINRE_P1, img) == true
+    if (recHasWim) {
+        // ★ 有 WinRE 就只补小件：以前这里格式化了整块恢复分区，
+        //   修完反而把 boot.sdi / ReAgent.xml 弄丢（用户 2026-11-11 实拍）。
+        val rep = repairRecInPlace(
+            ctx = ctx, img = img, sysLba = sysLba, recLba = recLba,
+            needSdi = ImageRepo.ntfsExists(recLba, SDI_REC, img) != true,
+            needAgent = ImageRepo.ntfsExists(recLba, AGENT_REC, img) != true,
+            withScript = false,
+        )
+        return@withContext ToolRunner.Result(
+            cmd = "copy",
+            ok = rep.ok,
+            code = if (rep.ok) null else rep.err,
+        )
+    }
     val src = when {
         ImageRepo.ntfsExists(sysLba, WINRE_P1, img) == true -> WINRE_P1
         ImageRepo.ntfsExists(sysLba, WINRE_P2, img) == true -> WINRE_P2
@@ -454,8 +472,8 @@ private suspend fun fillRecFromSys(
     val ex = ImageRepo.ntfsExport(sysLba, src, local.absolutePath, img)
     if (!ex.ok) return@withContext ex
     var sdi: File? = null
-    val sysSdi = "/Windows/Boot/Disk/boot.sdi"
-    if (ImageRepo.ntfsExists(sysLba, sysSdi, img) == true) {
+    val sysSdi = SDI_SOURCES.firstOrNull { ImageRepo.ntfsExists(sysLba, it, img) == true }
+    if (sysSdi != null) {
         val f = File(dir, "boot.sdi")
         if (ImageRepo.ntfsExport(sysLba, sysSdi, f.absolutePath, img).ok) sdi = f
     }
@@ -463,7 +481,7 @@ private suspend fun fillRecFromSys(
         lba = recLba,
         wim = local.absolutePath,
         bootsdi = sdi?.absolutePath,
-        // 独立恢复分区：先格式化再填（工具端 format 默认 false，不格就会 REC-VERIFY-FAIL）
+        // 独立恢复分区且里面没有 WinRE：先格式化再填（工具端 format 默认 false）
         format = true,
         path = img,
     )
@@ -511,6 +529,130 @@ private suspend fun runBootFallback(
         ImageRepo.bcdCreate(sysLba, srLba = srLba, keepRecovery = true, path = img)
     }
 }
+
+/* ───────────────────────── 恢复环境：原地修复 ───────────────────────── */
+
+/** Windows 里 boot.sdi 的三个标准位置（UEFI 那份最常见；`Disk` 是历史误写，留着兜底）。 */
+private val SDI_SOURCES = listOf(
+    "/Windows/Boot/DVD/EFI/boot.sdi",
+    "/Windows/Boot/DVD/PCAT/boot.sdi",
+    "/Windows/Boot/Disk/boot.sdi",
+)
+
+private const val SDI_REC = "/Recovery/WindowsRE/boot.sdi"
+private const val AGENT_REC = "/Recovery/WindowsRE/ReAgent.xml"
+private const val AGENT_SYS = "/Windows/System32/Recovery/ReAgent.xml"
+
+/**
+ * 修复结果：`lines` 直接拿去显示（`文件名 to 结果码`），`err` 是失败的那一步。
+ *
+ * 结果码：`OK` 写入成功、`CP` 从系统盘复制、`GEN` 按官方格式生成、`NO-SDI` 找不到源、
+ * `EXP-*` 导出失败、`PUT-*` 写入失败、`SCRIPT` 脚本失败。
+ */
+internal data class RecFixReport(
+    val ok: Boolean,
+    val lines: List<Pair<String, String>>,
+    val err: String? = null,
+)
+
+/**
+ * **原地**补齐恢复分区里的 WinRE 小件（用户 2026-11-11 实拍的那串坑）。
+ *
+ * 老实现（`recovery.populate` + `format=true`）做的是：**先格式化恢复分区**，再写回 winre.wim。
+ * 两个后果：
+ * 1. `boot.sdi` 取源写的是 `/Windows/Boot/Disk/boot.sdi` —— Windows 里**没有这个目录**，
+ *    所以从来没写进去过；格式化之后原来那份也没了；
+ * 2. `ReAgent.xml` 工具端有生成函数（`img_ntfs_write_reagent`）但**没有任何命令调用它**，
+ *    所以永远缺。
+ *
+ * 于是"修复"一按就变成缺两个文件。这里改成只在原地补：
+ * - 绝不格式化、绝不重写 winre.wim；
+ * - `boot.sdi` 从系统盘三个标准位置取一份 → `copy` 进恢复分区；
+ * - `ReAgent.xml` 优先从系统盘复制（真实 Windows 那份），没有才按官方格式生成；
+ * - 「创建开启 WinRE 脚本」走 `winre.auto`（和 populate 的 enable-script 是同一份脚本）。
+ */
+internal suspend fun repairRecInPlace(
+    ctx: android.content.Context,
+    img: String,
+    sysLba: Long,
+    recLba: Long,
+    needSdi: Boolean,
+    needAgent: Boolean,
+    withScript: Boolean,
+): RecFixReport = withContext(Dispatchers.IO) {
+    val lines = ArrayList<Pair<String, String>>()
+    if (recLba <= 0L) return@withContext RecFixReport(false, lines, "NO-REC")
+    val dir = File(TempDirs.stagingDir(ctx), "recfix").apply { mkdirs() }
+
+    if (needSdi) {
+        val src = if (sysLba > 0L) SDI_SOURCES.firstOrNull {
+            ImageRepo.ntfsExists(sysLba, it, img) == true
+        } else null
+        if (src == null) {
+            return@withContext RecFixReport(false, lines + ("boot.sdi" to "NO-SDI"), "NO-SDI")
+        }
+        val local = File(dir, "boot.sdi")
+        if (!ImageRepo.ntfsExport(sysLba, src, local.absolutePath, img).ok) {
+            return@withContext RecFixReport(false, lines + ("boot.sdi" to "EXP-FAIL"), "EXP-SDI")
+        }
+        val put = ImageRepo.ntfsPut(recLba, local.absolutePath, SDI_REC, img)
+        lines += "boot.sdi" to if (put.ok) "OK" else "PUT-FAIL"
+        if (!put.ok) return@withContext RecFixReport(false, lines, put.code ?: "PUT-SDI")
+    } else {
+        lines += "boot.sdi" to "SKIP"
+    }
+
+    if (needAgent) {
+        val local = File(dir, "ReAgent.xml")
+        val copied = sysLba > 0L &&
+            ImageRepo.ntfsExists(sysLba, AGENT_SYS, img) == true &&
+            ImageRepo.ntfsExport(sysLba, AGENT_SYS, local.absolutePath, img).ok
+        if (!copied) local.writeText(reagentXml(recLba))
+        val put = ImageRepo.ntfsPut(recLba, local.absolutePath, AGENT_REC, img)
+        lines += "ReAgent.xml" to if (!put.ok) "PUT-FAIL" else if (copied) "CP" else "GEN"
+        if (!put.ok) return@withContext RecFixReport(false, lines, put.code ?: "PUT-AGENT")
+    } else {
+        lines += "ReAgent.xml" to "SKIP"
+    }
+
+    if (withScript) {
+        val r = ImageRepo.winreAuto(sysLba, true, img)
+        lines += "SetupComplete.cmd" to if (r.ok) "OK" else "FAIL"
+        if (!r.ok) return@withContext RecFixReport(false, lines, r.code ?: "SCRIPT")
+    }
+    RecFixReport(true, lines)
+}
+
+/**
+ * 按微软官方格式生成 `ReAgent.xml`（与工具端 `img_ntfs_write_reagent()` 里的字面量一致）。
+ *
+ * `offset` 是恢复分区在磁盘上的**字节偏移**（reagentc 用它定位分区）；BCD id 给全零 GUID，
+ * 首次开机 `reagentc /enable` 会自己写进去。
+ */
+private fun reagentXml(recLba: Long): String {
+    val zero = "{00000000-0000-0000-0000-000000000000}"
+    val off = recLba * 512L
+    return buildString {
+        append("<?xml version='1.0' encoding='utf-8' standalone='yes'?>\r\n")
+        append("<WindowsRE version=\"2.0\">\r\n")
+        append("\t<WinreBCD id=\"$zero\"></WinreBCD>\r\n")
+        append("\t<WinreLocation path=\"\\Recovery\\WindowsRE\" id=\"0\" offset=\"$off\" guid=\"$zero\"></WinreLocation>\r\n")
+        append("\t<ImageLocation path=\"\" id=\"0\" offset=\"0\" guid=\"$zero\"></ImageLocation>\r\n")
+        append("\t<PBRImageLocation path=\"\" id=\"0\" offset=\"0\" guid=\"$zero\" index=\"0\"></PBRImageLocation>\r\n")
+        append("\t<PBRCustomImageLocation path=\"\" id=\"0\" offset=\"0\" guid=\"$zero\" index=\"0\"></PBRCustomImageLocation>\r\n")
+        append("\t<InstallState state=\"1\"></InstallState>\r\n")
+        append("\t<OsInstallAvailable state=\"0\"></OsInstallAvailable>\r\n")
+        append("\t<CustomImageAvailable state=\"0\"></CustomImageAvailable>\r\n")
+        append("\t<WinREStaged state=\"0\"></WinREStaged>\r\n")
+        append("\t<ScheduledOperation state=\"4\"></ScheduledOperation>\r\n")
+        append("\t<OperationParam path=\"\"></OperationParam>\r\n")
+        append("\t<OperationPermanent state=\"0\"></OperationPermanent>\r\n")
+        append("\t<OsBuildVersion path=\"\"></OsBuildVersion>\r\n")
+        append("\t<OemTool state=\"0\"></OemTool>\r\n")
+        append("</WindowsRE>\r\n")
+    }
+}
+
 
 /* ───────────────────────── WinRE ───────────────────────── */
 
@@ -577,6 +719,8 @@ fun WinRePage(
     var result by remember { mutableStateOf<String?>(null) }
     /** 已经就绪时默认收起，"重新写入"才展开下面那一堆卡片。 */
     var expanded by remember { mutableStateOf(false) }
+    /** `null` = 还没选；`"write"` = 重新写入（展开完整写入设置）；`"fix"` = 原地修复。 */
+    var mode by remember { mutableStateOf<String?>(null) }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
@@ -603,6 +747,7 @@ fun WinRePage(
         srcFile = null
         probeHit = null
         script = false
+        mode = null
     }
 
     LaunchedEffect(image, tick) {
@@ -666,8 +811,10 @@ fun WinRePage(
     val reReady = recWim?.let { it && sdiOk && agentOk } ?: false
     /** 有 WinRE 但缺 boot.sdi / ReAgent.xml：多给一条「修复」。 */
     val reBroken = recWim == true && (!sdiOk || !agentOk)
-    /** 要不要展示布局条 / 来源 / 目标 / 写入这一整套。 */
-    val showAll = expanded || !(reReady || reBroken)
+    /** 修复模式：只补缺的小件，不格式化、不重写 winre.wim（用户 2026-11-11 要求单独一张卡）。 */
+    val fixMode = mode == "fix" && reBroken
+    /** 要不要展示布局条 / 来源 / 目标 / 写入这一整套（点「重新写入」才出）。 */
+    val showAll = mode == "write" || expanded || !(reReady || reBroken)
 
     /** 真正写盘：来源 = 用户选的（若有），否则系统盘那份（先抽出来）。 */
     suspend fun writeNow(
@@ -805,9 +952,9 @@ fun WinRePage(
                         }
                     }
 
-                    // ② 已经就绪：只留「重新写入 / 脚本」两行；缺 boot.sdi / ReAgent.xml 时多一行「修复」
+                    // ② 恢复环境已就位 / 只差小件：只给入口，不摊开全部设置
                     AnimatedVisibility(
-                        visible = !showAll,
+                        visible = !showAll && !fixMode,
                         enter = fadeIn(tween(180)) +
                             slideInVertically(tween(260, easing = LinearOutSlowInEasing)) { it / 6 },
                         exit = fadeOut(tween(160)) +
@@ -816,30 +963,15 @@ fun WinRePage(
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             BlockEnter(3) {
                                 GroupCard {
-                                    LinkItem(s.wrRewrite, s.wrRewriteSummary) { expanded = true }
-                                    if (reBroken) LinkItem(
-                                        s.wrFixCfg,
-                                        if (running) s.wrWriting else s.wrFixCfgSummary,
-                                    ) {
-                                        val img = image
-                                        if (img == null) {
-                                            expanded = true
-                                        } else if (!hasSource) {
-                                            onToast(s.wrNoSource)
-                                            expanded = true
-                                        } else scope.launch {
-                                            running = true
-                                            val r = writeNow(img, false, rec?.lba ?: 0L, script)
-                                            running = false
-                                            if (r.ok) {
-                                                onToast(s.wrOk)
-                                                (onFinish ?: onBack).invoke()
-                                            } else {
-                                                result = s.wrFail + "：" + toolErrorText(s, r)
-                                                onToast(result!!)
-                                                tick += 1
-                                            }
-                                        }
+                                    LinkItem(s.wrRewrite, s.wrRewriteSummary) {
+                                        mode = "write"
+                                        expanded = true
+                                    }
+                                    // ★ 只有恢复分区里**已经有** WinRE 才给「修复」：
+                                    //   连 WinRE 都没有的时候没什么可修，只能重新写入（用户 2026-11-11）。
+                                    if (reBroken) LinkItem(s.wrFixTitle, s.wrFixSummary) {
+                                        mode = "fix"
+                                        result = null
                                     }
                                     Item(
                                         s.wrScript,
@@ -852,9 +984,68 @@ fun WinRePage(
                         }
                     }
 
+                    // ②b 修复模式：**只补缺的文件** —— 不选来源、不选目标、不格式化
+                    AnimatedVisibility(
+                        visible = fixMode,
+                        enter = fadeIn(tween(180)) +
+                            slideInVertically(tween(260, easing = LinearOutSlowInEasing)) { it / 6 },
+                        exit = fadeOut(tween(160)) +
+                            shrinkVertically(tween(220, easing = LinearOutSlowInEasing)),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            BlockEnter(3) {
+                                GroupTitle(s.wrFixTitle)
+                                GroupCard {
+                                    Item(s.wrWim, s.wrFixKeep)
+                                    Item(s.wrSdi, if (sdiOk) s.wrFixSkip else s.wrFixFromSys)
+                                    Item(s.wrAgent, if (agentOk) s.wrFixSkip else s.wrFixAgent)
+                                    Item(
+                                        s.wrScript,
+                                        if (!script) s.depRecScriptHint
+                                        else s.depScriptWhere("Windows/System32/Recovery"),
+                                        end = { Switch(checked = script, onCheckedChange = { script = it }) },
+                                    )
+                                }
+                                Note(s.wrFixBody)
+                                LinkItem(s.wrFixBack, s.wrFixSummary) { mode = null }
+                            }
+                            BlockEnter(4) {
+                                if (win == null) Note(s.wrFixNeedSys) else Note(s.wrBody)
+                                Action(
+                                    text = if (running) s.wrWriting else s.wrFix,
+                                    enabled = !running && !loading && win != null && rec != null,
+                                ) {
+                                    val img = image
+                                    if (img != null && rec != null) scope.launch {
+                                        running = true
+                                        val rep = repairRecInPlace(
+                                            ctx = ctx,
+                                            img = img,
+                                            sysLba = win?.lba ?: 0L,
+                                            recLba = rec.lba,
+                                            needSdi = !sdiOk,
+                                            needAgent = !agentOk,
+                                            withScript = script,
+                                        )
+                                        running = false
+                                        result = if (rep.ok) s.wrFixDone
+                                        else s.wrFail + "：" + when (rep.err) {
+                                            "NO-SDI", "EXP-SDI" -> s.wrFixNoSdi
+                                            "NO-REC" -> s.wrPartNone
+                                            else -> rep.err.orEmpty()
+                                        }
+                                        onToast(result!!)
+                                        mode = if (rep.ok) null else "fix"
+                                        tick += 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     // ③ 展开：布局条 / 来源 / 目标 / 写入（点「重新写入」才出来）
                     AnimatedVisibility(
-                        visible = showAll,
+                        visible = showAll && !fixMode,
                         enter = fadeIn(tween(180)),
                         exit = fadeOut(tween(140)),
                     ) {
