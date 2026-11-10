@@ -5,7 +5,7 @@
 #
 # 校验：md5sum app/src/main/jniLibs/arm64-v8a/*.so
 
-0e4904d4a50407231902dc2e52a7a4ac  app/src/main/jniLibs/arm64-v8a/libimgtool.so
+349ab59eb24d490d53969d3edcff4568  app/src/main/jniLibs/arm64-v8a/libimgtool.so
 318db5983914055e144f06ba84bc3d23  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 
 # ── 来源 ──

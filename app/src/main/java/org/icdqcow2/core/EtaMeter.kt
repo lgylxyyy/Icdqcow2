@@ -12,7 +12,7 @@ package org.icdqcow2.core
  * 2. 对"剩余时间"再做指数平滑（α = 0.35），避免数字来回跳；
  * 3. 数据不足（窗口跨度 < 1 秒、或字节没动）就返回 -1，界面显示"正在估算…"，宁可不显示也不瞎报。
  */
-class EtaMeter(private val windowMs: Long = 8_000L, private val alpha: Double = 0.35) {
+class EtaMeter(private val windowMs: Long = 20_000L, private val alpha: Double = 0.25) {
 
     private class Sample(val at: Long, val bytes: Long)
 

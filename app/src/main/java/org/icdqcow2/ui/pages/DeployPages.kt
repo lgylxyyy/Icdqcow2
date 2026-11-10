@@ -135,10 +135,17 @@ fun DeployPage(
     var etaSec by remember { mutableIntStateOf(-1) }
     val etaMeter = remember { org.icdqcow2.core.EtaMeter() }
     val progress by org.icdqcow2.core.ToolEvents.progress.collectAsState()
-    // ETA 自己算（工具端的 eta_s 是按整段平均速度，前几秒被格式化拖死，会报"约剩 30 分钟"）
-    LaunchedEffect(progress?.curBytes, progress?.totalBytes) {
-        val p = progress
-        if (p != null && p.totalBytes > 0L) etaSec = etaMeter.feed(p.curBytes, p.totalBytes)
+    // REQ-68：工具端 `eta` 已改成"当前阶段窗口速率 + 阶段累计速率"，换阶段不再继承
+    // 格式化那 0.1 秒，也不会拿"流个数"当字节算（以前剩 200 MB 会报"剩 0 秒"）。
+    // 所以：有就用它；只有 -1（还估不出来）时才退回本地 EtaMeter 兜底。
+    LaunchedEffect(progress) {
+        val p = progress ?: return@LaunchedEffect
+        val fromTool = p.eta
+        etaSec = when {
+            fromTool > 0 -> fromTool
+            p.totalBytes > 0L -> etaMeter.feed(p.curBytes, p.totalBytes)
+            else -> -1
+        }
     }
 
     // ── 读磁盘 ──
@@ -1045,7 +1052,7 @@ internal data class DeployRun(
  * 释放页：进度条 + 步骤。跑的时候整页只显示这个，跑完/失败给「返回」。
  *
  * 进度数据来自 `ToolEvents.progress`（工具端事件流）；ETA 由 [org.icdqcow2.core.EtaMeter]
- * 用最近 8 秒的吞吐率算（工具端自带的 `eta_s` 会被前几秒的格式化拖死）。
+ * 兜底用最近 20 秒的吞吐率算；工具端 `eta` 可用时优先用工具端的（REQ-68）。
  */
 @Composable
 private fun DeployRunPage(
