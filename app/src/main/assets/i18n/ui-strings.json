@@ -113,9 +113,9 @@
       "note": "主页 · 入口卡 · home.create"
     },
     "home.createSummary": {
-      "zh": "新建 qcow2 映像",
-      "en": "New qcow2 image",
-      "note": "主页 · 入口卡 · home.createSummary"
+      "zh": "qcow2 / raw / VHD / VMDK",
+      "en": "qcow2 / raw / VHD / VMDK",
+      "note": "主页 · 创建磁盘副标题 · 列出当前支持的全部镜像格式（不是只有 qcow2）"
     },
     "home.parts": {
       "zh": "分区管理",
@@ -123,9 +123,9 @@
       "note": "ImageRepo.kt、主页、全盘自检、分区管理、分区表、建盘、引导修复/恢复环境、文件页、释放映像 · 入口卡 · home.parts"
     },
     "home.partsSummary": {
-      "zh": "查看分区表",
-      "en": "View partition table",
-      "note": "主页 · 入口卡 · home.partsSummary"
+      "zh": "增删分区、调整容量、格式化",
+      "en": "Add, resize, format",
+      "note": "主页 · 分区管理副标题 · 该页可新建/删除/调整分区并格式化，不只是查看"
     },
     "dep.needDisk": {
       "zh": "选择磁盘映像",
@@ -563,14 +563,14 @@
       "note": "FirmwareStore.kt、ImageRepo.kt、Kit.kt、RegexLanguage.kt、ToolRunner.kt、i18n、分区管理、建盘、文件页、文本编辑器、释放映像 · 文案位 · home.format"
     },
     "home.clone": {
-      "zh": "克隆映像",
-      "en": "Clone image",
-      "note": "ImageRepo.kt、ToolEvents.kt、主页 · 入口卡 · home.clone"
+      "zh": "压缩镜像",
+      "en": "Compact image",
+      "note": "主页 · 该格实际打开 CompactPage（img.compact），原来的“克隆映像”名不副实"
     },
     "home.cloneSummary": {
-      "zh": "整盘扇区复制",
-      "en": "Whole-disk sector copy",
-      "note": "主页 · 入口卡 · home.cloneSummary"
+      "zh": "回收镜像里的空闲块，缩小体积",
+      "en": "Reclaim unused blocks to shrink the file",
+      "note": "主页 · 压缩镜像副标题 · 对应工具端 img.compact"
     },
     "home.deploy": {
       "zh": "释放映像",
@@ -578,9 +578,9 @@
       "note": "主页、释放映像 · 入口卡 · home.deploy"
     },
     "home.deploySummary": {
-      "zh": "ISO / ESD 部署",
-      "en": "Deploy ISO / ESD",
-      "note": "主页 · 入口卡 · home.deploySummary"
+      "zh": "WIM / ESD / ISO 展开到分区",
+      "en": "WIM / ESD / ISO to a partition",
+      "note": "主页 · 释放映像副标题 · 三种来源都支持，原写“ISO / ESD”漏了 WIM"
     },
     "home.bootRepair": {
       "zh": "引导修复",
@@ -603,9 +603,9 @@
       "note": "主页 · 入口卡 · home.winre"
     },
     "home.winreSummary": {
-      "zh": "恢复环境，默认关闭",
-      "en": "Recovery environment, off by default",
-      "note": "主页 · 入口卡 · home.winreSummary"
+      "zh": "装入恢复分区或系统分区",
+      "en": "Into the recovery or system partition",
+      "note": "主页 · 写入 WinRE 副标题 · 说明写入目标，原“恢复环境，默认关闭”含义不清"
     },
     "home.logs": {
       "zh": "导出日志",
