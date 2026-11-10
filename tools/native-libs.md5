@@ -5,14 +5,14 @@
 #
 # 校验：md5sum app/src/main/jniLibs/arm64-v8a/*.so
 
-a419212086c82acce4861048cc797d75  app/src/main/jniLibs/arm64-v8a/libimgtool.so
+0e4904d4a50407231902dc2e52a7a4ac  app/src/main/jniLibs/arm64-v8a/libimgtool.so
 318db5983914055e144f06ba84bc3d23  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 
 # ── 来源 ──
-# libimgtool.so （6,774,896 B）
+# libimgtool.so （6,787,728 B）
 #   仓库：https://github.com/lgylxyyy/imgtool
-#   提交：a047e8b（REQ-64：--mode=uefi32 + version 命令 + 版本串带构建日期）
-#   版本串：imgtool 2026.11.10（`imgcmd version` / `--version` 可取，含 commit a047e8b）
+#   提交：8002fe3（REQ-65：junction 跳过 + 目录条目动态扩容 + estimate 口径对齐 + 失败原因）
+#   版本串：imgtool 2026.11.10（`imgcmd version` / `--version` 可取，commit 见回包）
 #   构建：./android-deps.sh && ./android-cross.sh arm64-v8a
 #   含命令：copy / move（含跨挂载点兜底）/ reg.list / reg.get / wim.capture /
 #           sys.tmpdir / img.create --format=qcow2|raw|vhd|vmdk / VHD 读写
