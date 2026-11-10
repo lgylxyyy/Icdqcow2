@@ -39,6 +39,8 @@ The produced images can be handed straight to VectrasVM / Limbo / QEMU.
 
 ## Features
 
+> See [CHANGELOG.md](CHANGELOG.md) for version history.
+
 | Category | Capability |
 |---|---|
 | **Disks** | Create (MBR/BIOS and GPT/UEFI auto layout); partition list, create, delete, resize, attribute bits, whole-table export/import; compact free space |
