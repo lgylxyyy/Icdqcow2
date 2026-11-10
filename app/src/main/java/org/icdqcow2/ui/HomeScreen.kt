@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -148,7 +149,7 @@ private fun LazyListScope.section(title: String) {
  * 副标题预留的高度（约两行正文）。一行就能写完的文案会在这个高度里上下居中，
  * 不会出现「文字贴顶、下面留白」的观感；两行文案正好占满。
  */
-private val DESC_SLOT_MIN_HEIGHT = 34.dp
+private val DESC_SLOT_MIN_HEIGHT = 30.dp
 
 /** 一行两张卡。 */
 private fun LazyListScope.grid(left: Tile, right: Tile) {
@@ -189,7 +190,8 @@ private fun TileCard(tile: Tile, modifier: Modifier = Modifier) {
             ) {
                 Text(
                     tile.desc,
-                    style = text.body2,
+                    // 比正文再小一号：主页副标题信息量大，缩小后一行能装下更多字
+                    style = text.body2.copy(fontSize = 12.sp, lineHeight = 15.sp),
                     color = colors.onSurfaceVariantSummary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
