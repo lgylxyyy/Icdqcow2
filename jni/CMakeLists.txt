@@ -7,7 +7,7 @@
 #   -DIMGTOOL_LIB=<abi>/libimgtool.a -DIMGTOOL_EXTRA_LIBS="ntfs-3g;wim;z;hivex"
 #
 # ★ 这里【不修改】imgtool 的构建；只是链接它。Android 专属适配（NDK、arm32）
-#   在单独的 worktree（/workspace/imgtool-android）里做，见 app/README.md。
+#   在一个单独的 worktree 里做（不要污染基线），见 app/README.md。
 cmake_minimum_required(VERSION 3.16)
 project(imgapp_jni C)
 

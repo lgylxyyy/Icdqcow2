@@ -50,20 +50,26 @@ adb push 你的.iso /storage/emulated/0/Android/data/org.icdqcow2.imgtool.bench/
 ## 重新构建
 
 ```bash
-# 1) 原生库（细节见 imgtool-android/ANDROID-BUILD.md）
-cd /workspace/imgtool-android && API=28 ./android-deps.sh && API=28 ./android-cross.sh
+# 先定义三个位置，后面都用变量（本机的例子写在注释里）
+REPO=$(cd "$(dirname "$0")" && pwd)                 # 本仓库检出
+IMGTOOL=${IMGTOOL:-../imgtool}                      # imgtool 检出（含 android-cross.sh）
+BUILD=${BUILD:-../build-android}                    # 交叉编译产物目录
+NDK=${ANDROID_NDK_HOME:-$ANDROID_HOME/ndk/<版本>}   # NDK 根目录
+
+# 1) 原生库（细节见 imgtool 的 ANDROID-BUILD.md）
+cd "$IMGTOOL" && API=28 ./android-deps.sh && API=28 ./android-cross.sh
 for abi in arm64-v8a armeabi-v7a x86_64; do
-  cmake -S /workspace/app/jni -B /workspace/build-android/jni-$abi \
-    -DCMAKE_TOOLCHAIN_FILE=/workspace/imgtool-android/cmake/android-arm64host.cmake \
-    -DNDK_ROOT=/workspace/android-ndk/android-ndk-r28c -DIMG_ANDROID_ABI=$abi -DIMG_ANDROID_API=28 \
-    -DIMG_ANDROID_STAGE=/workspace/build-android/stage/$abi \
-    -DIMGTOOL_ROOT=/workspace/imgtool-android -DIMGTOOL_LIB=/workspace/build-android/$abi/libimgtool.so \
-    -DIMGAPP_BUILD_TEST=OFF && cmake --build /workspace/build-android/jni-$abi -j8
-  cp /workspace/build-android/$abi/libimgtool.so   /workspace/app/testbench/app/src/main/jniLibs/$abi/
-  cp /workspace/build-android/jni-$abi/libimgapp.so /workspace/app/testbench/app/src/main/jniLibs/$abi/
+  cmake -S "$REPO/jni" -B "$BUILD/jni-$abi" \
+    -DCMAKE_TOOLCHAIN_FILE="$IMGTOOL/cmake/android-arm64host.cmake" \
+    -DNDK_ROOT="$NDK" -DIMG_ANDROID_ABI=$abi -DIMG_ANDROID_API=28 \
+    -DIMG_ANDROID_STAGE="$BUILD/stage/$abi" \
+    -DIMGTOOL_ROOT="$IMGTOOL" -DIMGTOOL_LIB="$BUILD/$abi/libimgtool.so" \
+    -DIMGAPP_BUILD_TEST=OFF && cmake --build "$BUILD/jni-$abi" -j8
+  cp "$BUILD/$abi/libimgtool.so"        "$REPO/testbench/app/src/main/jniLibs/$abi/"
+  cp "$BUILD/jni-$abi/libimgapp.so"     "$REPO/testbench/app/src/main/jniLibs/$abi/"
 done
-# 2) 打包
-cd /workspace/app/testbench && /workspace/gradle/gradle-8.11.1/bin/gradle :app:assembleDebug --no-daemon
+# 2) 打包（Gradle 版本见仓库根的 wrapper）
+cd "$REPO/testbench" && ../gradlew :app:assembleDebug --no-daemon
 # 3) 装（HyperOS 必须带 -i，否则被判“用户取消”）
 adb push app/build/outputs/apk/debug/app-debug.apk /data/local/tmp/bench.apk
 adb shell pm install -r -t -i com.google.android.packageinstaller /data/local/tmp/bench.apk

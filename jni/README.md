@@ -62,7 +62,7 @@ String version();
 
 ⚠ 已知边界：少数 ROM 的 SELinux 策略可能挡住 `/proc/self/fd`。
 真机上若 `IMG-OPEN-FAIL`，在 Android 兼容工作区给核心加 `img_ctx_open_fd()`
-（这是 Android 专属改动，放 `/workspace/imgtool-android`，不要污染基线）。
+（这是 Android 专属改动，放在一个单独的 worktree 里，不要污染基线）。
 
 ## 4. 日志与错误快照
 

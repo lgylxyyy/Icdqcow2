@@ -131,7 +131,7 @@ adb shell "md5sum /data/app/*/org.icdqcow2-*/lib/arm64/libimgtool.so"
 构建时从**仓库根**的 `keystore.properties` 读取（格式见 `keystore.properties.example`）：
 
 ```properties
-storeFile=/workspace/keys/release.jks     # 仓库外的绝对路径
+storeFile=$HOME/keys/release.jks          # 仓库外的绝对路径
 storePassword=****
 keyAlias=****
 keyPassword=****

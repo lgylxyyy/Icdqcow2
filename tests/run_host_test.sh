@@ -9,8 +9,8 @@
 # 用法：bash app/Icdqcow2/tests/run_host_test.sh
 set -u
 APP=$(cd "$(dirname "$0")/.." && pwd)
-ROOT=$(cd "$APP/.." && pwd)                       # /workspace/app
-IT="${IMGTOOL_DIR:-$ROOT/../tools/imgtool}"       # /workspace/tools/imgtool
+ROOT=$(cd "$APP/.." && pwd)                       # 仓库根
+IT="${IMGTOOL_DIR:-$ROOT/../tools/imgtool}"       # 与本仓库并列的 imgtool 检出
 T="$IT/build/tools"
 W=$(mktemp -d /tmp/apptestXXXXXX)
 pass=0; fail=0

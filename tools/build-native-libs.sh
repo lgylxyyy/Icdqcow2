@@ -12,7 +12,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-IMGTOOL="${1:-/workspace/tools/imgtool}"
+IMGTOOL="${1:-$(cd "$(dirname "$0")/../.." && pwd)/tools/imgtool}"
 ABI="arm64-v8a"
 DEST="$ROOT/app/src/main/jniLibs/$ABI"
 
@@ -39,7 +39,8 @@ md5sum "$DEST/libimgtool.so"
 
 echo "==> 编译 App 的 JNI 桥 libimgapp.so"
 cd "$ROOT"
-NDK="${ANDROID_NDK_HOME:-${ANDROID_HOME:-/workspace/sdk/android-sdk}/ndk/$(ls "${ANDROID_HOME:-/workspace/sdk/android-sdk}/ndk" 2>/dev/null | sort -V | tail -1)}"
+: "${ANDROID_HOME:?请先 export ANDROID_HOME（Android SDK 根目录）}"
+NDK="${ANDROID_NDK_HOME:-${ANDROID_HOME}/ndk/$(ls "${ANDROID_HOME}/ndk" 2>/dev/null | sort -V | tail -1)}"
 cmake -S jni -B build/jni -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
       -DANDROID_ABI="$ABI" -DANDROID_PLATFORM=android-24 \
       -DIMGTOOL_ROOT="$IMGTOOL"

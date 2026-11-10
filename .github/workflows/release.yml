@@ -58,18 +58,10 @@ jobs:
             || "$SDKM" "platform-tools" "platforms;android-37" "build-tools;37.0.0"
           ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools"
 
-      - name: 安装 Gradle
+      # 版本来自 gradle/wrapper/gradle-wrapper.properties，不由 workflow 指定；
+      # 这个 action 现在只负责缓存与文件权限。
+      - name: 准备 Gradle（缓存）
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "9.8.2"
-
-      # 仓库里的 gradle.properties 有一条只对本机沙箱成立的 aapt2 覆盖路径
-      # （/workspace/sdk/...，本机是 aarch64，AGP 自带 aapt2 起不来）。
-      # CI 是 x86_64 + 完整 SDK，必须删掉这行，否则构建失败。
-      - name: 去掉仅对本机有效的配置
-        run: |
-          sed -i '/aapt2FromMavenOverride/d' gradle.properties
-          grep -v aapt2FromMavenOverride gradle.properties
 
       # 密钥来自仓库 Secrets（加密存储，任何人读不出内容，日志里也会被自动打码）。
       # 没配置 Secrets 时友好跳过：构建出的是未签名 APK，只能验证编译是否通过。
@@ -93,7 +85,7 @@ jobs:
           echo "SIGNED=1" >> "$GITHUB_ENV"
 
       - name: 构建 release
-        run: gradle :app:assembleRelease --no-daemon --stacktrace -PciRun="${{ github.run_number }}"
+        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace -PciRun="${{ github.run_number }}"
 
       - name: 验签并核对指纹
         run: |

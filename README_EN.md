@@ -133,7 +133,7 @@ The release signing key is **not in this repository** and never appears in its h
 Signing reads `keystore.properties` from the **repository root** (see `keystore.properties.example`):
 
 ```properties
-storeFile=/workspace/keys/release.jks     # absolute path, outside the repo
+storeFile=$HOME/keys/release.jks          # absolute path, outside the repo
 storePassword=****
 keyAlias=****
 keyPassword=****
