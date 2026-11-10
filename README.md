@@ -124,6 +124,40 @@ adb shell "md5sum /data/app/*/org.icdqcow2-*/lib/arm64/libimgtool.so"
 
 ---
 
+## 签名
+
+发布签名密钥**不在本仓库**，也不在任何提交历史里：`*.jks` / `keystore.properties` 由 `.gitignore` 与 `tools/hooks/pre-commit` 双重拦截（连改名成 `.bin` 的密钥库、藏在 `.txt` 里的 PEM 私钥也拦）。
+
+构建时从**仓库根**的 `keystore.properties` 读取（格式见 `keystore.properties.example`）：
+
+```properties
+storeFile=/workspace/keys/release.jks     # 仓库外的绝对路径
+storePassword=****
+keyAlias=****
+keyPassword=****
+```
+
+**没有这个文件就自动回落 debug 签名**——clone 下来无需任何密钥即可编译、安装。
+
+### 发布证书（公开信息，可用于校验 APK 是否正品）
+
+| 项 | 值 |
+|---|---|
+| Subject | `CN=Icdqcow2, OU=App, O=icdqcow2, C=CN` |
+| 密钥算法 | RSA 4096 / SHA384withRSA |
+| SHA-256 指纹 | `82:3F:40:BA:39:91:28:55:D7:AC:5E:C9:EB:3B:1F:18:D8:B7:E0:40:43:D3:90:BA:B5:EA:58:00:AB:A1:FB:E3` |
+| 有效期 | 2026-11-10 → 2054-03-28（10000 天） |
+
+```bash
+# 校验手上的 APK 是不是本项目的正式签名
+apksigner verify --print-certs your.apk
+# 输出中的 certificate SHA-256 digest 应与上表完全一致
+```
+
+> 指纹是证书摘要，公开无害；**私钥与密码永不入库**。密钥文件放在仓库外（目录权限 700、文件 600），并另存两份加密离线备份——密钥丢失意味着此后无法再更新此应用。
+
+---
+
 ## 技术栈
 
 | 层 | 实现 |

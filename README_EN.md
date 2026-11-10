@@ -126,6 +126,39 @@ adb shell "md5sum /data/app/*/org.icdqcow2-*/lib/arm64/libimgtool.so"
 
 ---
 
+## Signing
+
+The release signing key is **not in this repository** and never appears in its history: `*.jks` and `keystore.properties` are blocked by both `.gitignore` and `tools/hooks/pre-commit` (which also catches a keystore renamed to `.bin` — JKS magic `FEEDFEED` — and PEM private keys hidden in text files).
+
+Signing reads `keystore.properties` from the **repository root** (see `keystore.properties.example`):
+
+```properties
+storeFile=/workspace/keys/release.jks     # absolute path, outside the repo
+storePassword=****
+keyAlias=****
+keyPassword=****
+```
+
+**Without that file the release build falls back to the debug key**, so a fresh clone builds and installs without any secret.
+
+### Release certificate (public, use it to verify an APK)
+
+| Item | Value |
+|---|---|
+| Subject | `CN=Icdqcow2, OU=App, O=icdqcow2, C=CN` |
+| Key | RSA 4096 / SHA384withRSA |
+| SHA-256 fingerprint | `82:3F:40:BA:39:91:28:55:D7:AC:5E:C9:EB:3B:1F:18:D8:B7:E0:40:43:D3:90:BA:B5:EA:58:00:AB:A1:FB:E3` |
+| Validity | 2026-11-10 → 2054-03-28 (10,000 days) |
+
+```bash
+apksigner verify --print-certs your.apk
+# the printed certificate SHA-256 digest must match the table above
+```
+
+> A fingerprint is a public digest; the private key and its passwords are never committed. Keep the keystore outside the repo (dir 700, file 600) with two encrypted offline backups — losing it means this app can never be updated again.
+
+---
+
 ## Tech stack
 
 | Layer | Implementation |

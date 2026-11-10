@@ -1,3 +1,4 @@
+import java.security.MessageDigest
 import java.util.Properties
 import java.util.zip.ZipFile
 
@@ -131,6 +132,37 @@ tasks.matching { it.name == "preBuild" }.configureEach {
                     "    2) App 的 JNI 桥：见 tools/build-native-libs.sh\n" +
                     "  版本与来源记录在 tools/native-libs.md5。"
             )
+        }
+
+        // ③ 内容校验：md5 必须与 tools/native-libs.md5 一致。
+        //    为什么需要：release 构建链里有个环节会**原地**把 jniLibs 下的库改写成剥离版，
+        //    2026-11-10 实测 libimgtool.so 被从 6,579,368 B 改成 6,579,144 B，
+        //    md5 由 c3d70283… 变成 6a9de1de…，提交时差点把改坏（或来源不明）的库推上去。
+        val md5Record = rootProject.file("tools/native-libs.md5")
+        if (md5Record.exists()) {
+            md5Record.readLines()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() && !it.startsWith("#") }
+                .forEach { line ->
+                    val parts = line.split(Regex("\\s+"), 2)
+                    if (parts.size == 2) {
+                        val want = parts[0].lowercase()
+                        val f = rootProject.file(parts[1].trim())
+                        if (f.exists()) {
+                            val got = MessageDigest.getInstance("MD5")
+                                .digest(f.readBytes())
+                                .joinToString("") { b -> "%02x".format(b) }
+                            if (got != want) {
+                                throw GradleException(
+                                    "native 库内容与记录不符：${f.name}\n" +
+                                        "  记录 $want\n  实际 $got\n" +
+                                        "  若是有意换库，先更新 tools/native-libs.md5 再构建；\n" +
+                                        "  若是被构建过程改写，用 git checkout 恢复。"
+                                )
+                            }
+                        }
+                    }
+                }
         }
     }
 }
