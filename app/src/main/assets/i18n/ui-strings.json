@@ -4918,9 +4918,9 @@
       "note": "主页 · 顶部提示卡标题 · 仅当前环境下出现，不显示具体应用名"
     },
     "partner.noticeBody": {
-      "zh": "为遵守合规要求并尊重相关开发者的权益，本应用在当前设备上暂不提供主页中的建盘、分区、部署、引导等功能。这不是设备故障：文件浏览、自检与导出仍可正常使用，相关应用卸载后会自动恢复。",
-      "en": "To comply with policy and respect other developers' rights, disk creation, partitioning, deployment and boot features are unavailable on this device. This is not a device fault: file browsing, verification and exporting still work, and these features return automatically once the related app is uninstalled.",
-      "note": "主页 · 顶部提示卡正文 · 说明是合规限制而非设备故障，不透露被检测的应用"
+      "zh": "检测到相关受限应用。根据要求，主页内相关功能暂不可用，其余功能不受影响。",
+      "en": "A restricted app was detected. Per its requirements, features on the Home page are unavailable; other features are unaffected.",
+      "note": "主页 · 顶部提示卡正文 · 只说明存在受限应用，不给出具体名称"
     },
     "partner.blockedToast": {
       "zh": "主页功能暂不可用（合规限制）",
