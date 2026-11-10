@@ -1,22 +1,25 @@
-# native 库版本与来源（2026-11-09）
+# native 库版本与来源（2026-11-10）
 #
 # 这两个库必须随仓库入库：App 的全部工具命令都经由 libimgapp.so → libimgtool.so，
 # 缺任一个，APK 装到机器上就完全不可用（所有命令 UnsatisfiedLinkError）。
 #
 # 校验：md5sum app/src/main/jniLibs/arm64-v8a/*.so
 
-8169dfd903eaa7f9d3aff27e71bc1c0f  app/src/main/jniLibs/arm64-v8a/libimgtool.so
+6b333a922e07ee7e460c729b9fdc709c  app/src/main/jniLibs/arm64-v8a/libimgtool.so
 a1798199a5115653de846d515be54598  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 
 # ── 来源 ──
-# libimgtool.so （6,795,136 B）
+# libimgtool.so （6,795,560 B）
 #   仓库：https://github.com/lgylxyyy/imgtool
-#   提交：3ed83b0（REQ-67/68/69/70：捕获三段进度 + --exclude + 进度契约 + 取消提速）
+#   提交：354836f（Android 交叉编译 API 21→26：stdin/hasmntopt 是 bionic 按版本才有的符号）
+#         ← 含 3ed83b0 / cfe29f8 / 3f805b2 的全部内容（img.trim、进度契约、16 KB 门禁）
 #   版本串：imgtool 2026.11.10（`imgcmd version` / `--version` 可取，commit 见回包）
-#   构建：./android-deps.sh && ./android-cross.sh arm64-v8a
+#   构建：./android-deps.sh && TOOLS=1 ./android-cross.sh arm64-v8a
+#   ★ 最低系统版本：Android 8.0（API 26）。stdin/stdout 在 bionic 里是 API 23 起，
+#     hasmntopt 是 API 26 起，低于 26 的 libc 里这两个符号不存在。App minSdk 33，无影响。
 #   含命令：copy / move（含跨挂载点兜底）/ reg.list / reg.get / wim.capture /
-#           sys.tmpdir / img.create --format=qcow2|raw|vhd|vmdk / VHD 读写
-#   REPLY-20261109-59 / REPLY-20261109-61 / HANDOFF-20261109-vhd-create-and-format-fields.md
+#           sys.tmpdir / img.create / img.trim（REQ-66）/ img.compact
+#   REPLY-20261110-66 / REPLY-20261110-71
 #
 # libimgapp.so （27,344 B；16 KB LOAD 对齐）
 #   来源：本仓库 jni/（imgapp_jni.c + imgapp_bridge.c + img_vfd_real.c）
