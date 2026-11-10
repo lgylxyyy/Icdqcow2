@@ -125,10 +125,14 @@ jobs:
         run: |
           set -eu
           APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
+          # Release 正文来自 CHANGELOG.md（同一份来源），末尾补上校验方式与体积
+          python3 tools/changelog_section.py "$GITHUB_REF_NAME" > "$RUNNER_TEMP/notes.md"
+          printf '\n---\n\n## 校验安装包\n\n```bash\napksigner verify --print-certs app-release.apk\n```\n' >> "$RUNNER_TEMP/notes.md"
+          printf '\n证书 SHA-256 应为 `%s`。不一致说明安装包来源不明，请勿安装。\n' "$EXPECTED_SHA256" >> "$RUNNER_TEMP/notes.md"
+          printf '\n安装包大小：%s 字节\n' "$(stat -c %s "$APK")" >> "$RUNNER_TEMP/notes.md"
           gh release create "$GITHUB_REF_NAME" "$APK" \
             --title "$GITHUB_REF_NAME" \
-            --notes "自动构建。校验签名：apksigner verify --print-certs app-release.apk（SHA-256 见 README 签名章节）" \
-            --generate-notes || \
+            --notes-file "$RUNNER_TEMP/notes.md" || \
           gh release upload "$GITHUB_REF_NAME" "$APK" --clobber
 
       - name: 安装提示

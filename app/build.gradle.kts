@@ -17,7 +17,8 @@ android {
         // 33：miuix-blur 要求（RuntimeShader / RenderEffect 那套），kill 掉 28 的想法
         minSdk = 33
         targetSdk = 35
-        versionCode = 1
+        // versionCode 每次发布 +1：Android 只允许用更大的版本号覆盖安装
+        versionCode = 2
         versionName = "0.1.0"
 
         // CI 构建时由 workflow 传 -PciRun=<run_number>，本地构建则是 local。
@@ -52,8 +53,15 @@ android {
     buildTypes {
         debug { isMinifyEnabled = false }
         release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            // 正式版（GitHub 发布用）：开 R8 混淆 + 资源压缩，体积从 ~63 MB 降到 20 MB 级。
+            // 调试版（本机装）保持不混淆，方便看堆栈。两条产物签名相同（都用密钥库里的那把），
+            // 但 debug 变体走 AGP 的 debug 签名，所以本机调试包与发布包签名不同、互不覆盖。
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
             signingConfig = if (keystorePropsFile.exists())
                 signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
