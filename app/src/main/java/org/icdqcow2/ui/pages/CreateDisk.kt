@@ -1186,7 +1186,6 @@ private fun PlanBar(draft: DiskDraft) {
             }
         }
     }
-    val sum = segs.sumOf { it.mb }.coerceAtLeast(1)
 
     Card(Modifier.fillMaxWidth(), insideMargin = PaddingValues(12.dp)) {
         // 按比例切，但每段保底 14dp：MSR 只有 16 MB，纯按比例在 1200px 的屏上是 0.2px，等于看不见。

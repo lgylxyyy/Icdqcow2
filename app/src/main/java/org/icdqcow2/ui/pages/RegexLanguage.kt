@@ -58,7 +58,7 @@ class RegexLanguage(private val lang: CodeLang) : Language {
                 if (end < 0) end = text.length
                 val line = text.substring(start, end)
                 builder.add(0, SpanFactory.obtain(0, normal))
-                for ((s, e, kind) in lineSpans(line, lang)) {
+                for ((s, _, kind) in lineSpans(line, lang)) {
                     if (s >= line.length) continue
                     val style = textStyle(HiColor.idOf(kind), 0, false, false, false, false)
                     builder.add(s, SpanFactory.obtain(s, style))

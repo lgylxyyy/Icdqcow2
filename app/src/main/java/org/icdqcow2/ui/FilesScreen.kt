@@ -2537,7 +2537,6 @@ private fun EntryRow(
     onLongClick: () -> Unit,
 ) {
     val colors = MiuixTheme.colorScheme
-    val s = LocalStrings.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -2649,7 +2648,6 @@ private suspend fun reload(p: PaneState, s: Strings, more: Boolean = false) {
         p.total = 0
         p.hasMore = false
     }
-    var first = true
     runCatching { query(p, offset, s) }
         .onSuccess { l ->
             p.entries = if (more) p.entries + l.list else l.list
@@ -2968,7 +2966,7 @@ private fun sniffName(name: String): String? {
 private fun magicOf(b: ByteArray): String? {
     fun at(i: Int, vararg s: Int): Boolean {
         if (i + s.size > b.size) return false
-        for (k in s.indices) if (b[i + k].toInt() and 0xFF != s[k]) return false
+        for (k in s.indices) if ((b[i + k].toInt() and 0xFF) != s[k]) return false
         return true
     }
     return when {

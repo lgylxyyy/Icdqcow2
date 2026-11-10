@@ -656,7 +656,7 @@ fun WinRePage(
     val targetLba = if (useSys) win?.lba ?: 0L else rec?.lba ?: 0L
     val hasSource = srcFile != null || sysWim
     /** 恢复分区里 WinRE + boot.sdi + ReAgent.xml 全齐：只显示「重新写入」。 */
-    val reReady = recWim == true && sdiOk && agentOk
+    val reReady = recWim?.let { it && sdiOk && agentOk } ?: false
     /** 有 WinRE 但缺 boot.sdi / ReAgent.xml：多给一条「修复」。 */
     val reBroken = recWim == true && (!sdiOk || !agentOk)
     /** 要不要展示布局条 / 来源 / 目标 / 写入这一整套。 */

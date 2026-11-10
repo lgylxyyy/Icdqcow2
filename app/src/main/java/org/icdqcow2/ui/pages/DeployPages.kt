@@ -333,11 +333,6 @@ fun DeployPage(
     val hostOk = wimNeed > 0L && hostFree >= needHost
 
     val curImageObj = images.firstOrNull { it.optInt("index", -1) == wimIndex }
-    val curArch = archLabel(
-        curImageObj?.optString("arch"),
-        wimPath.orEmpty() + " " + wimInner.orEmpty(),
-        trusted = curImageObj?.optString("arch_basis") in TrustedBasis,
-    )
     /**
      * 写之前就拦掉的"物理上起不来"：**ARM / ARM64** —— 这套盘是给 x86 固件/虚拟机用的，
      * arm 映像根本进不了引导流程 → 一律拒绝。
@@ -377,7 +372,6 @@ fun DeployPage(
     //   Vista / Win7 x86 + GPT 才是物理不可能 —— 那一层由工具端 `boot.populate` 的
     //   `BOOT-ARCH-NO-UEFI` / `boot.plan` 的 `DENIED` 兜底，我们不在这里猜版本号。
     val bit32Warn = isGpt && archNorm == "x86"
-    val archBlocked = false
     /**
      * 工具端说"判不出"（`arch_basis:"none"`，REPLY-22 起 `ARCH=0` 不再当 x86）。
      * 不拦 —— 只是提醒：这种盘装完可能起不来（也没括弧可显示）。
@@ -1254,8 +1248,6 @@ internal fun archLabel(raw: String?, hint: String?, trusted: Boolean = false): S
     //   `19044..._x64.iso` 名字写 x64、内容是 32 位 → 界面显示 (x64)、
     //   同时又弹"判不出架构"，自相矛盾，还害得"GPT 只装 64 位"那条拦不住。
     //   工具端说判不出（`arch` 空 / basis=none）就**什么都不显示**，让黄字去解释。
-    @Suppress("UNUSED_PARAMETER")
-    val ignoredHint = hint
     if (trusted) return mapped
     return mapped
 }
