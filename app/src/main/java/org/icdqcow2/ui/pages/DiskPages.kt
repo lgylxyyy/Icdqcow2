@@ -2167,7 +2167,10 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             val freed = d?.optLong("guest_bytes_freed", 0L) ?: 0L
             val before = d?.optLong("alloc_before", 0L) ?: 0L
             val after = d?.optLong("alloc_after", 0L) ?: 0L
-            punchFailed = (d?.optLong("punch_failed", 0L) ?: 0L) > 0L
+            // 工具端 REPLY-66：打洞失败不报错，用 punch_ok=false（+ punch_note）表达；
+            // 老库只给 punch_failed。两个都看，别漏了"文件没变小"那种情况。
+            punchFailed = (d?.optLong("punch_failed", 0L) ?: 0L) > 0L ||
+                d?.optBoolean("punch_ok", true) == false
             doneText = s.trimDone(fmtBytes(freed), fmtBytes(before), fmtBytes(after))
             planBytes = null             // 清完要重新分析才知道还剩多少
             srcBytes = File(img).length()
