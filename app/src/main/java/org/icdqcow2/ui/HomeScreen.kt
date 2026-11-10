@@ -143,6 +143,12 @@ private fun LazyListScope.section(title: String) {
     }
 }
 
+/**
+ * 网格卡片的内容区高度。所有卡共用同一个值，保证不同行之间也完全对齐；
+ * 高度按「图标 24 + 标题两行 + 副标题两行 + 间距」估出，中英文都放得下。
+ */
+private val TILE_CONTENT_HEIGHT = 120.dp
+
 /** 一行两张卡。 */
 private fun LazyListScope.grid(left: Tile, right: Tile) {
     item {
@@ -163,16 +169,24 @@ private fun TileCard(tile: Tile, modifier: Modifier = Modifier) {
         onClick = tile.onClick,
         insideMargin = PaddingValues(horizontal = 14.dp, vertical = 14.dp),
     ) {
-        Column {
+        // 固定高度 + 标题/副标题各两行：卡片尺寸保持不变，中英文都能多显示一行。
+        // 之前都是 maxLines = 1，英文标题（如 Partition management）几乎必被截断。
+        Column(modifier = Modifier.height(TILE_CONTENT_HEIGHT)) {
             Icon(tile.icon, contentDescription = null, tint = colors.primary, modifier = Modifier.size(24.dp))
             Spacer(Modifier.height(10.dp))
-            Text(tile.title, style = text.title4, color = colors.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                tile.title,
+                style = text.title4,
+                color = colors.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
             Spacer(Modifier.height(2.dp))
             Text(
                 tile.desc,
                 style = text.body2,
                 color = colors.onSurfaceVariantSummary,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
         }
@@ -220,7 +234,7 @@ private fun WideCard(
                     desc,
                     style = text.body2,
                     color = colors.onSurfaceVariantSummary,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
