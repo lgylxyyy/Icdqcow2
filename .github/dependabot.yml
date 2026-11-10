@@ -1,0 +1,38 @@
+# Dependabot —— Gradle 依赖 + GitHub Actions 版本
+#
+# 注意：本仓库的依赖是 AGP / Kotlin / Compose 这一套，跨大版本升级经常需要
+# 手工改代码（Compose 编译器与 Kotlin 版本强绑定）。所以这里：
+#   · 只按周开 PR，且数量封顶，避免刷屏
+#   · major 升级不自动提（ignored）—— 要升大版本请手动做，顺手改代码
+#   · 安全更新不受这个配置限制：Dependabot 安全更新是仓库设置里开着的，
+#     发现漏洞会单独开 PR，优先级更高
+version: 2
+
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "deps"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      gradle-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "ci"
+    groups:
+      actions:
+        patterns: ["*"]

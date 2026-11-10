@@ -1,0 +1,51 @@
+# CodeQL —— Kotlin/Java 静态分析
+#
+# 为什么不用 GitHub 的「默认设置」：默认设置走 autobuild，而本项目要求
+# Gradle 9.6+，自动化侦察抓到的是 runner 自带的 8.6，构建阶段直接失败：
+#   Minimum supported Gradle version is 9.6.0. Current version is 8.6.
+#
+# 这里改用 build-mode: none —— 只对源码做数据流分析，不需要真正编译，
+# 也就不需要 Android SDK / 签名 / NDK。代价是看不到构建期生成的东西
+# （对我们这套代码没影响：分析对象是 Kotlin 源码本身）。
+#
+# 想改成完整构建版（能覆盖生成的代码）：把 build-mode 换成 manual，
+# 并在 init 之后插入与 release.yml 相同的 JDK/SDK/Gradle 步骤，最后
+# 跑 gradle :app:assembleDebug --no-daemon。
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 3 * * 1"   # 每周一 03:00 UTC，兜住依赖与规则库更新
+
+permissions:
+  contents: read
+  security-events: write   # 上传分析结果到 Security 页签
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: 分析 Kotlin/Java
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 初始化 CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java-kotlin
+          build-mode: none
+          queries: security-and-quality
+
+      - name: 分析并上传结果
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:java-kotlin"
