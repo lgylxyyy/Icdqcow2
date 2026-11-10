@@ -563,14 +563,14 @@
       "note": "FirmwareStore.kt、ImageRepo.kt、Kit.kt、RegexLanguage.kt、ToolRunner.kt、i18n、分区管理、建盘、文件页、文本编辑器、释放映像 · 文案位 · home.format"
     },
     "home.clone": {
-      "zh": "压缩镜像",
-      "en": "Compact image",
-      "note": "主页 · 该格实际打开 CompactPage（img.compact），原来的“克隆映像”名不副实"
+      "zh": "清理空间",
+      "en": "Reclaim space",
+      "note": "主页 · 打开清理空间页（img.trim，回收 guest 已删除但仍占用的块）"
     },
     "home.cloneSummary": {
-      "zh": "回收镜像里的空闲块，缩小体积",
-      "en": "Reclaim unused blocks",
-      "note": "主页 · 压缩镜像副标题 · 英文压缩到一行"
+      "zh": "回收已删除但仍占用的块",
+      "en": "Reclaim deleted-but-held blocks",
+      "note": "主页 · 清理空间副标题 · 英文压到一行"
     },
     "home.deploy": {
       "zh": "释放映像",
@@ -1306,71 +1306,6 @@
       "zh": "确定",
       "en": "OK",
       "note": "分区管理、建盘、文件页、设置 · 确认按钮 · common.confirm"
-    },
-    "cmp.title": {
-      "zh": "压缩映像",
-      "en": "Compact image",
-      "note": "分区管理 · 页面标题 · cmp.title"
-    },
-    "cmp.source": {
-      "zh": "源映像",
-      "en": "Source image",
-      "note": "分区管理 · 信息行 · cmp.source"
-    },
-    "cmp.disk": {
-      "zh": "磁盘",
-      "en": "Disk",
-      "note": "分区管理 · 信息行 · cmp.disk"
-    },
-    "cmp.output": {
-      "zh": "输出文件",
-      "en": "Output file",
-      "note": "分区管理 · 区块标题 · cmp.output"
-    },
-    "cmp.outputSummary": {
-      "zh": "和源映像放在同一目录",
-      "en": "Saved next to the source image",
-      "note": "分区管理 · 提示行 · cmp.outputSummary"
-    },
-    "cmp.verify": {
-      "zh": "完成后校验",
-      "en": "Verify after copy",
-      "note": "分区管理 · 文案位 · cmp.verify"
-    },
-    "cmp.verifyOn": {
-      "zh": "回读校验容量、分区表和抽样块；慢一点，能确认没写坏",
-      "en": "Read back size, partition table and sample blocks",
-      "note": "分区管理 · 文案位 · cmp.verifyOn"
-    },
-    "cmp.verifyOff": {
-      "zh": "不校验（不建议）",
-      "en": "No verification (not recommended)",
-      "note": "分区管理 · 文案位 · cmp.verifyOff"
-    },
-    "cmp.note": {
-      "zh": "仅重写已分配数据块，虚拟容量与分区布局不变，源映像不受影响",
-      "en": "Only allocated blocks are rewritten; virtual size and partition layout are unchanged",
-      "note": "分区管理 · 提示行 · cmp.note"
-    },
-    "cmp.action": {
-      "zh": "开始压缩",
-      "en": "Compact",
-      "note": "分区管理 · 按钮 · cmp.action"
-    },
-    "cmp.busy": {
-      "zh": "正在压缩",
-      "en": "Compressing",
-      "note": "分区管理 · 按钮 · cmp.busy"
-    },
-    "cmp.ok": {
-      "zh": "压缩完成：{0} → {1}",
-      "en": "Compacted: {0} → {1}",
-      "note": "分区管理 · 提示气泡 · cmp.ok"
-    },
-    "cmp.noImage": {
-      "zh": "选择映像",
-      "en": "Pick an image",
-      "note": "分区管理 · 提示气泡 · cmp.noImage"
     },
     "lbl.entry": {
       "zh": "修改卷标",
@@ -4911,6 +4846,106 @@
       "zh": "当前引导没有问题",
       "en": "Boot looks healthy",
       "note": "引导修复 · 引导正常时点「开始修复」的确认卡标题"
+    },
+    "trim.title": {
+      "zh": "清理空间",
+      "en": "Reclaim space",
+      "note": "清理空间页 · 标题（原「压缩映像」，img.trim 到位后改成清理）"
+    },
+    "trim.source": {
+      "zh": "当前文件",
+      "en": "Current file",
+      "note": "清理空间页 · 源映像那一行"
+    },
+    "trim.disk": {
+      "zh": "磁盘",
+      "en": "Disk",
+      "note": "清理空间页 · 磁盘容量与文件占用那一行"
+    },
+    "trim.note": {
+      "zh": "按分区空闲位图，把已经删掉、但镜像里还占着的块还回去。虚拟容量与分区表不变，文件不会被重写。",
+      "en": "Walks each partition free-space bitmap and releases blocks that are already deleted but still allocated. Virtual size and layout stay the same; nothing is rewritten.",
+      "note": "清理空间页 · 说明（讲清它和「压缩另存」不是一回事）"
+    },
+    "trim.punch": {
+      "zh": "就地缩容",
+      "en": "Shrink in place",
+      "note": "清理空间页 · 开关标题"
+    },
+    "trim.punchOn": {
+      "zh": "能打洞的存储上，文件当场变小",
+      "en": "Where hole punching works, the file shrinks right away",
+      "note": "清理空间页 · 开关打开时的说明"
+    },
+    "trim.punchOff": {
+      "zh": "只把块还回去，文件大小不变；之后用「重写一次」才会变小",
+      "en": "Only releases blocks; the file keeps its size until you rewrite it",
+      "note": "清理空间页 · 开关关闭时的说明"
+    },
+    "trim.analyze": {
+      "zh": "分析可回收空间",
+      "en": "Analyze reclaimable space",
+      "note": "清理空间页 · 主按钮（还没分析过时）"
+    },
+    "trim.analyzing": {
+      "zh": "正在分析",
+      "en": "Analyzing",
+      "note": "清理空间页 · 主按钮（分析中）"
+    },
+    "trim.clean": {
+      "zh": "开始清理",
+      "en": "Clean up",
+      "note": "清理空间页 · 主按钮（分析完成、可以清理时）"
+    },
+    "trim.cleaning": {
+      "zh": "正在清理",
+      "en": "Cleaning",
+      "note": "清理空间页 · 主按钮（清理中）"
+    },
+    "trim.plan": {
+      "zh": "可回收 {0}（{1} 个块）",
+      "en": "{0} reclaimable ({1} blocks)",
+      "note": "清理空间页 · 分析结果"
+    },
+    "trim.planHint": {
+      "zh": "只是估算，还没写任何东西",
+      "en": "Estimate only — nothing has been written",
+      "note": "清理空间页 · 分析结果下面的小字"
+    },
+    "trim.done": {
+      "zh": "已释放 {0}；文件占用 {1} → {2}",
+      "en": "Freed {0}; footprint {1} → {2}",
+      "note": "清理空间页 · 清理结果"
+    },
+    "trim.noShrink": {
+      "zh": "空间已经还回去了，但这个存储不支持就地缩容，文件暂时不会变小",
+      "en": "Blocks were released, but this storage cannot shrink in place — the file keeps its size for now",
+      "note": "清理空间页 · 打洞失败时的提示"
+    },
+    "trim.rebuild": {
+      "zh": "重写一次以缩小",
+      "en": "Rewrite to shrink",
+      "note": "清理空间页 · 打洞不可用时的兜底按钮"
+    },
+    "trim.rebuildNote": {
+      "zh": "会另存为 {0}，确认无误后手动替换原文件（源文件不动）",
+      "en": "Saves a new {0}; replace the original yourself after checking (the source stays untouched)",
+      "note": "清理空间页 · 重写模式的说明"
+    },
+    "trim.rebuilt": {
+      "zh": "已另存为 {0}",
+      "en": "Saved as {0}",
+      "note": "清理空间页 · 重写完成的 toast"
+    },
+    "trim.unsupported": {
+      "zh": "当前工具库还不支持清理，界面先搭好，等新版工具库接上",
+      "en": "The bundled tool library cannot do this yet; the page is ready and will light up with the next library",
+      "note": "清理空间页 · 命令缺失时的提示"
+    },
+    "trim.needImage": {
+      "zh": "先选一个映像",
+      "en": "Pick an image first",
+      "note": "清理空间页 · 没选映像就点按钮的 toast"
     }
   }
 }

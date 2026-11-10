@@ -41,6 +41,7 @@ import org.icdqcow2.core.DiskLimits
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.icdqcow2.core.ImageRepo
+import org.icdqcow2.core.ToolCaps
 import org.icdqcow2.core.ToolRunner
 import org.icdqcow2.ui.LocalStrings
 import org.icdqcow2.ui.SmallTitlePage
@@ -2082,91 +2083,178 @@ fun FormatPage(onBack: () -> Unit, onToast: (String) -> Unit) {
 }
 
 /**
- * 压缩镜像：`img.compact`（REPLY-06）。
+ * 清理空间：`img.trim`（REQ-20261110-66）。
  *
- * **另存为**一个更小的 qcow2：只重写源盘里已分配、非零的簇，源盘只读、不改不删。
- * 虚拟容量和分区布局不变；没列进 `keep` 的分区"表还在、数据留空"——
- * 这一版固定**全部保留**（`keep` 不传），因为少留一块可能就起不来了。
+ * **和原来的 `img.compact` 不是一件事**：compact 是另存一份新镜像（删掉的数据会被当成有效数据照抄），
+ * 这里是**原地回收** —— 按分区空闲位图，把 guest 已经删掉、qcow2 里却仍占着的簇还回去：
+ * 清 L2 entry、refcount 减到 0；打洞可用时文件当场变小，不可用时只释放块。
+ *
+ * 打洞在 `/sdcard`（FUSE）上到底行不行还没定论，所以我们给了兜底：
+ * 「重写一次以缩小」走 `img.trim --rebuild`（老库退回 `img.compact`，同一套语义）。
+ *
+ * 命令没到位的旧工具库上，页面照常显示，按钮变灰 + 一句说明。
  */
 @Composable
-fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
+fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     val s = LocalStrings.current
     val image by ImageRepo.current.collectAsState()
-    var verify by remember { mutableStateOf(true) }
-    var busy by remember { mutableStateOf(false) }
+    // 旧库（a4192120… / 2026.11.10）里没有 img.trim：整块动作先灰着。
+    // 不 remember：cmd.list 是启动时异步拿的，记住 false 会一直灰着。
+    val supported = ToolCaps.has("img.trim")
+    var punch by remember { mutableStateOf(true) }
+    var analyzing by remember { mutableStateOf(false) }
+    var cleaning by remember { mutableStateOf(false) }
+    var rebuilding by remember { mutableStateOf(false) }
+    val busy = analyzing || cleaning || rebuilding
     var srcBytes by remember { mutableStateOf(0L) }
     var capBytes by remember { mutableStateOf(0L) }
-    var done by remember { mutableStateOf<Pair<Long, Long>?>(null) }
+    /** 分析结果（dry-run 给的数）；null = 还没分析过，主按钮显示「分析」 */
+    var planBytes by remember { mutableStateOf<Long?>(null) }
+    var planClusters by remember { mutableStateOf(0L) }
+    var doneText by remember { mutableStateOf<String?>(null) }
+    /** 打洞全失败 → 文件没缩，给「重写一次」 */
+    var punchFailed by remember { mutableStateOf(false) }
+    var rebuiltNote by remember { mutableStateOf<String?>(null) }
+    var err by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(image) {
-        done = null
+        planBytes = null
+        doneText = null
+        rebuiltNote = null
+        punchFailed = false
+        err = null
         srcBytes = image?.let { File(it).length() } ?: 0L
         capBytes = image?.let { ImageRepo.info(it).data?.optLong("size_bytes", 0L) } ?: 0L
     }
 
-    val name = ImageRepo.displayName(image) ?: "—"
-
-    suspend fun run() {
-        val src = image ?: return
-        val dir = File(src).parentFile ?: return
-        // 不覆盖同名文件：-compact、-compact-2、-compact-3…
-        var out = File(dir, "$name-compact.qcow2")
-        var n = 2
-        while (out.exists()) {
-            out = File(dir, "$name-compact-${n++}.qcow2")
-        }
-        busy = true
-        try {
-            val r = ImageRepo.compact(src = src, out = out.absolutePath, verify = verify)
+    /** 第一步永远先 dry-run：让用户看清能省多少，再决定要不要写。 */
+    fun analyze() {
+        val img = image ?: return
+        scope.launch {
+            analyzing = true
+            err = null
+            doneText = null
+            rebuiltNote = null
+            punchFailed = false
+            planBytes = null
+            val r = withContext(Dispatchers.IO) { ImageRepo.trim(img = img, dryRun = true) }
+            analyzing = false
             if (!r.ok) {
-                onToast(toolErrorText(s, r))
-                return
+                err = toolErrorText(s, r)
+                return@launch
             }
-            val before = r.data?.optLong("bytes_before", 0L) ?: 0L
-            val after = r.data?.optLong("bytes_after", 0L) ?: 0L
-            done = before to after
-            onToast(s.cmpOk(fmtBytes(before), fmtBytes(after)))
-        } finally {
-            busy = false
+            planBytes = r.data?.optLong("guest_bytes_freed", 0L) ?: 0L
+            planClusters = r.data?.optLong("clusters_freed", 0L) ?: 0L
         }
     }
 
-    SmallTitlePage(title = s.cmpTitle, onBack = onBack) {
-        GroupCard {
-            Item(s.cmpSource, pickName(image.orEmpty()))
-            if (srcBytes > 0L) Item(s.cmpDisk, s.fmtDiskSize(fmtBytes(capBytes), fmtBytes(srcBytes)))
-        }
-
-        GroupTitle(s.cmpOutput)
-        GroupCard {
-            Item(s.cmpOutput, "$name-compact.qcow2")
-        }
-        Note(s.cmpOutputSummary + " " + s.cmpNote)
-
-        GroupCard {
-            Item(
-                s.cmpVerify,
-                if (verify) s.cmpVerifyOn else s.cmpVerifyOff,
-                end = { Switch(checked = verify, onCheckedChange = { verify = it }) },
-            )
-        }
-
-        done?.let { (before, after) ->
-            Note(s.cmpOk(fmtBytes(before), fmtBytes(after)))
-        }
-
-        Action(
-            text = if (busy) s.cmpBusy else s.cmpAction,
-            enabled = !busy,
-            muted = image == null,
-        ) {
-            if (image == null) {
-                onToast(s.cmpNoImage)
-                return@Action
+    fun clean() {
+        val img = image ?: return
+        scope.launch {
+            cleaning = true
+            err = null
+            rebuiltNote = null
+            val r = withContext(Dispatchers.IO) {
+                ImageRepo.trim(img = img, dryRun = false, punch = punch)
             }
-            scope.launch { run() }
+            cleaning = false
+            if (!r.ok) {
+                err = toolErrorText(s, r)
+                return@launch
+            }
+            val d = r.data
+            val freed = d?.optLong("guest_bytes_freed", 0L) ?: 0L
+            val before = d?.optLong("alloc_before", 0L) ?: 0L
+            val after = d?.optLong("alloc_after", 0L) ?: 0L
+            punchFailed = (d?.optLong("punch_failed", 0L) ?: 0L) > 0L
+            doneText = s.trimDone(fmtBytes(freed), fmtBytes(before), fmtBytes(after))
+            planBytes = null             // 清完要重新分析才知道还剩多少
+            srcBytes = File(img).length()
+        }
+    }
+
+    /** 打洞不成立时的兜底：另存一份只含「guest 已分配簇」的新盘。 */
+    fun rebuild() {
+        val img = image ?: return
+        val name = ImageRepo.displayName(img) ?: "disk"
+        val dir = File(img).parentFile
+        var out = File(dir, "$name-trimmed.qcow2")
+        var n = 2
+        while (out.exists()) out = File(dir, "$name-trimmed-${n++}.qcow2")
+        scope.launch {
+            rebuilding = true
+            err = null
+            // 先按新接口调；老库没 --rebuild 就退回 img.compact（同一套「另存一份」语义）
+            var r = withContext(Dispatchers.IO) {
+                ImageRepo.trim(
+                    img = img, dryRun = false, punch = false,
+                    rebuild = true, out = out.absolutePath,
+                )
+            }
+            if (!r.ok && (r.code == "CMD-ARG-BAD" || r.code == "CMD-NOTFOUND")) {
+                r = withContext(Dispatchers.IO) {
+                    ImageRepo.compact(src = img, out = out.absolutePath)
+                }
+            }
+            rebuilding = false
+            if (!r.ok) {
+                err = toolErrorText(s, r)
+                return@launch
+            }
+            rebuiltNote = out.name
+            onToast(s.trimRebuilt(out.name))
+        }
+    }
+
+    SmallTitlePage(title = s.trimTitle, onBack = onBack) {
+        GroupCard {
+            Item(s.trimSource, pickName(image.orEmpty()))
+            if (srcBytes > 0L) Item(s.trimDisk, s.fmtDiskSize(fmtBytes(capBytes), fmtBytes(srcBytes)))
+        }
+        Note(s.trimNote)
+
+        if (!supported) {
+            Note(s.trimUnsupported, warn = true)
+        } else {
+            GroupCard {
+                Item(
+                    s.trimPunch,
+                    if (punch) s.trimPunchOn else s.trimPunchOff,
+                    end = { Switch(checked = punch, onCheckedChange = { punch = it }) },
+                )
+            }
+
+            planBytes?.let {
+                Note(s.trimPlan(fmtBytes(it), planClusters))
+                Note(s.trimPlanHint)
+            }
+            doneText?.let { Note(it) }
+            if (punchFailed) {
+                Note(s.trimNoShrink, warn = true)
+                Action(text = if (rebuilding) s.trimCleaning else s.trimRebuild, enabled = !busy) {
+                    rebuild()
+                }
+            }
+            rebuiltNote?.let { Note(s.trimRebuildNote(it)) }
+            err?.let { Note(it, warn = true) }
+
+            Action(
+                text = when {
+                    analyzing -> s.trimAnalyzing
+                    cleaning -> s.trimCleaning
+                    planBytes == null -> s.trimAnalyze
+                    else -> s.trimClean
+                },
+                enabled = !busy && image != null,
+                muted = image == null,
+            ) {
+                when {
+                    image == null -> onToast(s.trimNeedImage)
+                    planBytes == null -> analyze()
+                    else -> clean()
+                }
+            }
         }
     }
 }
-

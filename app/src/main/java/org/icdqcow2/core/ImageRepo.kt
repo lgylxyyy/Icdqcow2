@@ -268,6 +268,37 @@ object ImageRepo {
         else ToolRunner.exec("img.info", imagePath = pathForTool(path), imageFd = fdValue())
 
     /**
+     * 就地清理（`img.trim`，REQ-20261110-66）。
+     *
+     * 按分区空闲位图，把 guest 已经删掉、qcow2 里却仍占着的簇还回去：
+     * 清 L2 entry + refcount 减到 0；`punch` 打开时再对宿主簇打洞，文件当场变小
+     * （存储不支持打洞时只释放块，文件大小不变 —— 那时才需要 `rebuild` 另存一份）。
+     *
+     * `dryRun=true` = 只算不写，返回 `guest_bytes_freed` / `clusters_freed`，App 拿它给用户看数。
+     */
+    suspend fun trim(
+        img: String,
+        dryRun: Boolean = false,
+        punch: Boolean = true,
+        rebuild: Boolean = false,
+        out: String? = null,
+    ): ToolRunner.Result = exec(
+        "img.trim",
+        args = buildMap {
+            put("dry-run", dryRun.toString())
+            if (!dryRun) {
+                put("punch", punch.toString())
+                if (rebuild) {
+                    put("rebuild", "true")
+                    if (out != null) put("out", out)
+                }
+            }
+        },
+        path = img,
+        writable = !dryRun,
+    )
+
+    /**
      * 另存紧凑镜像（`img.compact`，REPLY-06）。
      *
      * ★ 和 `img.clone` 完全不同：这是**新写一个文件**，源盘只读、不会被改也不会被删。

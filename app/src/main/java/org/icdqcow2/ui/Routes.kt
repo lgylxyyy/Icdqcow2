@@ -7,7 +7,7 @@ val PAGE_TITLES: Map<String, String> = mapOf(
     "parts" to "分区管理",
     "format" to "格式化",
     "ptexport" to "导出分区表",
-    "clone" to "压缩镜像",
+    "clone" to "清理空间",
     "deploy" to "释放镜像",
     "files" to "浏览文件",
     "import" to "导入文件",
