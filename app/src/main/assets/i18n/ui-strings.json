@@ -3277,16 +3277,6 @@
       "en": "Boot chain is fine — no repair needed",
       "note": "引导修复/恢复环境 · 提示行 · br.diagOk"
     },
-    "br.uefiWhat": {
-      "zh": "将重写 BCD 与 ESP 上的引导文件",
-      "en": "Rewrites BCD and the boot files on the ESP",
-      "note": "引导修复/恢复环境 · 提示行 · br.uefiWhat"
-    },
-    "br.biosWhat": {
-      "zh": "将重写 MBR/VBR 与 bootmgr，不可回滚",
-      "en": "Rewrites MBR/VBR and bootmgr; cannot be undone",
-      "note": "引导修复/恢复环境 · 提示行 · br.biosWhat"
-    },
     "br.action": {
       "zh": "开始修复",
       "en": "Repair",
@@ -3298,9 +3288,9 @@
       "note": "引导修复/恢复环境 · 文案位 · br.confirmTitle"
     },
     "br.confirmBody": {
-      "zh": "将改写分区上的引导文件与 BCD，改错需重装系统",
-      "en": "Boot files and BCD on the partition will be rewritten; a wrong choice requires reinstalling Windows",
-      "note": "引导修复/恢复环境 · 文案位 · br.confirmBody"
+      "zh": "将写入引导到分区#{0}，此操作不可撤销，是否继续？",
+      "en": "Boot files will be written to partition #{0}. This cannot be undone. Continue?",
+      "note": "引导修复 · 确认卡正文 · {0} = 目标分区号（UEFI 写 ESP，BIOS 写系统分区）"
     },
     "br.runOk": {
       "zh": "修复完成",
@@ -4928,8 +4918,8 @@
       "note": "提示条 · 点击被停用入口时 · 说明是合规限制，不是故障，不显示应用名"
     },
     "br.checkFail": {
-      "zh": "引导检查没跑成",
-      "en": "Boot check did not run",
+      "zh": "检查失败",
+      "en": "Check failed",
       "note": "引导修复 · 信息行 · boot.check 命令失败时的标题，下面跟具体错误"
     }
   }

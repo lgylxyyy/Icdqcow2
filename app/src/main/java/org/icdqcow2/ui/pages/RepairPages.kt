@@ -162,7 +162,12 @@ fun BootRepairPage(
                 probeBootMode(table = table, espLba = espLba, sysLba = sysLba, img = img)
             }
             mode = m
-            val bc = withContext(Dispatchers.IO) { ImageRepo.bootCheck(path = img, mode = m.wire) }
+            var bc = withContext(Dispatchers.IO) { ImageRepo.bootCheck(path = img, mode = m.wire) }
+            // 工具端 --mode 只认 auto | uefi | bios（内置 .so 的用法串里就这么写），
+            // 传 uefi32 会被判「参数不合法」；32 位盘的检查项与 uefi 相同，退回再跑一次。
+            if (!bc.ok && m == BootMode.UEFI32) {
+                bc = withContext(Dispatchers.IO) { ImageRepo.bootCheck(path = img, mode = "uefi") }
+            }
             bootOk = bc.ok && (bc.data?.optInt("required_fail", 0) ?: 0) == 0
             checkErr = if (bc.ok) null else toolErrorText(s, bc)
             checks = bootCheckRows(s, bc.data, m.isUefi, withRecovery = true)
@@ -283,8 +288,72 @@ fun BootRepairPage(
                         }
                         if (bootOk == false) BlockEnter(3) { Note(s.brStillBad, warn = true) }
                     }
-                    BlockEnter(4) {
-                        Note(if (uefi) s.brUefiWhat else s.brBiosWhat, warn = true)
+                    // ── UEFI 32 位：固件 + 注入参数 ────────────────────────────────────────
+                    // 32 位 UEFI 不是默认能力，得给 VM 换 32 位固件（pflash 挂两颗芯片）。
+                    // 这张卡只在检测到 UEFI 32 时出现，别的盘一眼都看不到。
+                    if (mode == BootMode.UEFI32 && win != null) {
+                        BlockEnter(4) {
+                            GroupTitle(s.fw32Title)
+                            GroupCard {
+                                Item(
+                                    s.fw32State,
+                                    if (fwState.ready) s.fw32Ready else s.fw32Missing,
+                                    titleColor = if (fwState.ready) null else MiuixTheme.colorScheme.error,
+                                )
+                                Item(s.fw32Where, org.icdqcow2.core.FirmwareStore.DIR)
+                                if (!fwState.ready) {
+                                    Item(
+                                        s.fw32Install,
+                                        s.fw32InstallHint,
+                                        onClick = {
+                                            if (fwBusy) return@Item
+                                            fwBusy = true
+                                            scope.launch {
+                                                val e = withContext(Dispatchers.IO) {
+                                                    org.icdqcow2.core.FirmwareStore.ensure(ctx)
+                                                }
+                                                fwBusy = false
+                                                fwState = org.icdqcow2.core.FirmwareStore.state()
+                                                onToast(
+                                                    when (e) {
+                                                        null -> s.fw32Done
+                                                        "no-access" -> s.fw32NoAccess
+                                                        else -> s.fw32Fail
+                                                    },
+                                                )
+                                            }
+                                        },
+                                    )
+                                }
+                                Item(
+                                    s.fw32Copy,
+                                    s.fw32CopyHint,
+                                    onClick = {
+                                        val text = org.icdqcow2.core.FirmwareStore.qemuArgs()
+                                        val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                                            as? android.content.ClipboardManager
+                                        if (cm == null) onToast(s.fw32Fail) else {
+                                            cm.setPrimaryClip(android.content.ClipData.newPlainText("qemu", text))
+                                            onToast(s.fw32Copied)
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                        BlockEnter(5) {
+                            GroupTitle(s.fw32HowTitle)
+                            GroupCard {
+                                Text(
+                                    s.fw32How,
+                                    style = MiuixTheme.textStyles.footnote1,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                )
+                            }
+                        }
+                    }
+
+                    BlockEnter(6) {
                         Action(text = s.brAction, enabled = !running, danger = true) {
                             // 引导全过 → 先问一句"真的要重写？"；有问题就直接走原有确认卡
                             if (bootOk == true) askHealthy = true else ask = true
@@ -293,71 +362,6 @@ fun BootRepairPage(
                 }
             }
         }
-        // ── UEFI 32 位：固件 + 注入参数 ────────────────────────────────────────
-        // 32 位 UEFI 不是默认能力，得给 VM 换 32 位固件（pflash 挂两颗芯片）。
-        // 这张卡只在检测到 UEFI 32 时出现，别的盘一眼都看不到。
-        if (mode == BootMode.UEFI32 && win != null) {
-            BlockEnter(5) {
-                GroupTitle(s.fw32Title)
-                GroupCard {
-                    Item(
-                        s.fw32State,
-                        if (fwState.ready) s.fw32Ready else s.fw32Missing,
-                        titleColor = if (fwState.ready) null else MiuixTheme.colorScheme.error,
-                    )
-                    Item(s.fw32Where, org.icdqcow2.core.FirmwareStore.DIR)
-                    if (!fwState.ready) {
-                        Item(
-                            s.fw32Install,
-                            s.fw32InstallHint,
-                            onClick = {
-                                if (fwBusy) return@Item
-                                fwBusy = true
-                                scope.launch {
-                                    val e = withContext(Dispatchers.IO) {
-                                        org.icdqcow2.core.FirmwareStore.ensure(ctx)
-                                    }
-                                    fwBusy = false
-                                    fwState = org.icdqcow2.core.FirmwareStore.state()
-                                    onToast(
-                                        when (e) {
-                                            null -> s.fw32Done
-                                            "no-access" -> s.fw32NoAccess
-                                            else -> s.fw32Fail
-                                        },
-                                    )
-                                }
-                            },
-                        )
-                    }
-                    Item(
-                        s.fw32Copy,
-                        s.fw32CopyHint,
-                        onClick = {
-                            val text = org.icdqcow2.core.FirmwareStore.qemuArgs()
-                            val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
-                                as? android.content.ClipboardManager
-                            if (cm == null) onToast(s.fw32Fail) else {
-                                cm.setPrimaryClip(android.content.ClipData.newPlainText("qemu", text))
-                                onToast(s.fw32Copied)
-                            }
-                        },
-                    )
-                }
-            }
-            BlockEnter(6) {
-                GroupTitle(s.fw32HowTitle)
-                GroupCard {
-                    Text(
-                        s.fw32How,
-                        style = MiuixTheme.textStyles.footnote1,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-            }
-        }
-
         Spacer(Modifier.height(24.dp))
     }
 
@@ -378,9 +382,12 @@ fun BootRepairPage(
     }
 
     if (ask && win != null && snap != null) {
+        // 目标分区：UEFI 写 ESP，BIOS 写系统分区
+        val tgt = (if (uefi) snap!!.esp()?.lba ?: win.lba else win.lba)
+        val tgtNo = snap!!.parts.indexOfFirst { it.lba == tgt } + 1
         ConfirmDialog(
             title = s.brConfirmTitle,
-            summary = s.brConfirmBody,
+            summary = s.brConfirmBody(tgtNo),
             confirmText = s.brAction,
             cancelText = s.cancel,
             danger = true,
