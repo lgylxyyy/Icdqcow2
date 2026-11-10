@@ -119,6 +119,54 @@ object ImageRepo {
     fun displayName(path: String?): String? =
         path?.let { File(it).name.removeSuffix(".qcow2") }
 
+    /**
+     * 按魔数判磁盘格式，返回后缀名：`qcow2` / `vhd` / `vhdx` / `vmdk` / `wim` / `iso`。
+     *
+     * 只读文件头尾各 512 字节，不进工具、不解码。判不出返回 null（raw 与任意文件无法区分，
+     * 这里**不猜**）。Vectras VM 这类启动器把映像存成无后缀的名字，
+     * 页面上不补后缀就看不出是什么格式，用它补。
+     */
+    fun diskSuffix(path: String?): String? {
+        if (path == null || path.startsWith("content://")) return null
+        val f = File(path)
+        if (!f.isFile) return null
+        fun ascii(b: ByteArray, i: Int, txt: String): Boolean {
+            if (i + txt.length > b.size) return false
+            for (k in txt.indices) if ((b[i + k].toInt() and 0xFF) != txt[k].code) return false
+            return true
+        }
+        return runCatching {
+            java.io.RandomAccessFile(f, "r").use { raf ->
+                val head = ByteArray(512)
+                val hn = raf.read(head)
+                val h = if (hn > 0) head.copyOf(hn) else ByteArray(0)
+                val magic = when {
+                    h.size >= 4 && (h[0].toInt() and 0xFF) == 0x51 && (h[1].toInt() and 0xFF) == 0x46 &&
+                        (h[2].toInt() and 0xFF) == 0x49 && (h[3].toInt() and 0xFF) == 0xFB -> "qcow2"
+                    ascii(h, 0, "KDMV") -> "vmdk"
+                    ascii(h, 0, "vhdxfile") -> "vhdx"
+                    ascii(h, 0, "conectix") -> "vhd"
+                    ascii(h, 0, "MSWIM") -> "wim"
+                    else -> null
+                }
+                if (magic != null) return@use magic
+                // 固定 VHD 的 footer 在末尾 512 字节
+                if (raf.length() >= 512) {
+                    raf.seek(raf.length() - 512)
+                    val tail = ByteArray(512)
+                    if (raf.read(tail) == 512 && ascii(tail, 0, "conectix")) return@use "vhd"
+                }
+                // ISO 的卷描述符在 32 KiB 处（0x8000 + 1）
+                if (raf.length() >= 32774) {
+                    raf.seek(32769)
+                    val d = ByteArray(5)
+                    if (raf.read(d) == 5 && ascii(d, 0, "CD001")) return@use "iso"
+                }
+                null
+            }
+        }.getOrNull()
+    }
+
     // ── 命令 ──
 
     /** 建盘结果：`extrasDropped` = 工具端不接受额外分区参数、已退回只建必要分区。 */

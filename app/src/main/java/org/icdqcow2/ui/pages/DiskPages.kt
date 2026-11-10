@@ -1788,9 +1788,27 @@ fun PartsPage(
 private val DRAFT_ADD = Color(0xFF2E9E4F)
 
 /** 显示用的文件名：路径取 basename，SAF 的 content:// 取最后一段并解码。 */
-internal fun pickName(p: String): String =
-    if (p.startsWith("content://")) android.net.Uri.decode(p.substringAfterLast('/'))
-    else ImageRepo.displayName(p) ?: p
+/** 磁盘/映像类后缀。名字已带这些后缀就原样显示，不再补。 */
+private val DISK_EXT = setOf(
+    "qcow2", "qcow", "img", "raw", "dd", "vhd", "vhdx", "vmdk", "vdi",
+    "iso", "wim", "esd", "swm",
+)
+
+/** 同一路径只算一次（读文件头有 IO，别在每次重组时重读）。 */
+private val pickNameCache = HashMap<String, String>()
+
+/**
+ * 页面上显示的文件名，**带后缀**。
+ *
+ * 启动器（Vectras VM 等）把映像存成无后缀的名字，光看 `jyrf5cw96s20763` 分不出是 qcow2 还是 vhd。
+ * 名字没有后缀时按魔数补一个；判不出的格式不加后缀，不猜。
+ */
+internal fun pickName(p: String): String = pickNameCache.getOrPut(p) {
+    val raw = if (p.startsWith("content://")) android.net.Uri.decode(p.substringAfterLast('/'))
+    else File(p).name.ifBlank { p }
+    val ext = raw.substringAfterLast('.', "").lowercase()
+    if (ext in DISK_EXT) raw else ImageRepo.diskSuffix(p)?.let { "$raw.$it" } ?: raw
+}
 
 /** 诊断串：文件到底存不存在、能不能读（打不开时显示给用户，便于判断是权限还是路径）。 */
 private fun diag(path: String?): String {
@@ -1923,7 +1941,7 @@ fun FormatPage(onBack: () -> Unit, onToast: (String) -> Unit) {
         // 顶部统一模板（所有页面一套）：点卡片 = 打开镜像所在文件夹
         if (image != null) {
             CurrentFileCard(
-                name = ImageRepo.displayName(image) ?: "—",
+                name = image?.let { pickName(it) } ?: "—",
                 path = image,
                 onToast = onToast,
             )
@@ -2112,7 +2130,7 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
 
     SmallTitlePage(title = s.cmpTitle, onBack = onBack) {
         GroupCard {
-            Item(s.cmpSource, name)
+            Item(s.cmpSource, pickName(image.orEmpty()))
             if (srcBytes > 0L) Item(s.cmpDisk, s.fmtDiskSize(fmtBytes(capBytes), fmtBytes(srcBytes)))
         }
 
