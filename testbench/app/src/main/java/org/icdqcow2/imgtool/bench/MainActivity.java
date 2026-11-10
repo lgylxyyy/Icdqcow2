@@ -364,12 +364,11 @@ public class MainActivity extends Activity {
             } catch (Throwable e) {
                 r = "{\"ok\":false,\"err\":\"" + e + "\"}";
             }
-            // r 理论上不会为 null，但 CodeQL 按数据流看得到 null 分支 —— 统一兜成空串
-            final String res = r == null ? "" : r;
+            final String res = r;
             final long ms = System.currentTimeMillis() - t0;
             ui.post(() -> {
                 busy = false;
-                boolean ok = res != null && res.contains("\"ok\":true");
+                boolean ok = res.contains("\"ok\":true");
                 out.setText((banner.startsWith("解析") ? banner + "\n" : "")
                         + (ok ? "✔ " : "✘ ") + ms + " ms\n" + pretty(res));
                 appendLog((ok ? "✔ " : "✘ ") + cmd + " → " + (res.length() > 1500 ? res.substring(0, 1500) + "…" : res));
