@@ -683,8 +683,6 @@ fun WinRePage(
     initialImage: String? = null,
     /** 自检页带进来时用来跳「分区管理」；单独打开时为 null。 */
     onOpenParts: (() -> Unit)? = null,
-    /** 写入成功后的去处（用户要求：直接回 App 首页）。 */
-    onFinish: (() -> Unit)? = null,
 ) {
     val s = LocalStrings.current
     val scope = rememberCoroutineScope()
@@ -826,7 +824,20 @@ fun WinRePage(
         val sysLba = win?.lba ?: 0L
         val fromFile = srcFile
         val hit = probeHit
-        if (fromFile != null) {
+
+        // ★ ramdisk 要的 `boot.sdi`：工具端只吃本地文件，先从系统盘三个标准位置取一份。
+        //   用户 2026-11-11：重写 WinRE 之后 boot.sdi 反而没了 —— 因为以前这里**根本没传**
+        //   `bootsdi-src`，而 `recovery.populate` 不传就不写它。
+        val sdiLocal: File? = if (sysLba > 0L) {
+            val src = SDI_SOURCES.firstOrNull { ImageRepo.ntfsExists(sysLba, it, img) == true }
+            if (src != null) {
+                val dir = File(TempDirs.stagingDir(ctx), "wr").apply { mkdirs() }
+                val f = File(dir, "boot.sdi")
+                if (ImageRepo.ntfsExport(sysLba, src, f.absolutePath, img).ok) f else null
+            } else null
+        } else null
+
+        val r = if (fromFile != null) {
             ImageRepo.recoveryPopulate(
                 lba = lba,
                 wim = fromFile,
@@ -834,6 +845,7 @@ fun WinRePage(
                 inner = hit?.inner,
                 winrePath = hit?.internalPath,
                 enableScript = withScript,
+                bootsdi = sdiLocal?.absolutePath,
                 osLba = sysLba,
                 system = useSystem,
                 // 独立恢复分区才格式化；系统分区那条（useSystem）绝不能格
@@ -852,6 +864,7 @@ fun WinRePage(
                     lba = lba,
                     wim = local.absolutePath,
                     enableScript = withScript,
+                    bootsdi = sdiLocal?.absolutePath,
                     osLba = sysLba,
                     system = useSystem,
                     format = !useSystem,
@@ -859,6 +872,16 @@ fun WinRePage(
                 )
             }
         }
+
+        // ★ 工具端 `recovery.populate` **不写 ReAgent.xml**（`img_ntfs_write_reagent`
+        //   有实现但没有调用者），写完 WinRE 得自己补一份，否则自检照样报缺失。
+        if (r.ok && !useSystem) {
+            repairRecInPlace(
+                ctx = ctx, img = img, sysLba = sysLba, recLba = lba,
+                needSdi = false, needAgent = true, withScript = false,
+            )
+        }
+        r
     }
 
     SmallTitlePage(title = s.wrTitle, onBack = onBack) {
@@ -1135,8 +1158,13 @@ fun WinRePage(
                                         val r = writeNow(img, useSys, targetLba, script)
                                         running = false
                                         if (r.ok) {
+                                            // 统一：写盘成功**不自动跳页**，留在本页显示结果，
+                                            // 由用户点返回（返回 = 上一级，不是首页）
                                             onToast(s.wrOk)
-                                            (onFinish ?: onBack).invoke()
+                                            result = s.wrOk
+                                            mode = null
+                                            expanded = false
+                                            tick += 1
                                         } else {
                                             result = s.wrFail + "：" + toolErrorText(s, r)
                                             onToast(result!!)

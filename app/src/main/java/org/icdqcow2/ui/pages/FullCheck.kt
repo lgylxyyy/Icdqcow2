@@ -690,8 +690,6 @@ fun FullCheckPage(
                     initialImage = image,
                     // 「去分区管理」在这一层换成兄弟页，不用退回主页
                     onOpenParts = { sub = "parts" },
-                    // 写完回首页（和单独打开这一页时一致）
-                    onFinish = onBack,
                 )
                 "bootrepair" -> BootRepairPage(onBack = backFromSub, onToast = onToast, initialImage = image)
                 else -> SmallTitlePage(title = s.fcTitle, onBack = onBack, subtitle = subtitle) {
