@@ -835,7 +835,7 @@ private fun CreateDiskForm(
                 )
                 if (draft.ptRaw != null) {
                     Item(s.ptxTable, s.ptInfo(draft.ptTable ?: "?", draft.ptParts))
-                    Item(s.ptxNeed, s.ptNeed(draft.ptNeedGb))
+                    Item(s.ptxMinNeed, s.ptNeed(draft.ptNeedGb))
                 }
                 // 和普通建盘同一个开关：分区表落好之后按角色格式化（ESP→FAT32、数据区→NTFS…）
                 Item(

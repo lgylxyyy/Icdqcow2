@@ -159,6 +159,8 @@ class Strings(val code: String) {
     val ptxTable get() = raw("ptx.table")
     fun ptxTableValue(table: String, n: Int) = tpl("ptx.tableValue", table, n)
     val ptxNeed get() = raw("ptx.need")
+    /** 建盘 · 应用分区表那一行用的「最少需要」口径。 */
+    val ptxMinNeed get() = raw("ptx.minNeed")
     fun ptxNeedValue(gb: Int) = tpl("ptx.needValue", gb)
     val ptxNone get() = raw("ptx.none")
     val ptxBad get() = raw("ptx.bad")

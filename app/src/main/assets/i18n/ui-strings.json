@@ -513,14 +513,14 @@
       "note": "分区表 · 信息行 · ptx.tableValue"
     },
     "ptx.need": {
-      "zh": "最少需要",
-      "en": "Needs at least",
-      "note": "分区表、建盘 · 信息行 · ptx.need"
+      "zh": "磁盘大小",
+      "en": "Disk size",
+      "note": "导出分区表 · 信息行 · 该分区表要求的最小磁盘容量"
     },
     "ptx.needValue": {
-      "zh": "{0} GB 的盘",
-      "en": "{0} GB disk",
-      "note": "分区表 · 信息行 · ptx.needValue"
+      "zh": "{0} GB",
+      "en": "{0} GB",
+      "note": "导出分区表 · 信息行 · {0} = 最小磁盘容量，单位 GB"
     },
     "ptx.none": {
       "zh": "这张盘还没有分区表",
@@ -538,9 +538,9 @@
       "note": "分区表 · 提示行 · ptx.noData"
     },
     "ptx.save": {
-      "zh": "保存到",
-      "en": "Save to",
-      "note": "分区表 · 提示气泡 · ptx.save"
+      "zh": "导出分区表",
+      "en": "Export table",
+      "note": "导出分区表 · 主按钮"
     },
     "ptx.saved": {
       "zh": "已保存 {0}",
@@ -4921,6 +4921,11 @@
       "zh": "检查失败",
       "en": "Check failed",
       "note": "引导修复 · 信息行 · boot.check 命令失败时的标题，下面跟具体错误"
+    },
+    "ptx.minNeed": {
+      "zh": "最少需要",
+      "en": "Needs at least",
+      "note": "建盘 · 应用分区表 · 信息行 · 该分区表要求的最小容量"
     }
   }
 }
