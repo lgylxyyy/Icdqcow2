@@ -26,22 +26,6 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Tasks
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/** 任务中心：装机、复制、校验都排队在这里。 */
-@Composable
-fun TasksPage(onBack: () -> Unit, onToast: (String) -> Unit) {
-    SmallTitlePage(title = "任务中心", onBack = onBack) {
-        EmptyCard(
-            icon = MiuixIcons.Tasks,
-            title = "没有进行中的任务",
-            desc = "装机、导入、导出、校验会在后台排队；任务运行时这里的图标会转，未完成任务在杀进程后会被标记为中断。",
-        )
-        GroupCard {
-            Item("同时运行", "1 个（工具端串行）")
-            Item("完成后通知", "开启", onClick = { onToast("通知权限：待接入") })
-        }
-    }
-}
-
 /** 控制台：输入命令，看工具端原始输出。 */
 @Composable
 fun ConsolePage(onBack: () -> Unit, onToast: (String) -> Unit) {

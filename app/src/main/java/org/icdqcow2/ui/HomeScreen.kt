@@ -36,7 +36,6 @@ import top.yukonga.miuix.kmp.icon.extended.ListView
 import top.yukonga.miuix.kmp.icon.extended.Merge
 import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Reset
-import top.yukonga.miuix.kmp.icon.extended.Timer
 import top.yukonga.miuix.kmp.icon.extended.Update
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -61,11 +60,6 @@ fun HomeScreen(onOpen: (String) -> Unit) {
     val partners by org.icdqcow2.core.PartnerGate.active.collectAsState()
     LargeTitlePage(
         title = s.homeTitle,
-        actions = {
-            IconButton(onClick = { onOpen("tasks") }) {
-                Icon(MiuixIcons.Timer, contentDescription = null)
-            }
-        },
     ) {
         // 伙伴联动：命中时在顶部给出明确说明。不静默隐藏功能 —— 那会被当成 bug。
         if (partners.isNotEmpty()) {

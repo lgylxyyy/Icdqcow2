@@ -2,7 +2,6 @@ package org.icdqcow2.ui
 
 /** 二级页面路由 → 标题。加页面时这里和 `PageScreen` 的 `when` 一起改。 */
 val PAGE_TITLES: Map<String, String> = mapOf(
-    "tasks" to "任务中心",
     "console" to "控制台",
     "create" to "创建磁盘",
     "parts" to "分区管理",

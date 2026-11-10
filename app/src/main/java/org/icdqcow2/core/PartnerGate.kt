@@ -100,7 +100,6 @@ object PartnerGate {
         "verify",     // 全量自检
         "registry",   // 注册表浏览（主页最后一格）
         "capture",    // 导出注册表 / 捕获映像（主页最后一格）
-        "tasks",      // 主页右上角「任务中心」
         // 主页之外、同样会写镜像的入口
         "format",     // 格式化
         "import",     // 导入（写目标盘）

@@ -36,7 +36,6 @@ fun PageHost(
         "export" -> ExportPage(onBack, onToast)
         "bootrepair" -> BootRepairPage(onBack, onToast, initialImage = arg)
         "winre" -> WinRePage(onBack, onToast, initialImage = arg, onFinish = onBack)
-        "tasks" -> TasksPage(onBack, onToast)
         "console" -> ConsolePage(onBack, onToast)
         "errors" -> ErrorsPage(onBack, onToast)
         // 许可证：列表 → 点卡片进全文（全文页用 route 编码 `license:<文件名>`）
