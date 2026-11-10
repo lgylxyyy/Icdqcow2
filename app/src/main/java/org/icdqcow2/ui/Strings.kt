@@ -985,6 +985,7 @@ class Strings(val code: String) {
     val fw32How get() = raw("br.fw32.how")
 
     // ── 引导修复页 · 引导正常时的二次确认 ──
+    val brHealthyTitle get() = raw("br.healthy.title")
     val brHealthyBody get() = raw("br.healthy.body")
     val brHealthyGo get() = raw("br.healthy.go")
 
