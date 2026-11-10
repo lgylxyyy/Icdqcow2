@@ -51,7 +51,14 @@ android {
     }
 
     buildTypes {
-        debug { isMinifyEnabled = false }
+        debug {
+            isMinifyEnabled = false
+            // 本机调试包也用发布密钥签名（密钥存在时）：与 GitHub 正式版保持同一身份，
+            // 两者可以互相覆盖安装，不用先卸载丢数据。区分版本看「设置 · 关于」里的
+            // 构建标识（local / ci-N）与是否混淆，不看签名。
+            signingConfig = if (keystorePropsFile.exists())
+                signingConfigs.getByName("release") else signingConfigs.getByName("debug")
+        }
         release {
             // 正式版（GitHub 发布用）：开 R8 混淆 + 资源压缩，体积从 ~63 MB 降到 20 MB 级。
             // 调试版（本机装）保持不混淆，方便看堆栈。两条产物签名相同（都用密钥库里的那把），
