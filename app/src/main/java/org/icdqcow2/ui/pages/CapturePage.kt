@@ -3,6 +3,7 @@ package org.icdqcow2.ui.pages
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.icdqcow2.core.ImageRepo
+import org.icdqcow2.core.ToolEvents
 import org.icdqcow2.core.ToolRunner
 import org.icdqcow2.ui.LocalStrings
 import org.icdqcow2.ui.SmallTitlePage
@@ -40,6 +42,8 @@ fun CapturePage(
 ) {
     val s = LocalStrings.current
     val scope = rememberCoroutineScope()
+    // 进度页数据源：工具端事件流（REQ-68 钉了 pct/elapsed/eta/phase/item 的口径）
+    val prog by ToolEvents.progress.collectAsState()
 
     var image by remember { mutableStateOf(initialImage) }
     var winLba by remember { mutableStateOf<Long?>(null) }
@@ -165,110 +169,127 @@ fun CapturePage(
     }
 
     SmallTitlePage(title = s.capTitle, onBack = onBack) {
-        BlockEnter(0) {
-            GroupTitle(s.regImage)
-            if (image == null) {
-                Note(s.regNeedImage)
-                PickImagePage(onPicked = { p, uri -> image = p ?: uri })
-            } else {
-                CurrentFileCard(name = pickName(image!!), path = image, onToast = onToast)
+        if (running) {
+            // 整页只留进度：圆盘 + 蓝边 + 圆心百分比 + 内下方时间 + 外下方当前文件
+            BlockEnter(0) {
+                RunProgressBlock(
+                    pct = prog?.pct ?: -1,
+                    timeText = progressTimeText(prog?.elapsedMs ?: 0L, prog?.eta ?: -1),
+                    phase = progressPhaseText(prog?.phase),
+                    countsText = prog?.let { g ->
+                        val tb = g.totalBytes
+                        if (tb > 0L) fmtBytes(g.curBytes) + "/" + fmtBytes(tb) else null
+                    },
+                    item = prog?.item?.takeIf { it.isNotBlank() },
+                )
             }
-        }
+            Action(text = s.cancel, danger = true) { ToolRunner.cancel() }
+        } else {
+            BlockEnter(0) {
+                GroupTitle(s.regImage)
+                if (image == null) {
+                    Note(s.regNeedImage)
+                    PickImagePage(onPicked = { p, uri -> image = p ?: uri })
+                } else {
+                    CurrentFileCard(name = pickName(image!!), path = image, onToast = onToast)
+                }
+            }
 
-        if (image != null && winLba != null) {
-            BlockEnter(1) {
-                GroupTitle(s.capOut)
-                TextField(
-                    value = outPath,
-                    onValueChange = { outPath = it },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Note(s.capOutHint)
-            }
-            BlockEnter(2) {
-                GroupTitle(s.capComp)
-                ChoiceCard(
-                    options = ImageRepo.CAPTURE_COMP.map { Choice(it, s.capCompHint(it)) },
-                    selected = ImageRepo.CAPTURE_COMP.indexOf(comp).coerceAtLeast(0),
-                ) { i ->
-                    if (comp != ImageRepo.CAPTURE_COMP[i]) {
-                        comp = ImageRepo.CAPTURE_COMP[i]
-                        // 换压缩方式 → 估算作废，把「估算大小」按钮放回来重估一次
-                        needBytes = null
-                        result = null
-                        err = null
+            if (image != null && winLba != null) {
+                BlockEnter(1) {
+                    GroupTitle(s.capOut)
+                    TextField(
+                        value = outPath,
+                        onValueChange = { outPath = it },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Note(s.capOutHint)
+                }
+                BlockEnter(2) {
+                    GroupTitle(s.capComp)
+                    ChoiceCard(
+                        options = ImageRepo.CAPTURE_COMP.map { Choice(it, s.capCompHint(it)) },
+                        selected = ImageRepo.CAPTURE_COMP.indexOf(comp).coerceAtLeast(0),
+                    ) { i ->
+                        if (comp != ImageRepo.CAPTURE_COMP[i]) {
+                            comp = ImageRepo.CAPTURE_COMP[i]
+                            // 换压缩方式 → 估算作废，把「估算大小」按钮放回来重估一次
+                            needBytes = null
+                            result = null
+                            err = null
+                        }
                     }
                 }
-            }
-            BlockEnter(3) {
-                GroupTitle(s.capName)
-                TextField(
-                    value = capName,
-                    onValueChange = { capName = it.take(64) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            BlockEnter(4) {
-                when {
-                    needBytes == null ->
-                        Action(text = s.capEstimate, enabled = !loading && !running) { estimate() }
-                    else -> {
-                        GroupCard {
-                            Item(
-                                s.capEstNeed,
-                                fmtBytes(needBytes!!) + " · " + needFiles + " " + s.capFiles,
-                            )
-                            Item(
-                                s.capTmpFree,
-                                (tmpFree?.let { fmtBytes(it) } ?: "—") +
-                                    if (tmpPath.isBlank()) "" else " · " + tmpPath,
-                            )
-                            Item(s.capOutFree, outFree?.let { fmtBytes(it) } ?: "—")
-                        }
-                        when {
-                            tmpShort() -> {
-                                Note(
-                                    s.capNoSpaceTmp(
-                                        fmtBytes(needBytes!!),
-                                        fmtBytes(tmpFree ?: 0L),
-                                    ),
-                                    warn = true,
+                BlockEnter(3) {
+                    GroupTitle(s.capName)
+                    TextField(
+                        value = capName,
+                        onValueChange = { capName = it.take(64) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                BlockEnter(4) {
+                    when {
+                        needBytes == null ->
+                            Action(text = s.capEstimate, enabled = !loading && !running) { estimate() }
+                        else -> {
+                            GroupCard {
+                                Item(
+                                    s.capEstNeed,
+                                    fmtBytes(needBytes!!) + " · " + needFiles + " " + s.capFiles,
                                 )
+                                Item(
+                                    s.capTmpFree,
+                                    (tmpFree?.let { fmtBytes(it) } ?: "—") +
+                                        if (tmpPath.isBlank()) "" else " · " + tmpPath,
+                                )
+                                Item(s.capOutFree, outFree?.let { fmtBytes(it) } ?: "—")
                             }
-                            outHopeless() -> {
-                                Note(s.capNoSpaceOut(fmtBytes(needBytes!!)), warn = true)
+                            when {
+                                tmpShort() -> {
+                                    Note(
+                                        s.capNoSpaceTmp(
+                                            fmtBytes(needBytes!!),
+                                            fmtBytes(tmpFree ?: 0L),
+                                        ),
+                                        warn = true,
+                                    )
+                                }
+                                outHopeless() -> {
+                                    Note(s.capNoSpaceOut(fmtBytes(needBytes!!)), warn = true)
+                                }
+                                else -> {
+                                    Action(text = s.capRun, enabled = !running) { runCapture() }
+                                    if (outTight()) Note(s.capWarnSpace, warn = true)
+                                }
                             }
-                            else -> {
-                                Action(text = s.capRun, enabled = !running) { runCapture() }
-                                if (outTight()) Note(s.capWarnSpace, warn = true)
+                        }
+                    }
+                    if (err != null) Note(err!!, warn = true)
+                }
+                result?.let { r ->
+                    if (r.ok) {
+                        val d = r.data
+                        BlockEnter(5) {
+                            GroupTitle(s.capResult)
+                            GroupCard {
+                                Item(s.capRatio, (d?.optInt("ratio_pct", 0) ?: 0).toString() + "%")
+                                Item(
+                                    s.capInOut,
+                                    fmtBytes(d?.optLong("bytes_in", 0L) ?: 0L) + " → " +
+                                        fmtBytes(d?.optLong("bytes_out", 0L) ?: 0L),
+                                )
+                                // 工具端 REPLY-65：重解析点（junction）与宿主符号链接合并计数，
+                                // 这些内容没有进 WIM，得告诉用户一声
+                                val skipped = d?.optLong("skipped", 0L) ?: 0L
+                                if (skipped > 0L) Item(s.capSkippedTitle, s.capSkipped(skipped))
                             }
                         }
                     }
                 }
-                if (err != null) Note(err!!, warn = true)
+            } else if (image != null && err != null) {
+                BlockEnter(1) { Note(err!!, warn = true) }
             }
-            result?.let { r ->
-                if (r.ok) {
-                    val d = r.data
-                    BlockEnter(5) {
-                        GroupTitle(s.capResult)
-                        GroupCard {
-                            Item(s.capRatio, (d?.optInt("ratio_pct", 0) ?: 0).toString() + "%")
-                            Item(
-                                s.capInOut,
-                                fmtBytes(d?.optLong("bytes_in", 0L) ?: 0L) + " → " +
-                                    fmtBytes(d?.optLong("bytes_out", 0L) ?: 0L),
-                            )
-                            // 工具端 REPLY-65：重解析点（junction）与宿主符号链接合并计数，
-                            // 这些内容没有进 WIM，得告诉用户一声
-                            val skipped = d?.optLong("skipped", 0L) ?: 0L
-                            if (skipped > 0L) Item(s.capSkippedTitle, s.capSkipped(skipped))
-                        }
-                    }
-                }
-            }
-        } else if (image != null && err != null) {
-            BlockEnter(1) { Note(err!!, warn = true) }
         }
     }
 }

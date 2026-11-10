@@ -4956,6 +4956,36 @@
       "zh": "跳过的链接",
       "en": "Skipped links",
       "note": "捕获映像 · 结果卡 · 「跳过 N 个链接」那一行的标题"
+    },
+    "prog.phase.extract": {
+      "zh": "正在抽取文件",
+      "en": "Extracting files",
+      "note": "进度页 · 阶段文字（wim.capture 把分区树解到临时目录）"
+    },
+    "prog.phase.pack": {
+      "zh": "正在打包 WIM",
+      "en": "Packing the WIM",
+      "note": "进度页 · 阶段文字（wimlib 扫描并打包）"
+    },
+    "prog.phase.write": {
+      "zh": "正在写出 WIM",
+      "en": "Writing the WIM",
+      "note": "进度页 · 阶段文字（把 WIM 落盘）"
+    },
+    "prog.phase.copy": {
+      "zh": "正在复制",
+      "en": "Copying",
+      "note": "进度页 · 阶段文字（通用 copy/克隆）"
+    },
+    "prog.time": {
+      "zh": "已用 {0} · 约剩 {1}",
+      "en": "{0} elapsed · about {1} left",
+      "note": "进度页 · 圆盘内下方那行小字（已用 + 预计剩余）"
+    },
+    "prog.timeUnknown": {
+      "zh": "已用 {0} · 估算中",
+      "en": "{0} elapsed · estimating",
+      "note": "进度页 · 还没算出剩余时间时的写法"
     }
   }
 }

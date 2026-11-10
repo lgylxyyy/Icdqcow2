@@ -31,6 +31,8 @@ object ToolEvents {
         val op: String,
         val item: String,
         val msg: String,
+        /** 本命令已运行毫秒（`elapsed`）。进度页圆盘内那行「已用」直接用它，不用 App 侧计时。 */
+        val elapsedMs: Long = 0L,
         /** 工具端算好的**全局单调**进度（`-1` = 还没算出来）。REPLY-49：wim.apply 直接用它。 */
         val overallPct: Int = -1,
         val overallCurBytes: Long = 0L,
@@ -84,6 +86,7 @@ object ToolEvents {
                 op = f.optString("op"),
                 item = f.optString("item"),
                 msg = f.optString("msg"),
+                elapsedMs = f.optLong("elapsed", 0L),
                 overallPct = f.optInt("overall_pct", -1),
                 overallCurBytes = f.optLong("overall_cur_bytes", 0L),
                 overallTotalBytes = f.optLong("overall_total_bytes", 0L),

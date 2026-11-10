@@ -1127,12 +1127,18 @@ private fun DeployRunPage(
         // 没真正跑完之前最多显示 95%：以前会 50% 直接跳 100%
         val pct = if (run.done || run.error != null) blended else blended.coerceAtMost(95)
         val done = if (expandNow > 0L) expandNow * pct / 100 else 0L
-        val detail = if (expandNow > 0L && done > 0L) {
-            "$pct% · ${fmtBytes(done)}/${fmtBytes(expandNow)}"
-        } else {
-            "$pct%"
-        }
-        ProgressBar(pct, detail)
+        // 统一进度模板（圆盘 + 蓝边 + 圆心百分比 + 内下方时间 + 外下方当前文件）
+        RunProgressBlock(
+            pct = pct,
+            timeText = progressTimeText(progress?.elapsedMs ?: 0L, etaSec),
+            phase = progressPhaseText(progress?.phase),
+            countsText = if (expandNow > 0L && done > 0L) {
+                "${fmtBytes(done)}/${fmtBytes(expandNow)}"
+            } else {
+                null
+            },
+            item = progress?.item?.takeIf { it.isNotBlank() },
+        )
 
         GroupCard {
             run.steps.forEachIndexed { i, name ->
