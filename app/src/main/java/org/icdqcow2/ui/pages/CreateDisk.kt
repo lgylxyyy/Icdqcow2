@@ -439,6 +439,31 @@ private const val APPLY = 3
  *
  * 结构：保存位置 → 镜像名 / 容量 → 磁盘类型 → 分区设置（二级页）→ 创建。
  */
+/**
+ * 目录里已有同名文件就顺延成 `名称 (1)`、`名称 (2)`…
+ *
+ * ★ 必须在**组合阶段**就能调用（`remember` 里算），不能只靠 `LaunchedEffect`：
+ *   effect 是"第一帧画完才跑"，那一帧按旧名字渲染 → 会先闪一条「同名映像已存在」
+ *   再改名（用户 2026-11-11 报了两次，第二次就是因为我上次只加了显示门控）。
+ *
+ * @param dup 名字模板（`name.dup`，中英都是 `{0} ({1})`）
+ */
+private fun uniqueNameIn(
+    dir: File,
+    ext: String,
+    wanted: String,
+    dup: (String, Int) -> String,
+): String {
+    if (!File(dir, "$wanted.$ext").exists()) return wanted
+    val suffix = 4                       // " (n)" = 空格 + ( + 数字 + )
+    val keep = (DiskLimits.NAME_MAX - suffix - 1).coerceAtLeast(1)
+    for (n in 1..99) {
+        val cand = dup(wanted.take(keep), n)
+        if (!File(dir, "$cand.$ext").exists()) return cand
+    }
+    return wanted                       // 99 个都撞上：保持原名，让冲突照常报出来
+}
+
 @Composable
 fun CreateDiskPage(
     onBack: () -> Unit,
@@ -453,7 +478,16 @@ fun CreateDiskPage(
     onCreated: ((String) -> Unit)? = null,
 ) {
     val s = LocalStrings.current
-    val draft = remember { DiskDraft(s.defaultImageName) }
+    // 名字在**第一帧之前**就算好：保存目录里已经有默认名的文件，直接启动成 `名称 (1)`。
+    // 这样界面从头到尾都不会出现"先报冲突、再改名"的闪烁。
+    val startDir = run {
+        val custom = ImageRepo.customDir.value
+        if (ImageRepo.mode.value == ImageRepo.SaveMode.Custom && !custom.isNullOrBlank()) File(custom)
+        else ImageRepo.defaultDir()
+    }
+    val draft = remember {
+        DiskDraft(uniqueNameIn(startDir, "qcow2", s.defaultImageName) { b, n -> s.nameDup(b, n) })
+    }
     var planOpen by remember { mutableStateOf(false) }
     var planDraft by remember { mutableStateOf<DiskDraft?>(null) }
     /** 退场动画期间还要用它渲染分区设置页——closePlan() 会把 planDraft 置空，
@@ -640,10 +674,9 @@ private fun CreateDiskForm(
         else StorageAccess.canWrite(ImageRepo.defaultDir())
     }
 
-    // ★ 进页面那一下会"闪"一条「同名映像已存在」（用户 2026-11-11 报的）：
-    //   下面是 LaunchedEffect 做的事 —— **第一帧还没跑**，此刻 draft.name 仍是上一版留下的
-    //   默认名（文件确实存在），界面上先把冲突红字画了出来，下一帧顺延成 `名称 (1)` 才消失。
-    //   这个开关就是"顺延算完了没"：没算完的那一帧不报冲突，按钮也照旧不亮。
+    // 名字在 CreateDiskPage 的 remember 里**第一帧之前**就算好了（uniqueNameIn），
+    // 所以这里不再依赖「先画一帧旧名字」；下面这个开关只是换目录时的保险：
+    // 换目录要重新算一遍，算完之前不报冲突（用户 2026-11-11 反馈闪两次，这里彻底断根）。
     var nameResolved by remember(targetDir) { mutableStateOf(false) }
 
     // 默认名已被占用 → 自动顺延：`名称 (1)` / `名称 (2)`…
@@ -651,24 +684,9 @@ private fun CreateDiskForm(
     //   同一个目录里中英两套写法并存，看着不统一）。
     // 只在进页面/换目录时算一次：用户之后手改的名字不会被抢回去。
     LaunchedEffect(targetDir) {
-        val base = draft.name
-        if (base.isBlank() || !File(targetDir, "$base.${draft.format}").exists()) {
-            nameResolved = true
-            return@LaunchedEffect
-        }
-        val suffix = 4 // " (1)" = 空格 + "(" + 数字 + ")"，正好 4 个字符
-        val keep = (DiskLimits.NAME_MAX - suffix - 1).coerceAtLeast(1)
-        var n = 1
-        while (n <= 99) {
-            val candidate = s.nameDup(base.take(keep), n)
-            if (!File(targetDir, "$candidate.${draft.format}").exists()) {
-                draft.name = candidate
-                nameResolved = true
-                return@LaunchedEffect
-            }
-            n++
-        }
-        nameResolved = true   // 99 个都撞上了：让"冲突"照常显示，别把按钮一直锁着
+        // 幂等：名字本来就能用就原样返回；换个目录需要重新算一遍。
+        draft.name = uniqueNameIn(targetDir, draft.format, draft.name) { b, n -> s.nameDup(b, n) }
+        nameResolved = true
     }
 
     val sizeGb = draft.sizeGb.toIntOrNull() ?: 0
