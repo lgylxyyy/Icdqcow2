@@ -96,12 +96,25 @@ object WinEdition {
         displayVersion: String? = null,
         releaseId: String? = null,
         ubr: Int = 0,
+        /** 注册表 `CSDVersion`：`Service Pack 3`（XP/7 这类才有关）。 */
+        csdVersion: String? = null,
     ): String? {
         val name = label(productName, editionId, build, installationType) ?: return null
         val rel = displayVersion?.trim()?.ifBlank { null }
             ?: releaseId?.trim()?.ifBlank { null }
         val ver = if (ubr > 0) "$build.$ubr" else build.toString()
-        return if (rel != null) "$name $rel · $ver" else "$name · $ver"
+        // SP 走名字后面（Windows 自己也这么写：Windows XP Professional Service Pack 3），
+        // 但压成 `SP3` —— 8.1/Win10 之后没有 CSDVersion，这一段自然就没有。
+        val sp = csdVersion?.trim()?.ifBlank { null }?.let { raw ->
+            Regex("^Service\\s*Pack\\s*(\\d+)$", RegexOption.IGNORE_CASE)
+                .find(raw)?.let { "SP${it.groupValues[1]}" } ?: raw
+        }
+        val head = buildString {
+            append(name)
+            if (sp != null) append(' ').append(sp)
+            if (rel != null) append(' ').append(rel)
+        }
+        return "$head · $ver"
     }
 
     /**

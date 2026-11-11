@@ -307,6 +307,8 @@ internal suspend fun buildFcReport(
                     displayVersion = vd?.optString("registry.display_version"),
                     releaseId = vd?.optString("registry.release_id"),
                     ubr = vd?.optInt("registry.ubr", 0) ?: 0,
+                    // 工具端还没回这个字段时是 null/空串，`summary` 自己会忽略
+                    csdVersion = vd?.optString("registry.csd_version"),
                 )
             } else {
                 null
