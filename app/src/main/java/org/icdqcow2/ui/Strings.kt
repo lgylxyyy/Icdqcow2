@@ -291,6 +291,8 @@ class Strings(val code: String) {
     /** 建完盘后正在按角色格式化（比"正在创建"更准确）。 */
     val formatting get() = raw("create.action.formatting")
     val noteNameExists get() = raw("create.note.nameExists")
+    fun createNameAuto(name: String) = tpl("create.nameAuto", name)
+    val createNameWillAuto get() = raw("create.nameWillAuto")
     val notePlanOver get() = raw("create.note.planOver")
     val noteDirBad get() = raw("create.note.dirBad")
     fun noteFailed(code: String) = tpl("create.note.failed", code)

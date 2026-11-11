@@ -5081,6 +5081,16 @@
       "zh": "未知版本 · {0}",
       "en": "unknown version · {0}",
       "note": "全量自检 · Windows 版本：认得出 build 但认不出产品名时（比如以后的新系统）"
+    },
+    "create.nameAuto": {
+      "zh": "名称重复，已自动加序号：{0}",
+      "en": "Name already exists; a number was appended: {0}",
+      "note": "新建磁盘 · 名称输入框下方（自动顺延后的提示，用户 2026-11-11）"
+    },
+    "create.nameWillAuto": {
+      "zh": "名称重复，创建时会自动加序号",
+      "en": "Name already exists; a number will be appended on create",
+      "note": "新建磁盘 · 名称输入框下方（还没顺延，先提示一句，不拦创建）"
     }
   }
 }

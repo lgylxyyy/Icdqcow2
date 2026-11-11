@@ -44,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.graphicsLayer
@@ -674,11 +675,8 @@ private fun CreateDiskForm(
         else StorageAccess.canWrite(ImageRepo.defaultDir())
     }
 
-    // 名字在 CreateDiskPage 的 remember 里**第一帧之前**就算好了（uniqueNameIn），
-    // 所以这里不再依赖「先画一帧旧名字」；下面这个开关只是换目录时的保险：
-    // 换目录要重新算一遍，算完之前不报冲突（用户 2026-11-11 反馈闪两次，这里彻底断根）。
-    var nameResolved by remember(targetDir) { mutableStateOf(false) }
-
+    /** 刚被自动加过序号的名字（用来在输入框下面显示一句提示）。 */
+    var autoRenamedTo by remember { mutableStateOf<String?>(null) }
     // 默认名已被占用 → 自动顺延：`名称 (1)` / `名称 (2)`…
     // ★ 中英一律**半角括号 + 括号前一个空格**（用户 2026-11-11 定：以前中文用全角，
     //   同一个目录里中英两套写法并存，看着不统一）。
@@ -686,14 +684,30 @@ private fun CreateDiskForm(
     LaunchedEffect(targetDir) {
         // 幂等：名字本来就能用就原样返回；换个目录需要重新算一遍。
         draft.name = uniqueNameIn(targetDir, draft.format, draft.name) { b, n -> s.nameDup(b, n) }
-        nameResolved = true
+    }
+
+    /**
+     * 名字级去重（用户 2026-11-11 定的做法）：
+     * **在名称这一层就把重名解决掉**，创建时不再做"同名就拦下来"的检测 ——
+     * 那样只会让用户点了创建反而弹一句「同名映像已存在」，然后又建出来。
+     */
+    fun dedupeName() {
+        if (draft.name.isBlank()) return
+        val fixed = uniqueNameIn(targetDir, draft.format, draft.name) { b, n -> s.nameDup(b, n) }
+        if (fixed != draft.name) {
+            draft.name = fixed
+            autoRenamedTo = fixed
+        } else {
+            autoRenamedTo = null
+        }
     }
 
     val sizeGb = draft.sizeGb.toIntOrNull() ?: 0
+    // 只用来出"名称重复"的提示；**不参与**能不能创建
     val exists = draft.name.isNotBlank() && File(targetDir, "${draft.name}.${draft.format}").exists()
     val ok = !busy && draft.name.isNotBlank() &&
         sizeGb in draft.minGb..DiskLimits.DISK_MAX_GB &&
-        !exists && draft.planValid && dirWritable &&
+        draft.planValid && dirWritable &&
         // 应用分区表：必须真选到一个能解析的文件
         (draft.table != APPLY || draft.ptRaw != null)
 
@@ -807,8 +821,12 @@ private fun CreateDiskForm(
                     // 允许空格与括号：重名顺延会生成 `名称 (1)`，编辑时不能把它吃掉
                     draft.name = it.filter { c -> c.isLetterOrDigit() || c in "-_ ()（）" }
                         .take(DiskLimits.NAME_MAX)
+                    autoRenamedTo = null       // 用户又开始改了，先别挂上一轮那句提示
                 },
-                modifier = Modifier.fillMaxWidth(),
+                // 编辑完（点别处 / 收起键盘）就顺手去重：撞名自动加序号，不用等到点创建
+                modifier = Modifier.fillMaxWidth().onFocusChanged { st ->
+                    if (!st.isFocused) dedupeName()
+                },
                 trailingIcon = {
                     // 与 GB/MB 完全一致的胶囊：圆角高亮 + ⌃⌄，点按有轻震（打开那次）
                     UnitPill("." + draft.format) { fmtAsk = !fmtAsk }
@@ -822,8 +840,14 @@ private fun CreateDiskForm(
                 onSelected = { i ->
                     draft.format = fmtItems[i].title
                     fmtAsk = false
+                    dedupeName()
                 },
             )
+        }
+        // 名称重复的提示就在输入框下面（不再用"创建时拦下来 + 弹 toast"那套）
+        when {
+            autoRenamedTo != null -> Note(s.createNameAuto(autoRenamedTo!!))
+            exists -> Note(s.createNameWillAuto)
         }
         Note(s.nameHint)
 
@@ -897,7 +921,6 @@ private fun CreateDiskForm(
             draft.name.isBlank() -> s.errNameEmpty
             sizeGb !in draft.minGb..DiskLimits.DISK_MAX_GB ->
                 s.errSize("${draft.minGb}", "${DiskLimits.DISK_MAX_GB}")
-            exists && nameResolved -> s.noteNameExists
             !draft.fits -> s.notePlanOver
             !draft.planValid -> s.outOfRange
             !dirWritable -> s.noteDirBad
@@ -906,7 +929,6 @@ private fun CreateDiskForm(
         }
         // 进页面时只显示"冲突"，不显示"还没填"
         val liveConflict = when {
-            exists && nameResolved -> s.noteNameExists
             !draft.fits -> s.notePlanOver
             !draft.planValid -> s.outOfRange
             !dirWritable -> s.noteDirBad
@@ -989,7 +1011,7 @@ private fun CreateDiskForm(
                         }
                     }
                     ImageRepo.createWithLayout(
-                        name = draft.name,
+                        name = run { dedupeName(); draft.name },
                         sizeGb = sizeGb,
                         parts = list,
                         dir = targetDir,
