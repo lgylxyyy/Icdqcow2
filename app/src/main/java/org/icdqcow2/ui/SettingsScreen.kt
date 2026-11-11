@@ -41,6 +41,7 @@ import org.icdqcow2.ui.pages.Choice
 import org.icdqcow2.ui.pages.ChoiceCard
 import org.icdqcow2.ui.pages.CardDropdown
 import org.icdqcow2.ui.pages.OptionRow
+import org.icdqcow2.ui.pages.GroupTitle
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
@@ -83,6 +84,7 @@ fun SettingsScreen(
     var confirmDelete by remember { mutableStateOf(settings.confirmDelete) }
     var showHidden by remember { mutableStateOf(settings.showHidden) }
     val historyCount by settings.historyCount.collectAsState()
+    val rawMode by settings.rawCopyMode.collectAsState()
     var historyDlg by remember { mutableStateOf(false) }
     // 开源许可（含 UnRAR：REPLY-49 明确要求随二进制附 license 说明）
 
@@ -145,6 +147,28 @@ fun SettingsScreen(
         }
 
         section(s.secFiles)
+        // raw 复制行为（T4/A3）：决定复制/跨卷移动 raw 映像时保不保持稀疏。
+        item {
+            GroupTitle(s.rawCopy)
+        }
+        item {
+            ChoiceCard(
+                options = listOf(
+                    Choice(s.rawCopyKeep, s.rawCopyKeepSummary),
+                    Choice(s.rawCopyFull, s.rawCopyFullSummary),
+                    Choice(s.rawCopyAsk, s.rawCopyAskSummary),
+                ),
+                selected = rawMode.id,
+            ) { i ->
+                settings.setRawCopyMode(
+                    when (i) {
+                        1 -> org.icdqcow2.core.RawCopyMode.FULL
+                        2 -> org.icdqcow2.core.RawCopyMode.ASK
+                        else -> org.icdqcow2.core.RawCopyMode.KEEP
+                    },
+                )
+            }
+        }
         card {
             val values = listOf(0, 3, 5, 7, 9)
             val labels = values.map { v -> if (v == 0) s.historyNone else s.historyCount(v) }

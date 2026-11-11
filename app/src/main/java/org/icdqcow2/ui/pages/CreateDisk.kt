@@ -938,6 +938,10 @@ private fun CreateDiskForm(
         val noteText = if (attempted) reason else liveConflict
         if (noteText != null) Note(noteText, warn = true)
 
+        // A4 #1：选 raw 就把「长度=容量、复制/分享/导出会实体化」说在前面，
+        // 不要等用户复制完发现手机被写满才解释。
+        if (draft.format == "raw") Note(s.createRawNote)
+
         Action(
             text = if (fmtNow) s.formatting else if (busy) s.creating else (primaryLabel ?: s.create),
             enabled = !busy,

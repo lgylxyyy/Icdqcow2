@@ -6,6 +6,21 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+/**
+ * raw 映像复制/移动时的默认策略（T4/A3）。
+ *
+ * raw 的 st_size 是容量、st_blocks 才是占用。复制或跨卷移动时有两种结果：
+ * 保持稀疏（只写有数据的部分）或按完整容量写（目标实体化）。
+ * ASK = 每次询问，用户当场决定。
+ */
+enum class RawCopyMode(val id: Int) {
+    KEEP(0), FULL(1), ASK(2);
+
+    companion object {
+        fun of(id: Int) = entries.firstOrNull { it.id == id } ?: KEEP
+    }
+}
+
 enum class ThemeMode(val id: Int) {
     SYSTEM(0), LIGHT(1), DARK(2);
 
@@ -117,6 +132,15 @@ class SettingsStore(context: Context) {
         _deleteToTrash.value = on
     }
 
+    /** raw 复制行为（默认为保持稀疏）。 */
+    private val _rawCopyMode = MutableStateFlow(RawCopyMode.of(sp.getInt(KEY_RAWCOPY, 0)))
+    val rawCopyMode: StateFlow<RawCopyMode> = _rawCopyMode.asStateFlow()
+
+    fun setRawCopyMode(m: RawCopyMode) {
+        sp.edit().putInt(KEY_RAWCOPY, m.id).apply()
+        _rawCopyMode.value = m
+    }
+
     var logLevel: Int
         get() = sp.getInt("log_level", 2)
         set(v) = sp.edit().putInt("log_level", v).apply()
@@ -130,5 +154,6 @@ class SettingsStore(context: Context) {
         private const val KEY_HISTORY = "history_count"
         private const val KEY_DYNAMIC = "dynamic_color"
         private const val KEY_VISUAL_EFFECTS = "visual_effects"
+        private const val KEY_RAWCOPY = "raw_copy_mode"
     }
 }

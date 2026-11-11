@@ -200,6 +200,7 @@ private fun AppRoot(settings: SettingsStore) {
     val showTrash by settings.showTrash.collectAsState()
     val deleteToTrash by settings.deleteToTrash.collectAsState()
     val conflictPolicy by settings.conflictPolicyFlow.collectAsState()
+    val rawCopyMode by settings.rawCopyMode.collectAsState()
     val scope = rememberCoroutineScope()
     // 提示队列：最多同时 6 条，新的在最上面，旧的到点自己退场（见 ui/TopToast.kt）
     val toasts = remember { ToastHostState(max = 6) }
@@ -352,6 +353,7 @@ private fun AppRoot(settings: SettingsStore) {
                                     TAB_HOME -> HomeScreen(onOpen = openRoute)
                                     TAB_FILES -> FilesScreen(
                                         onToast = toast,
+                                        rawCopyMode = rawCopyMode.name.lowercase(),
                                         // 一旦开始横滑 / 切走就收回 ⋮ 菜单
                                         active = !pagerState.isScrollInProgress &&
                                             pagerState.currentPage == TAB_FILES,

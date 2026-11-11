@@ -371,6 +371,8 @@ object ImageRepo {
         keep: List<Long> = emptyList(),
         verify: Boolean = true,
         force: Boolean = false,
+        /** `zlib` = 压缩（T6）；`off` 或不传 = 紧凑化。只有工具库带 `--compress` 时才传。 */
+        compress: String? = null,
     ): ToolRunner.Result {
         val args = buildMap {
             put("src", src)
@@ -378,9 +380,31 @@ object ImageRepo {
             put("verify", verify.toString())
             put("force", force.toString())
             if (keep.isNotEmpty()) put("keep", keep.joinToString(","))
+            if (compress != null) put("compress", compress)
         }
         return ToolRunner.exec("img.compact", args = args, writable = true)
     }
+
+    /**
+     * 原地回收未使用的块（`img.sparsify`，T7）。
+     *
+     * 和 [compact] 不是一件事：这里**不换文件**，只是把客户机已经不用的块还给宿主。
+     * `mode`：`fs` = 按分区空闲位图（NTFS/FAT32）；`zero` = 按内容全零；`all` = 先 fs 再 zero。
+     * `dryRun=true` 只统计（返回 `would_free_bytes`），一个字节都不改。
+     */
+    suspend fun sparsify(
+        img: String,
+        mode: String = "all",
+        dryRun: Boolean = false,
+    ): ToolRunner.Result = exec(
+        "img.sparsify",
+        args = buildMap {
+            put("mode", mode)
+            put("dry-run", dryRun.toString())
+        },
+        path = img,
+        writable = !dryRun,
+    )
 
     /**
      * 只改卷标（`ntfs.label` / `fat.label`，REPLY-06）。不碰文件、不动用量。

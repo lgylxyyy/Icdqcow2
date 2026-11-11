@@ -30,6 +30,7 @@ fun PageHost(
         "format" -> FormatPage(onBack, onToast)
         "ptexport" -> ExportTablePage(onBack, onToast)
         "clone" -> ReclaimPage(onBack, onToast)
+        "compact" -> CompactPage(onBack, onToast)
         // 引导自检 + 镜像自检 合并成「全量自检」
         "verify" -> FullCheckPage(onBack = onBack, onToast = onToast, initialImage = arg)
         "deploy" -> DeployPage(onBack, onToast, initialImage = arg)

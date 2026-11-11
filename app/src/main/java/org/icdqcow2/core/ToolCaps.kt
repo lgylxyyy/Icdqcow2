@@ -21,6 +21,19 @@ object ToolCaps {
     /** 某个命令当前 so 认不认（没有 `cmd.list` 时一律 false，走兜底）。 */
     fun has(cmd: String): Boolean = cmd in CMDS
 
+    /** 每个命令认的参数名（`cmd.list` 的 `args[].name`）。 */
+    var ARGS: Map<String, Set<String>> = emptyMap()
+        private set
+
+    /** 某个命令认不认这个参数（用它决定「新能力」要不要亮）。 */
+    fun hasArg(cmd: String, arg: String): Boolean = ARGS[cmd]?.contains(arg) == true
+
+    /** `img.sparsify` 到位（T7）：原地回收 raw/qcow2 未使用的块。 */
+    val SPARSIFY get() = has("img.sparsify")
+
+    /** `img.compact --compress` 到位（T6）：qcow2 压缩簇。 */
+    val COMPACT_COMPRESS get() = hasArg("img.compact", "compress")
+
     /** `img.create` 有 `mbr-fill` 参数（REPLY-07 起）。 */
     var MBR_FILL = false
         private set
@@ -57,10 +70,18 @@ object ToolCaps {
                 ?: root.optJSONObject("data")?.optJSONArray("cmds")
                 ?: return
             val names = mutableSetOf<String>()
+            val argMap = mutableMapOf<String, MutableSet<String>>()
             for (i in 0 until cmds.length()) {
                 val c = cmds.optJSONObject(i) ?: continue
-                c.optString("name").takeIf { it.isNotEmpty() }?.let { names.add(it) }
+                val cname = c.optString("name")
+                cname.takeIf { it.isNotEmpty() }?.let { names.add(it) }
                 val args = c.optJSONArray("args") ?: continue
+                if (cname.isNotEmpty()) {
+                    val set = argMap.getOrPut(cname) { mutableSetOf() }
+                    for (j in 0 until args.length()) {
+                        args.optJSONObject(j)?.optString("name")?.takeIf { it.isNotEmpty() }?.let { set.add(it) }
+                    }
+                }
                 when (c.optString("name")) {
                     "img.create" -> for (j in 0 until args.length()) {
                         val a = args.optJSONObject(j) ?: continue
@@ -82,6 +103,7 @@ object ToolCaps {
                 }
             }
             if (names.isNotEmpty()) CMDS = names
+            if (argMap.isNotEmpty()) ARGS = argMap
         }
     }
 }

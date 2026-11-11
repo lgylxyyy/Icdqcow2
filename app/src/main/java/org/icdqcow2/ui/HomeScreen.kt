@@ -101,10 +101,12 @@ fun HomeScreen(onOpen: (String) -> Unit) {
             Tile(s.createDisk, s.createDiskSummary, MiuixIcons.AddCircle) { onOpen("create") },
             Tile(s.parts, s.partsSummary, MiuixIcons.ListView) { onOpen("parts") },
         )
-        grid(
+        // 三张体积管理卡：压缩映像（另存小文件）/ 释放空间（原地回收）/ 导出分区表。
+        grid3(
+            Tile(s.compact, s.compactSummary, MiuixIcons.Copy) { onOpen("compact") },
+            Tile(s.reclaim, s.reclaimSummary, MiuixIcons.Reset) { onOpen("clone") },
             // 原来这里是「格式化」——单分区格式化已并进「分区管理」，位置换「导出分区表」（REQ-14）。
             Tile(s.exportTable, s.exportTableSummary, MiuixIcons.Download) { onOpen("ptexport") },
-            Tile(s.clone, s.cloneSummary, MiuixIcons.Copy) { onOpen("clone") },
         )
 
         // 「系统部署」+「引导与恢复」合并成一组
@@ -150,6 +152,17 @@ private fun LazyListScope.section(title: String) {
  * 不会出现「文字贴顶、下面留白」的观感；两行文案正好占满。
  */
 private val DESC_SLOT_MIN_HEIGHT = 30.dp
+
+/** 一行三张卡（体积管理那一行：标题都短，三等分仍可读）。 */
+private fun LazyListScope.grid3(a: Tile, b: Tile, c: Tile) {
+    item {
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            TileCard(a, Modifier.weight(1f))
+            TileCard(b, Modifier.weight(1f))
+            TileCard(c, Modifier.weight(1f))
+        }
+    }
+}
 
 /** 一行两张卡。 */
 private fun LazyListScope.grid(left: Tile, right: Tile) {

@@ -1,31 +1,19 @@
-# native 库版本与来源（2026-11-10）
+# native 库版本与来源（2026-11-11）
 #
 # 这两个库必须随仓库入库：App 的全部工具命令都经由 libimgapp.so → libimgtool.so，
 # 缺任一个，APK 装到机器上就完全不可用（所有命令 UnsatisfiedLinkError）。
 #
 # 校验：md5sum app/src/main/jniLibs/arm64-v8a/*.so
 
-8654af3d712feff6b0f6f2c61605ba07  app/src/main/jniLibs/arm64-v8a/libimgtool.so
+add73d015669bf8823301f189280bdea  app/src/main/jniLibs/arm64-v8a/libimgtool.so
 a1798199a5115653de846d515be54598  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 
 # ── 来源 ──
-# libimgtool.so （6,797,520 B）
+# libimgtool.so （6,820,560 B）
 #   仓库：https://github.com/lgylxyyy/imgtool
-#   提交：352138d（REQ-74：win.version 多回 registry.csd_version）
-#         ← 含 d72c4be（构建标识）/ 92984c9（REQ-72 四个版本字段 + REG_SZ 编解码）/ 354836f（API 26）
+#   提交：0b28343（T1–T7：vmdk 落盘 / compact 四格式 / move moved_by / img.info 占用 /
+#         copy --sparse / img.sparsify 四格式 / compact --compress=zlib）
 #   导出符号指纹：nm -D --defined-only libimgtool.so | awk '{print $2,$3}' | sort | sha256sum
-#                 = ef22db3db4ead37adc8b42748e0d7ae23cf2c8e040026b1b674641b356abfff0（1375 个）
-#   ★ md5 只在「同 clang + 同 NDK + 同一套 stage 依赖」下可复现；本版两个独立 build 目录实测同值
-#     换机器请比符号指纹 + 提交号
-#   版本串：imgtool 2026.11.10（`imgcmd version` / `--version` 可取，commit 见回包）
-#   构建：./android-deps.sh && TOOLS=1 ./android-cross.sh arm64-v8a
-#   ★ 最低系统版本：Android 8.0（API 26）。stdin/stdout 在 bionic 里是 API 23 起，
-#     hasmntopt 是 API 26 起，低于 26 的 libc 里这两个符号不存在。App minSdk 33，无影响。
-#   含命令：copy / move（含跨挂载点兜底）/ reg.list / reg.get / wim.capture /
-#           sys.tmpdir / img.create / img.trim（REQ-66）/ img.compact
-#   REPLY-20261110-66 / REPLY-20261110-71
-#
-# libimgapp.so （27,344 B；16 KB LOAD 对齐）
-#   来源：本仓库 jni/（imgapp_jni.c + imgapp_bridge.c + img_vfd_real.c）
-#   构建：tools/build-native-libs.sh（arm64 宿主会自动退到"宿主 clang + NDK sysroot"）
-#   本版新增：progress 事件里的 elapsed / elapsed_ms / msg / overall_*（REQ-69 §5）
+#                 = 6be189edee63ef0947ac7f102093090ea011af236d25d1a40861bc3df356151d（1407 个）
+#   ★ md5 只在「同 clang + 同 NDK + 同一套 stage 依赖」下可复现；换机器请比符号指纹 + 提交号
+#   版本串：imgtool 2026.11.11（`imgcmd version` / `--version` 可取，commit 见回包）

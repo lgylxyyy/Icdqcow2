@@ -292,6 +292,24 @@ private data class TransferJob(
     val duplicates: Set<String> = emptySet(),
 )
 
+/**
+ * 宿主文件是不是「稀疏」的（st_blocks 远小于 st_size）。
+ *
+ * 只在设置=「每次询问」时用来决定"要不要问一句"：不稀疏的文件问了也没意义。
+ * 门槛 64 MiB：小文件即使稀疏，实体化也浪费不了多少；大文件才值得打扰用户。
+ */
+private fun isSparseHostFile(path: String): Boolean = runCatching {
+    val st = android.system.Os.stat(path)
+    val size = st.st_size
+    val blocks = st.st_blocks * 512L
+    size >= (64L shl 20) && blocks * 2 < size
+}.getOrDefault(false)
+
+/** 属性卡里要不要按"映像"看（决定显示容量/占用还是文件大小）。 */
+private fun looksLikeImage(name: String): Boolean =
+    name.substringAfterLast('.', "").lowercase() in
+        setOf("qcow2", "raw", "vhd", "vmdk", "img", "dd", "bin")
+
 /** 系统回收站的前缀（MediaProvider 也是这么命名的）。 */
 private const val TRASH_MARK = ".trashed-"
 
@@ -429,6 +447,10 @@ private data class PropsState(
     val truncated: Boolean = false,
     val done: Boolean = false,
     val err: String? = null,
+    /** 映像是"容量 / 占用"两件事（A5）；非映像为 null。 */
+    val capBytes: Long? = null,
+    val usedBytes: Long? = null,
+    val allocKnown: Boolean = true,
 )
 
 @Composable
@@ -440,6 +462,8 @@ fun FilesScreen(
     deleteToTrash: Boolean = false,
     conflictPolicy: String = "ask",
     onConflictPolicy: (String) -> Unit = {},
+    /** raw 复制行为（设置页）：keep | full | ask。空 = keep。 */
+    rawCopyMode: String = "keep",
     /**
      * 打开内置文本编辑器（外层当二级页弹）。
      * @param path 要编辑的文件
@@ -488,6 +512,8 @@ fun FilesScreen(
     // 同名冲突：等用户在弹窗里选（覆盖 / 保留两个 / 跳过），先记住这次要搬什么
     var pendingJob by remember { mutableStateOf<TransferJob?>(null) }
     var pendingConflictName by remember { mutableStateOf("") }
+    /** 设置=「每次询问」时，先问一句再搬（T4/A3）。 */
+    var pendingSparseJob by remember { mutableStateOf<TransferJob?>(null) }
     // 选 WIM/ESD 的映像索引
     // ── 搜索（⋮ 菜单里的"搜索"）──
     // 范围 = 聚焦栏的**当前目录及其子目录**；宿主目录走 Java 遍历，容器内走逐层 ls（BFS）。
@@ -675,7 +701,7 @@ fun FilesScreen(
      * 走的还是工具端 `copy` / `move`（`!` 路径语法），跨容器也不用中转。
      */
     /** 真正开搬。[policy] = ask 以外的值：rename / overwrite / skip。 */
-    fun runTransfer(job: TransferJob, policy: String) {
+    fun runTransfer(job: TransferJob, policy: String, sparseOverride: String? = null) {
         val src = pane(job.from)
         val dst = pane(job.to)
         val srcLoc = src.loc
@@ -699,6 +725,9 @@ fun FilesScreen(
             var ok = 0
             var skippedTrash = 0
             var skippedName = 0
+            var sparseLost = 0
+            var sparseLostBytes = 0L
+            var movedByRename = 0
             var fail: String? = null
             for ((srcAbs, dstAbs) in job.items) {
                 if (!isActive) break
@@ -792,6 +821,10 @@ fun FilesScreen(
                     },
                 )
                 // ★ 只对 copy 传、且用中划线：move 没这个参数（写 skip_trashed 会 CMD-ARG-BAD）
+                // ★ T4/A3：raw 映像的稀疏策略。keep/ask 默认 auto（源有洞就保持），
+                //   full = never（用户明确要"完整副本"）。
+                args["sparse"] = sparseOverride
+                    ?: if (rawCopyMode == "full") "never" else "auto"
                 if (!job.move && srcLoc.kind == Kind.HOST) args["skip-trashed"] = "true"
                 if (job.move) args["allow_host_delete"] = (srcLoc.kind == Kind.HOST).toString()
 
@@ -808,6 +841,15 @@ fun FilesScreen(
                         opDone++
                         if (ent0 != null && !ent0.dir) opBytes += ent0.size
                         skippedTrash += r.data?.optInt("skipped_trashed", 0) ?: 0
+                        // ★ A3：源是稀疏 raw 而目标没保住洞 → 必须如实说出来（别让用户
+                        //   以为文件"莫名其妙变大了"）。
+                        if (r.data?.optBoolean("sparse_source", false) == true &&
+                            r.data?.optBoolean("sparse_kept", true) == false
+                        ) {
+                            sparseLost++
+                            sparseLostBytes += r.data?.optLong("out_alloc_bytes", 0L) ?: 0L
+                        }
+                        if (r.data?.optString("moved_by") == "rename") movedByRename++
                     }
                     // 跳过策略下"目标已存在"是预期结果，不算失败
                     effPolicy == "skip" && (r.code ?: "").contains("EXIST") -> skippedName++
@@ -822,8 +864,10 @@ fun FilesScreen(
             src.sel = emptySet()
             onToast(
                 fail ?: when {
+                    sparseLost > 0 -> s.filesSparseLost(sizeText(sparseLostBytes))
                     skippedTrash > 0 -> s.filesDoneSkip(ok, skippedTrash)
                     skippedName > 0 -> s.filesDoneSkipName(ok, skippedName)
+                    job.move && movedByRename == ok && ok > 0 -> s.filesMovedByRename
                     else -> s.filesDone(ok)
                 },
             )
@@ -906,6 +950,12 @@ fun FilesScreen(
         val dup = items.filter { (a, b) -> a == b }.map { it.first }.toSet()
         val clash = if (hostBoth) items.filter { (a, b) -> a != b && File(b).exists() } else emptyList()
         val job = TransferJob(move, focus, toIdx, items, dup)
+        // ★ A3：设置里选了「每次询问」且源里确实有稀疏的宿主文件 → 先问一句。
+        //   问的是「保持稀疏 / 按完整容量」——这两个结果对手机存储是天壤之别。
+        if (rawCopyMode == "ask" && hostBoth && items.any { isSparseHostFile(it.first) }) {
+            pendingSparseJob = job
+            return
+        }
         if (clash.isNotEmpty() && conflictPolicy == "ask") {
             pendingJob = job
             pendingConflictName = clash.first().second.substringAfterLast('/')
@@ -1295,6 +1345,28 @@ fun FilesScreen(
         props = PropsState(title = title)
         propsJob = scope.launch {
             try {
+                // ★ A5：映像文件（qcow2/raw/vhd/vmdk）显示「容量 · 占用」。
+                //   raw 的 st_size 是容量，st_blocks 才是占用；只显示文件大小会把
+                //   用户吓一跳（一个 64 GiB 的文件其实只占 1 MiB）。
+                val one = names.singleOrNull()
+                if (one != null && p.loc.kind == Kind.HOST && looksLikeImage(one)) {
+                    val abs = realPath(join(p.path, one))
+                    val r = ToolRunner.exec(
+                        "img.info",
+                        emptyMap(),
+                        imagePath = abs,
+                        writable = false,
+                        imageFd = -1,
+                    )
+                    if (r.ok) {
+                        val d = r.data
+                        props = props?.copy(
+                            capBytes = d?.optLong("logical_bytes", 0L) ?: 0L,
+                            usedBytes = d?.optLong("alloc_bytes", 0L) ?: 0L,
+                            allocKnown = d?.optBoolean("alloc_known", true) ?: true,
+                        )
+                    }
+                }
                 walkProps(p, names, s) { files, dirs, bytes, alloc, scanned, trunc ->
                     props = props?.copy(
                         files = files, dirs = dirs, bytes = bytes, alloc = alloc,
@@ -1640,6 +1712,22 @@ fun FilesScreen(
                         doRename(p, e, clean)
                     }
                 }
+            },
+        )
+    }
+
+    // ── raw 复制询问（设置=「每次询问」）──
+    val spj = pendingSparseJob
+    if (spj != null) {
+        ChoiceDialog(
+            title = s.rawCopy,
+            summary = s.rawCopyAskSummary,
+            items = listOf(s.rawCopyKeep, s.rawCopyFull),
+            cancelText = s.cancel,
+            onDismiss = { pendingSparseJob = null },
+            onSelect = { i ->
+                pendingSparseJob = null
+                runTransfer(spj, conflictPolicy, sparseOverride = if (i == 1) "never" else "auto")
             },
         )
     }
@@ -2088,12 +2176,27 @@ fun FilesScreen(
                     style = textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurface,
                 )
-                Text(
-                    "${s.filesPropsSize}  ${sizeText(ps.bytes)}",
-                    style = textStyles.body2,
-                    color = MiuixTheme.colorScheme.onSurface,
-                )
-                if (ps.alloc > 0 && ps.alloc != ps.bytes) {
+                val cap = ps.capBytes
+                if (cap != null) {
+                    Text(
+                        "${s.filesPropsCapacity}  ${sizeText(cap)}",
+                        style = textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        "${s.filesPropsAlloc}  " +
+                            (if (ps.allocKnown) sizeText(ps.usedBytes ?: 0L) else s.filesPropsUnknown),
+                        style = textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                } else {
+                    Text(
+                        "${s.filesPropsSize}  ${sizeText(ps.bytes)}",
+                        style = textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurface,
+                    )
+                }
+                if (cap == null && ps.alloc > 0 && ps.alloc != ps.bytes) {
                     Text(
                         "${s.filesPropsAlloc}  ${sizeText(ps.alloc)}",
                         style = textStyles.footnote1,

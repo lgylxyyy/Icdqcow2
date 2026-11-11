@@ -563,13 +563,13 @@
       "note": "FirmwareStore.kt、ImageRepo.kt、Kit.kt、RegexLanguage.kt、ToolRunner.kt、i18n、分区管理、建盘、文件页、文本编辑器、释放映像 · 文案位 · home.format"
     },
     "home.clone": {
-      "zh": "清理空间",
-      "en": "Reclaim space",
-      "note": "主页 · 打开清理空间页（img.trim，回收 guest 已删除但仍占用的块）"
+      "zh": "释放空间",
+      "en": "Release space",
+      "note": "主页 · 打开释放空间页（img.sparsify：原地回收客户机已不用的块）"
     },
     "home.cloneSummary": {
-      "zh": "回收已删除但仍占用的块",
-      "en": "Reclaim deleted-but-held blocks",
+      "zh": "原地回收未使用块",
+      "en": "Release unused blocks in place",
       "note": "主页 · 清理空间副标题 · 英文压到一行"
     },
     "home.deploy": {
@@ -4848,8 +4848,8 @@
       "note": "引导修复 · 引导正常时点「开始修复」的确认卡标题"
     },
     "trim.title": {
-      "zh": "清理空间",
-      "en": "Reclaim space",
+      "zh": "释放空间",
+      "en": "Release space",
       "note": "清理空间页 · 标题（原「压缩映像」，img.trim 到位后改成清理）"
     },
     "trim.source": {
@@ -4863,8 +4863,8 @@
       "note": "清理空间页 · 磁盘容量与文件占用那一行"
     },
     "trim.note": {
-      "zh": "按分区空闲位图，把已经删掉、但镜像里还占着的块还回去。虚拟容量与分区表不变，文件不会被重写。",
-      "en": "Walks each partition free-space bitmap and releases blocks that are already deleted but still allocated. Virtual size and layout stay the same; nothing is rewritten.",
+      "zh": "原地回收客户机已经不用的块。文件长度与磁盘容量不变，数据不变，读写速度不变。",
+      "en": "Releases blocks the guest no longer uses. File length and disk size stay the same, data is untouched, read/write speed is unchanged.",
       "note": "清理空间页 · 说明（讲清它和「压缩另存」不是一回事）"
     },
     "trim.punch": {
@@ -4883,8 +4883,8 @@
       "note": "清理空间页 · 开关关闭时的说明"
     },
     "trim.analyze": {
-      "zh": "分析可回收空间",
-      "en": "Analyze reclaimable space",
+      "zh": "分析可释放",
+      "en": "Analyze",
       "note": "清理空间页 · 主按钮（还没分析过时）"
     },
     "trim.analyzing": {
@@ -4893,28 +4893,28 @@
       "note": "清理空间页 · 主按钮（分析中）"
     },
     "trim.clean": {
-      "zh": "开始清理",
-      "en": "Clean up",
+      "zh": "释放",
+      "en": "Release",
       "note": "清理空间页 · 主按钮（分析完成、可以清理时）"
     },
     "trim.cleaning": {
-      "zh": "正在清理",
-      "en": "Cleaning",
+      "zh": "正在释放",
+      "en": "Releasing",
       "note": "清理空间页 · 主按钮（清理中）"
     },
     "trim.plan": {
-      "zh": "可回收 {0}（{1} 个块）",
-      "en": "{0} reclaimable ({1} blocks)",
+      "zh": "可释放 {0}",
+      "en": "{0} can be released",
       "note": "清理空间页 · 分析结果"
     },
     "trim.planHint": {
       "zh": "只是估算，还没写任何东西",
-      "en": "Estimate only — nothing has been written",
+      "en": "Estimate only — nothing written yet",
       "note": "清理空间页 · 分析结果下面的小字"
     },
     "trim.done": {
-      "zh": "已释放 {0}；文件占用 {1} → {2}",
-      "en": "Freed {0}; footprint {1} → {2}",
+      "zh": "已释放 {0}；占用 {1} → {2}",
+      "en": "Released {0}; used {1} → {2}",
       "note": "清理空间页 · 清理结果"
     },
     "trim.noShrink": {
@@ -5091,6 +5091,231 @@
       "zh": "名称重复，创建时会自动加序号",
       "en": "Name already exists; a number will be appended on create",
       "note": "新建磁盘 · 名称输入框下方（还没顺延，先提示一句，不拦创建）"
+    },
+    "home.compact": {
+      "zh": "压缩映像",
+      "en": "Compact image",
+      "note": "主页 · 入口卡（img.compact 紧凑另存 / 压缩）"
+    },
+    "home.compactSummary": {
+      "zh": "另存为更小的映像",
+      "en": "Save a smaller copy",
+      "note": "主页 · 副标题 · 英文压到一行"
+    },
+    "compact.title": {
+      "zh": "压缩映像",
+      "en": "Compact image",
+      "note": "压缩映像页 · 标题"
+    },
+    "compact.source": {
+      "zh": "当前文件",
+      "en": "Current file",
+      "note": "压缩映像页 · 源行"
+    },
+    "compact.disk": {
+      "zh": "映像",
+      "en": "Image",
+      "note": "压缩映像页 · 容量/占用行"
+    },
+    "compact.usage": {
+      "zh": "容量 {0} · 占用 {1}",
+      "en": "Size {0} · Used {1}",
+      "note": "压缩映像页 · 两栏"
+    },
+    "compact.note": {
+      "zh": "另存为新的 qcow2，源文件保持不动。紧凑化只去掉未使用块与全零块，读写速度不变。",
+      "en": "Saves a new qcow2; the source stays untouched. Compact drops unused and all-zero blocks; read/write speed is unchanged.",
+      "note": "压缩映像页 · 说明"
+    },
+    "compact.mode": {
+      "zh": "方式",
+      "en": "Mode",
+      "note": "压缩映像页 · 模式标题"
+    },
+    "compact.modeTight": {
+      "zh": "紧凑化（推荐）",
+      "en": "Compact (recommended)",
+      "note": "压缩映像页 · 模式一"
+    },
+    "compact.modeTightSummary": {
+      "zh": "去除未使用块与全零块，读写速度不变",
+      "en": "Drops unused and all-zero blocks; speed unchanged",
+      "note": "压缩映像页 · 模式一说明"
+    },
+    "compact.modeZip": {
+      "zh": "压缩",
+      "en": "Compress",
+      "note": "压缩映像页 · 模式二"
+    },
+    "compact.modeZipSummary": {
+      "zh": "体积最小；读写变慢，写入后文件会回涨",
+      "en": "Smallest; slower reads and writes, and it grows again on writes",
+      "note": "压缩映像页 · 模式二说明"
+    },
+    "compact.modeZipOff": {
+      "zh": "当前工具库还不支持压缩，先只用紧凑化",
+      "en": "The bundled library cannot compress yet; use Compact for now",
+      "note": "压缩映像页 · 压缩项禁用说明"
+    },
+    "compact.outNote": {
+      "zh": "将另存为 {0}",
+      "en": "Will be saved as {0}",
+      "note": "压缩映像页 · 输出文件名"
+    },
+    "compact.run": {
+      "zh": "开始",
+      "en": "Start",
+      "note": "压缩映像页 · 主按钮"
+    },
+    "compact.running": {
+      "zh": "正在另存",
+      "en": "Saving",
+      "note": "压缩映像页 · 进行中"
+    },
+    "compact.done": {
+      "zh": "已另存为 {0}；{1} → {2}",
+      "en": "Saved as {0}; {1} → {2}",
+      "note": "压缩映像页 · 完成"
+    },
+    "compact.rawNote": {
+      "zh": "输出为 qcow2，源文件不变。完成后可删除源文件释放空间。",
+      "en": "Output is qcow2 and the source stays as is. You can delete the source afterwards to free space.",
+      "note": "压缩映像页 · 源是 raw 时的提示"
+    },
+    "compact.fmtNote": {
+      "zh": "源是 {0}，输出统一为 qcow2",
+      "en": "Source is {0}; output is always qcow2",
+      "note": "压缩映像页 · 源格式提示"
+    },
+    "compact.needImage": {
+      "zh": "先选一个映像",
+      "en": "Pick an image first",
+      "note": "压缩映像页 · 未选映像"
+    },
+    "compact.unsupported": {
+      "zh": "当前工具库不支持紧凑另存",
+      "en": "The bundled library cannot save a compact copy",
+      "note": "压缩映像页 · 老库"
+    },
+    "trim.usage": {
+      "zh": "容量 {0} · 占用 {1}",
+      "en": "Size {0} · Used {1}",
+      "note": "释放空间页 · 两栏"
+    },
+    "trim.mode": {
+      "zh": "回收依据",
+      "en": "What counts as unused",
+      "note": "释放空间页 · 模式标题"
+    },
+    "trim.modeFs": {
+      "zh": "按客户机空闲",
+      "en": "Guest free space",
+      "note": "释放空间页 · 模式一"
+    },
+    "trim.modeFsSummary": {
+      "zh": "按分区文件系统的空闲表回收（需识别 NTFS/FAT32）",
+      "en": "Uses each partition free-space table (NTFS/FAT32)",
+      "note": "释放空间页 · 模式一说明"
+    },
+    "trim.modeZero": {
+      "zh": "按内容全零",
+      "en": "All-zero content",
+      "note": "释放空间页 · 模式二"
+    },
+    "trim.modeZeroSummary": {
+      "zh": "扫描全盘零块回收，不依赖文件系统",
+      "en": "Scans for all-zero blocks; no filesystem needed",
+      "note": "释放空间页 · 模式二说明"
+    },
+    "trim.modeZeroOff": {
+      "zh": "这个格式不需要按内容扫描（qcow2 本身就按块分配）",
+      "en": "Not needed for this format (qcow2 is already block-allocated)",
+      "note": "释放空间页 · 模式二禁用说明"
+    },
+    "trim.verified": {
+      "zh": "校验通过：分区表与已用数据没有被改动",
+      "en": "Verified: partition table and used data untouched",
+      "note": "释放空间页 · 完成后的校验"
+    },
+    "trim.nothing": {
+      "zh": "没有可释放的块",
+      "en": "Nothing to release",
+      "note": "释放空间页 · 无收益"
+    },
+    "trim.rawNote": {
+      "zh": "仅回收已释放的块，文件长度与磁盘容量不变。",
+      "en": "Only released blocks are reclaimed; file length and disk size stay the same.",
+      "note": "释放空间页 · 源是 raw 时的提示"
+    },
+    "trim.legacy": {
+      "zh": "当前工具库只支持 qcow2 的空闲位图回收",
+      "en": "The bundled library only supports qcow2 free-space reclaim",
+      "note": "释放空间页 · 老库退回 trim"
+    },
+    "settings.rawCopy": {
+      "zh": "raw 复制行为",
+      "en": "raw copy behavior",
+      "note": "设置 · raw 映像复制/移动时的默认策略"
+    },
+    "settings.rawCopyKeep": {
+      "zh": "保持稀疏（推荐）",
+      "en": "Keep sparse (recommended)",
+      "note": "设置 · 选项一"
+    },
+    "settings.rawCopyKeepSummary": {
+      "zh": "只写有数据的部分，占用按实际数据增长",
+      "en": "Writes only data; usage grows with real data",
+      "note": "设置 · 选项一说明"
+    },
+    "settings.rawCopyFull": {
+      "zh": "按完整容量复制",
+      "en": "Copy full size",
+      "note": "设置 · 选项二"
+    },
+    "settings.rawCopyFullSummary": {
+      "zh": "目标会实体化成完整容量，占用等于磁盘容量",
+      "en": "Target takes the full disk size",
+      "note": "设置 · 选项二说明"
+    },
+    "settings.rawCopyAsk": {
+      "zh": "每次询问",
+      "en": "Ask every time",
+      "note": "设置 · 选项三"
+    },
+    "settings.rawCopyAskSummary": {
+      "zh": "复制或跨卷移动前弹一层选择",
+      "en": "Ask before copying or moving across volumes",
+      "note": "设置 · 选项三说明"
+    },
+    "files.sparseKept": {
+      "zh": "已保持稀疏，占用 {0}",
+      "en": "Kept sparse, using {0}",
+      "note": "文件页 · 复制完成提示"
+    },
+    "files.sparseLost": {
+      "zh": "已按完整容量写入，占用 {0}",
+      "en": "Written at full size, using {0}",
+      "note": "文件页 · 复制完成提示（目标不支持稀疏）"
+    },
+    "files.movedByRename": {
+      "zh": "同卷移动，没有复制数据",
+      "en": "Moved within the same volume without copying data",
+      "note": "文件页 · 移动完成提示"
+    },
+    "files.propsCapacity": {
+      "zh": "容量",
+      "en": "Capacity",
+      "note": "文件页 · 属性卡 · 映像的虚拟容量（img.info 的 logical_bytes）"
+    },
+    "files.propsUnknown": {
+      "zh": "未知",
+      "en": "Unknown",
+      "note": "文件页 · 属性卡 · alloc_known=false 时的占位"
+    },
+    "create.rawNote": {
+      "zh": "raw 是裸盘格式：文件长度等于磁盘容量，实际占用随写入增长。复制、分享或导出时可能按完整容量写入。",
+      "en": "raw is a bare-disk format: file length equals the disk size and usage grows with writes. Copy, share or export may write the full size.",
+      "note": "创建磁盘 · 选 raw 时的提示（A4 #1）"
     }
   }
 }
