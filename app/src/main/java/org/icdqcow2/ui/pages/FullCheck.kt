@@ -296,17 +296,23 @@ internal suspend fun buildFcReport(
             val v = ImageRepo.winVersion(win.lba, img)
             val vd = v.data
             val build = vd?.optInt("registry.current_build", 0) ?: 0
+            // RESP-72：工具端恒定输出这四个字段（读不到就是空串/0），
+            // 所以不再需要"有值才取"的兼容分支。
             val name = if (v.ok && build > 0) {
-                org.icdqcow2.core.WinEdition.label(
+                org.icdqcow2.core.WinEdition.summary(
                     productName = vd?.optString("registry.product_name"),
                     editionId = vd?.optString("registry.edition_id"),
                     build = build,
+                    installationType = vd?.optString("registry.installation_type"),
+                    displayVersion = vd?.optString("registry.display_version"),
+                    releaseId = vd?.optString("registry.release_id"),
+                    ubr = vd?.optInt("registry.ubr", 0) ?: 0,
                 )
             } else {
                 null
             }
             winRows += when {
-                name != null -> FcItem(s.fcWinVer, "$name · $build", FcLevel.Ok)
+                name != null -> FcItem(s.fcWinVer, name, FcLevel.Ok)
                 // 名字认不出但版本号读到了：至少把内部版本号摆出来（以后的新系统就靠这个）
                 build > 0 -> FcItem(s.fcWinVer, s.fcWinVerBuild(build.toString()), FcLevel.Info)
                 else -> FcItem(s.fcWinVer, s.fcWinVerUnknown, FcLevel.Info)
