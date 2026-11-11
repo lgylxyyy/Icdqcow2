@@ -640,12 +640,14 @@ private fun CreateDiskForm(
         else StorageAccess.canWrite(ImageRepo.defaultDir())
     }
 
-    // 默认名已被占用 → 自动顺延：`名称 （1）` / `名称 （2）`…（中文全角括号，其它语言半角）。
+    // 默认名已被占用 → 自动顺延：`名称 (1)` / `名称 (2)`…
+    // ★ 中英一律**半角括号 + 括号前一个空格**（用户 2026-11-11 定：以前中文用全角，
+    //   同一个目录里中英两套写法并存，看着不统一）。
     // 只在进页面/换目录时算一次：用户之后手改的名字不会被抢回去。
     LaunchedEffect(targetDir) {
         val base = draft.name
         if (base.isBlank() || !File(targetDir, "$base.${draft.format}").exists()) return@LaunchedEffect
-        val suffix = 4 // " （1）" / " (1)" 都是 4 个字符
+        val suffix = 4 // " (1)" = 空格 + "(" + 数字 + ")"，正好 4 个字符
         val keep = (DiskLimits.NAME_MAX - suffix - 1).coerceAtLeast(1)
         var n = 1
         while (n <= 99) {
@@ -773,7 +775,7 @@ private fun CreateDiskForm(
             TextField(
                 value = draft.name,
                 onValueChange = {
-                    // 允许空格与括号：重名顺延会生成 `名称 （1）`，编辑时不能把它吃掉
+                    // 允许空格与括号：重名顺延会生成 `名称 (1)`，编辑时不能把它吃掉
                     draft.name = it.filter { c -> c.isLetterOrDigit() || c in "-_ ()（）" }
                         .take(DiskLimits.NAME_MAX)
                 },

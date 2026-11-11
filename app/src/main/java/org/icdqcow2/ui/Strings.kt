@@ -47,7 +47,7 @@ class Strings(val code: String) {
     val fileOpenFailed get() = raw("file.openFailed")
     val filePrivateDir get() = raw("file.privateDir")
 
-    /** 重名顺延：中文用全角括号、其它语言半角（`名称 （1）` / `name (1)`）。 */
+    /** 重名顺延：中英一律半角括号，括号前留一个空格（`名称 (1)` / `name (1)`）。 */
     fun nameDup(base: String, n: Int) = tpl("name.dup", base, n)
     val remove get() = raw("common.remove")
     val done get() = raw("common.done")

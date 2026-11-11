@@ -43,9 +43,9 @@
       "note": "Kit.kt · 提示气泡 · file.privateDir"
     },
     "name.dup": {
-      "zh": "{0} （{1}）",
+      "zh": "{0} ({1})",
       "en": "{0} ({1})",
-      "note": "建盘 · 文案位 · name.dup"
+      "note": "重名自动顺延的名字（用户 2026-11-11：中英一律半角括号，括号前留一个空格）"
     },
     "common.settings": {
       "zh": "设置",
