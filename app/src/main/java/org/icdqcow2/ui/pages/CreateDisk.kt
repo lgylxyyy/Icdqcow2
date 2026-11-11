@@ -640,13 +640,22 @@ private fun CreateDiskForm(
         else StorageAccess.canWrite(ImageRepo.defaultDir())
     }
 
+    // ★ 进页面那一下会"闪"一条「同名映像已存在」（用户 2026-11-11 报的）：
+    //   下面是 LaunchedEffect 做的事 —— **第一帧还没跑**，此刻 draft.name 仍是上一版留下的
+    //   默认名（文件确实存在），界面上先把冲突红字画了出来，下一帧顺延成 `名称 (1)` 才消失。
+    //   这个开关就是"顺延算完了没"：没算完的那一帧不报冲突，按钮也照旧不亮。
+    var nameResolved by remember(targetDir) { mutableStateOf(false) }
+
     // 默认名已被占用 → 自动顺延：`名称 (1)` / `名称 (2)`…
     // ★ 中英一律**半角括号 + 括号前一个空格**（用户 2026-11-11 定：以前中文用全角，
     //   同一个目录里中英两套写法并存，看着不统一）。
     // 只在进页面/换目录时算一次：用户之后手改的名字不会被抢回去。
     LaunchedEffect(targetDir) {
         val base = draft.name
-        if (base.isBlank() || !File(targetDir, "$base.${draft.format}").exists()) return@LaunchedEffect
+        if (base.isBlank() || !File(targetDir, "$base.${draft.format}").exists()) {
+            nameResolved = true
+            return@LaunchedEffect
+        }
         val suffix = 4 // " (1)" = 空格 + "(" + 数字 + ")"，正好 4 个字符
         val keep = (DiskLimits.NAME_MAX - suffix - 1).coerceAtLeast(1)
         var n = 1
@@ -654,10 +663,12 @@ private fun CreateDiskForm(
             val candidate = s.nameDup(base.take(keep), n)
             if (!File(targetDir, "$candidate.${draft.format}").exists()) {
                 draft.name = candidate
+                nameResolved = true
                 return@LaunchedEffect
             }
             n++
         }
+        nameResolved = true   // 99 个都撞上了：让"冲突"照常显示，别把按钮一直锁着
     }
 
     val sizeGb = draft.sizeGb.toIntOrNull() ?: 0
@@ -868,7 +879,7 @@ private fun CreateDiskForm(
             draft.name.isBlank() -> s.errNameEmpty
             sizeGb !in draft.minGb..DiskLimits.DISK_MAX_GB ->
                 s.errSize("${draft.minGb}", "${DiskLimits.DISK_MAX_GB}")
-            exists -> s.noteNameExists
+            exists && nameResolved -> s.noteNameExists
             !draft.fits -> s.notePlanOver
             !draft.planValid -> s.outOfRange
             !dirWritable -> s.noteDirBad
@@ -877,7 +888,7 @@ private fun CreateDiskForm(
         }
         // 进页面时只显示"冲突"，不显示"还没填"
         val liveConflict = when {
-            exists -> s.noteNameExists
+            exists && nameResolved -> s.noteNameExists
             !draft.fits -> s.notePlanOver
             !draft.planValid -> s.outOfRange
             !dirWritable -> s.noteDirBad
