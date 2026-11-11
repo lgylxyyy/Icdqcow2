@@ -13,6 +13,7 @@ a1798199a5115653de846d515be54598  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 #   仓库：https://github.com/lgylxyyy/imgtool
 #   提交：e312574（T1–T7：vmdk 落盘 / compact 四格式 / move moved_by / img.info 占用 /
 #         copy --sparse / img.sparsify 四格式 / compact --compress=zlib）
+#         ★ 之后 imgtool 只改过 README（14bff26），二进制与 e312574 相同，不重建换库。
 #   导出符号指纹：nm -D --defined-only libimgtool.so | awk '{print $2,$3}' | sort | sha256sum
 #                 = 6be189edee63ef0947ac7f102093090ea011af236d25d1a40861bc3df356151d（1407 个）
 #   ★ md5 只在「同 clang + 同 NDK + 同一套 stage 依赖」下可复现；换机器请比符号指纹 + 提交号
