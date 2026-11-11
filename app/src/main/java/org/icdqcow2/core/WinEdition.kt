@@ -74,6 +74,35 @@ object WinEdition {
         else -> null
     }
 
+    /**
+     * XP / 2000 / Server 2003 的版本名：这三代**注册表里没有 `EditionID`**，
+     * SKU 只写在 `ProductName` 里（REPLY-74 §2 确认）。
+     *
+     * ★ 必须按**整串**匹配、且 x64 排在 Professional 前面：
+     *   `Microsoft Windows XP Professional x64 Edition` 里也含 `Professional`，
+     *   用 `contains("Professional")` 会把它认成普通专业版。
+     */
+    private fun legacyEditionZh(productName: String?): String? {
+        val t = cleanProductName(productName)?.lowercase() ?: return null
+        return when {
+            "professional x64" in t -> "专业版 x64"
+            "professional" in t -> "专业版"
+            "home edition" in t -> "家庭版"
+            "media center" in t -> "媒体中心版"
+            "tablet pc" in t -> "平板电脑版"
+            "starter" in t -> "简易版"
+            "embedded" in t -> "嵌入式版"
+            "windows 2000 professional" in t -> "专业版"
+            "windows 2000 server" in t -> "服务器版"
+            "windows 2000 advanced server" in t -> "高级服务器版"
+            "datacenter" in t -> "数据中心版"
+            "enterprise" in t -> "企业版"
+            "web edition" in t -> "Web 版"
+            "standard edition" in t -> "标准版"
+            else -> null
+        }
+    }
+
     /** 把注册表里的 `ProductName` 洗成能直接显示的样子（去掉厂商前缀/多余空白）。 */
     private fun cleanProductName(raw: String?): String? {
         val t = raw?.trim()?.replace(Regex("\\s+"), " ") ?: return null
@@ -133,7 +162,7 @@ object WinEdition {
         installationType: String? = null,
     ): String? {
         val fam = family(build, installationType)   // 认识的 build 才给家族名，不认识就是 null
-        val ed = editionZh(editionId)
+        val ed = editionZh(editionId) ?: legacyEditionZh(productName)
         val pn = cleanProductName(productName)
         if (fam != null && ed != null) return "$fam $ed"
         if (fam != null && pn != null) {
