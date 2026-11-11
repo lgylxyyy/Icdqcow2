@@ -66,7 +66,7 @@ object PartnerGate {
     /** 写入类命令白名单式拦截：凡会改动镜像或目标磁盘的都算。 */
     private val BLOCKED_WRITE = setOf(
         // 建盘 / 克隆 / 压缩
-        "img.create", "img.clone", "img.compact",
+        "img.create", "img.clone", "img.compact", "img.sparsify",
         // 分区表
         "part.add", "part.remove", "part.resize", "part.apply", "part.attr",
         "part.mbrboot", "part.copy",
@@ -93,7 +93,8 @@ object PartnerGate {
         "create",     // 创建磁盘
         "parts",      // 分区管理
         "ptexport",   // 导出分区表
-        "clone",      // 克隆映像
+        "clone",      // 释放空间（原地回收）
+        "compact",    // 压缩映像（另存新文件）
         "deploy",     // 释放映像
         "bootrepair", // 引导修复
         "winre",      // 写入 WinRE
