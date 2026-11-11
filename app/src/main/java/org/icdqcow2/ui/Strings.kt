@@ -1073,6 +1073,7 @@ class Strings(val code: String) {
     val fcArchArm get() = raw("fc.archArm")
     val fmtQcow2Hint get() = raw("fmt.qcow2Hint")
     val fmtRawHint get() = raw("fmt.rawHint")
+    val fmtRawWriteNote get() = raw("fmt.rawWriteNote")
     val fmtVmdkHint get() = raw("fmt.vmdkHint")
     val fmtVhdHint get() = raw("fmt.vhdHint")
 

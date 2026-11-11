@@ -5316,6 +5316,11 @@
       "zh": "raw 是裸盘格式：文件长度等于磁盘容量，实际占用随写入增长。复制、分享或导出时可能按完整容量写入。",
       "en": "raw is a bare-disk format: file length equals the disk size and usage grows with writes. Copy, share or export may write the full size.",
       "note": "创建磁盘 · 选 raw 时的提示（A4 #1）"
+    },
+    "fmt.rawWriteNote": {
+      "zh": "该操作会写入零数据，raw 映像的稀疏占用会随之增长。",
+      "en": "This writes zero data; a raw image will use more disk space because of it.",
+      "note": "格式化页 · 映像是 raw 时的提示（A4 #7）"
     }
   }
 }

@@ -1908,6 +1908,8 @@ fun FormatPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     var scans by remember { mutableStateOf<Map<Long, ImageRepo.Scan>>(emptyMap()) }
     var scanning by remember { mutableStateOf(false) }
     var diskCap by remember { mutableStateOf(0L) }
+    /** 映像容器格式：raw 下"格式化/写零"会把稀疏占用撑大，要提前说（A4 #7）。 */
+    var imgFmt by remember { mutableStateOf("") }
     var hostUsed by remember { mutableStateOf(0L) }
     var fs by remember { mutableIntStateOf(0) }          // 0 = NTFS, 1 = FAT32
     var label by remember { mutableStateOf("") }
@@ -1927,6 +1929,7 @@ fun FormatPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             loadErr = s.fmtNoImage
             return@LaunchedEffect
         }
+        imgFmt = ImageRepo.info(path).data?.optString("format").orEmpty()
         val r = ImageRepo.parts(path)
         val parsed = ImageRepo.parseParts(r)
         if (parsed == null) {
@@ -1974,6 +1977,7 @@ fun FormatPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 onToast = onToast,
             )
         }
+        if (imgFmt == "raw") Note(s.fmtRawWriteNote)
         if (diskCap > 0L) {
             GroupCard {
                 Item(s.fmtDisk, s.fmtDiskSize(fmtBytes(diskCap), fmtBytes(hostUsed)))
