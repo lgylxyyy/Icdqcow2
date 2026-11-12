@@ -1,26 +1,21 @@
-# native 库版本与来源（2026-11-11）
+# native 库版本与来源（2026-11-12）
 #
 # 这两个库必须随仓库入库：App 的全部工具命令都经由 libimgapp.so → libimgtool.so，
 # 缺任一个，APK 装到机器上就完全不可用（所有命令 UnsatisfiedLinkError）。
 #
 # 校验：md5sum app/src/main/jniLibs/arm64-v8a/*.so
 
-e3fda8e8f2da456f4a48a3e52ba792b0  app/src/main/jniLibs/arm64-v8a/libimgtool.so
+1e6fd29512a2e9ee98c198ff8189114e  app/src/main/jniLibs/arm64-v8a/libimgtool.so
 a1798199a5115653de846d515be54598  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 
 # ── 来源 ──
-# libimgtool.so （6,820,496 B）
+# libimgtool.so （6,821,496 B）
 #   仓库：https://github.com/lgylxyyy/imgtool
-#   提交：e312574（T1–T7：vmdk 落盘 / compact 四格式 / move moved_by / img.info 占用 /
-#         copy --sparse / img.sparsify 四格式 / compact --compress=zlib）
-#         ★ 之后 imgtool 只改过 README（14bff26），二进制与 e312574 相同，不重建换库。
-#   上游后续：9a24af1「XP/2000 的 SP 级别兜底读 SYSTEM 的 DWORD（REQ-75）」——
-#         **本仓库暂不换库**：REPLY-75 §7 明确说这条 .so 不重编，
-#         因为在测的 versionCode 2 包（so md5 e3fda8e8…）中途换库会让结论对不上号；
-#         下一版 App 发布链一起带上，届时本文件与 jniLibs 同步更新。
-#         ★ 在换库之前，XP/2000 盘只会缺 SP 段（`Windows XP 专业版 · 2600`），
-#           显示不会错（XP 的 SP2/SP3 只差这一段）。
-#   导出符号指纹：nm -D --defined-only libimgtool.so | awk '{print $2,$3}' | sort | sha256sum
-#                 = 6be189edee63ef0947ac7f102093090ea011af236d25d1a40861bc3df356151d（1407 个）
-#   ★ md5 只在「同 clang + 同 NDK + 同一套 stage 依赖」下可复现；换机器请比符号指纹 + 提交号
-#   版本串：imgtool 2026.11.11（`imgcmd version` / `--version` 可取，commit 见回包）
+#   提交：0bbf2cb（含 dc19e9c「REQ-76：中间洞漏算 + qcow2 的 bytes_before 口径」、
+#         9a24af1「REQ-75：XP/2000 的 SP 级别兜底读 SYSTEM 的 DWORD」、
+#         e312574「T1–T7 基线」）
+#   ★ 2026-11-12 决定：**换库**。REQ-76 ①是真缺陷——sparse_source/sparse_kept
+#     直接决定 App 的提示语与真机复制行为，拖着不换库等于让用户复制一个
+#     256 MB 的盘凭空多写 268 MB；「中途换库会让结论对不上号」的顾虑让位于此。
+#   ★ versionCode 2 包（so md5 e3fda8e8…）作废：BP 需换 versionCode 3 包重测，
+#     REPLY-76 已通知。
