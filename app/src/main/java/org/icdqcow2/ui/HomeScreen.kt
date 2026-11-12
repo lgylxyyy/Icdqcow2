@@ -101,10 +101,14 @@ fun HomeScreen(onOpen: (String) -> Unit) {
             Tile(s.createDisk, s.createDiskSummary, MiuixIcons.AddCircle) { onOpen("create") },
             Tile(s.parts, s.partsSummary, MiuixIcons.ListView) { onOpen("parts") },
         )
-        // 三张体积管理卡：压缩映像（另存小文件）/ 释放空间（原地回收）/ 导出分区表。
-        grid3(
+        // 体积管理：压缩映像（另存小文件）/ 释放空间（原地回收）/ 导出分区表。
+        // ★ 2026-11-12 用户定：卡片**永远两个一排**——三张挤一排会把「导出分区表」
+        //   的标题截成「导出分…」，宁可第三张独占一行、右边空着。
+        grid(
             Tile(s.compact, s.compactSummary, MiuixIcons.Copy) { onOpen("compact") },
             Tile(s.reclaim, s.reclaimSummary, MiuixIcons.Reset) { onOpen("clone") },
+        )
+        gridSingle(
             // 原来这里是「格式化」——单分区格式化已并进「分区管理」，位置换「导出分区表」（REQ-14）。
             Tile(s.exportTable, s.exportTableSummary, MiuixIcons.Download) { onOpen("ptexport") },
         )
@@ -153,13 +157,12 @@ private fun LazyListScope.section(title: String) {
  */
 private val DESC_SLOT_MIN_HEIGHT = 30.dp
 
-/** 一行三张卡（体积管理那一行：标题都短，三等分仍可读）。 */
-private fun LazyListScope.grid3(a: Tile, b: Tile, c: Tile) {
+/** 一行只放一张卡，右侧留一个空位（单数张时用；不许三张挤一排）。 */
+private fun LazyListScope.gridSingle(a: Tile) {
     item {
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             TileCard(a, Modifier.weight(1f))
-            TileCard(b, Modifier.weight(1f))
-            TileCard(c, Modifier.weight(1f))
+            Spacer(Modifier.weight(1f))
         }
     }
 }
