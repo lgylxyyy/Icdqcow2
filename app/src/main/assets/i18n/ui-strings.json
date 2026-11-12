@@ -5172,6 +5172,41 @@
       "en": "Will be saved as {0}",
       "note": "压缩映像页 · 输出文件名"
     },
+    "compact.outName": {
+      "zh": "输出文件名",
+      "en": "Output file name",
+      "note": "压缩映像页 · 分组标题（输出文件名输入框，用户 2026-11-12 追加）"
+    },
+    "compact.saveWhere": {
+      "zh": "保存位置",
+      "en": "Save location",
+      "note": "压缩映像页 · 分组标题（保存位置选项卡，用户 2026-11-12 追加）"
+    },
+    "compact.saveSame": {
+      "zh": "原文件所在目录",
+      "en": "Same folder as the source",
+      "note": "压缩映像页 · 保存位置选项一（默认，落在源文件旁边）"
+    },
+    "compact.saveCustom": {
+      "zh": "自定义目录",
+      "en": "Custom folder",
+      "note": "压缩映像页 · 保存位置选项二（与创建磁盘页各存各的，不共用）"
+    },
+    "compact.nameAuto": {
+      "zh": "名称重复，已自动加序号：{0}",
+      "en": "Name already exists; a number was appended: {0}",
+      "note": "压缩映像页 · 顶部 toast（输出文件名撞名自动顺延，用户 2026-11-12 拍板用 toast 不用灰字）"
+    },
+    "compact.needName": {
+      "zh": "先给输出文件起个名字",
+      "en": "Give the output file a name first",
+      "note": "压缩映像页 · 输出文件名为空时的 toast"
+    },
+    "compact.outUnwritable": {
+      "zh": "这个目录写不进去，换个保存位置",
+      "en": "This folder cannot be written to; pick another save location",
+      "note": "压缩映像页 · 输出目录不可写时的提示"
+    },
     "compact.run": {
       "zh": "开始",
       "en": "Start",

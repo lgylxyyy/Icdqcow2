@@ -5,6 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Intent
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -2328,10 +2332,53 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     var usedBytes by remember { mutableStateOf(0L) }
     var allocKnown by remember { mutableStateOf(true) }
     var fmt by remember { mutableStateOf("") }
-    var outFile by remember { mutableStateOf<File?>(null) }
+
+    // ★ 输出（用户 2026-11-12 追加）：文件名可改 + 保存位置可选。
+    //   保存目录**与创建磁盘页各存各的**（用户拍板：不共用、互不覆盖）——
+    //   所以这里只用自己的局部状态，不动 ImageRepo 的全局保存位置。
+    var outName by remember { mutableStateOf("") }
+    var outDirMode by remember { mutableIntStateOf(0) }    // 0 = 原文件所在目录，1 = 自定义
+    var outCustomDir by remember { mutableStateOf<String?>(null) }
+
     var doneText by remember { mutableStateOf<String?>(null) }
     var err by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    val ctx = LocalContext.current
+
+    // 自定义保存目录：SAF 只用来拿"真实路径"，写盘仍走 File（需要「所有文件访问」）
+    val dirPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri == null) {
+            if (outCustomDir == null) outDirMode = 0
+            return@rememberLauncherForActivityResult
+        }
+        runCatching {
+            ctx.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+            )
+        }
+        val path = StorageAccess.treeToPath(uri)
+        when {
+            path == null -> onToast(s.toastPickNoPath)
+            !StorageAccess.canWrite(File(path)) -> onToast(s.toastPickUnwritable)
+            else -> {
+                outCustomDir = path
+                outDirMode = 1
+                onToast(s.toastPicked(path))
+            }
+        }
+    }
+
+    /** 源文件所在目录（默认落点）。 */
+    val srcDir = remember(image) { image?.let { File(it).parentFile?.absolutePath } ?: "/sdcard" }
+
+    /** 实际输出目录：自定义优先（还没挑到就回原目录）。 */
+    val outDir = if (outDirMode == 1) (outCustomDir ?: srcDir) else srcDir
+
+    /** 输出文件（完整路径）；名字空时没有。 */
+    val outFile = remember(outDir, outName) {
+        outName.trim().takeIf { it.isNotEmpty() }?.let { File(outDir, it.trim()) }
+    }
 
     LaunchedEffect(image) {
         mode = 0
@@ -2341,19 +2388,44 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
         usedBytes = 0L
         allocKnown = true
         fmt = ""
-        outFile = null
+        outName = defaultCompactName(image)
         val img = image ?: return@LaunchedEffect
         val d = ImageRepo.info(img).data
         capBytes = d?.optLong("logical_bytes", 0L) ?: 0L
         usedBytes = d?.optLong("alloc_bytes", 0L) ?: 0L
         allocKnown = d?.optBoolean("alloc_known", true) ?: true
         fmt = d?.optString("format") ?: ""
-        outFile = suggestCompactOut(img)
+    }
+
+    /**
+     * 撞名就顺延成 `xxx (1).qcow2`，并用**顶部 toast** 说一声
+     * （用户 2026-11-12 拍板：通知用顶部 toast，输入框下方不再挂灰字）。
+     *
+     * @return 顺延后的完整文件名。
+     */
+    fun dedupeOutName(): String {
+        val name = outName.trim()
+        if (name.isEmpty()) return name
+        val base = name.substringBeforeLast('.', name)
+        val ext = name.substringAfterLast('.', "")
+        val fixed = uniqueNameIn(File(outDir), ext, base) { b, n -> s.nameDup(b, n) }
+        val fixedName = if (ext.isEmpty()) fixed else "$fixed.$ext"
+        if (fixedName != name) {
+            outName = fixedName
+            onToast(s.compactNameAuto(fixedName))
+        }
+        return fixedName
     }
 
     fun run() {
         val img = image ?: return
-        val out = outFile ?: return
+        // 点开始时也去一次重：用户可能没失焦就直接点了 → 别把老文件覆盖掉
+        val name = dedupeOutName()
+        if (name.isEmpty()) {
+            onToast(s.compactNeedName)
+            return
+        }
+        val out = File(outDir, name)
         scope.launch {
             busy = true
             err = null
@@ -2373,7 +2445,6 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             val before = runCatching { File(img).length() }.getOrDefault(0L)
             val after = runCatching { out.length() }.getOrDefault(0L)
             doneText = s.compactDone(out.name, fmtBytes(before), fmtBytes(after))
-            outFile = suggestCompactOut(img)
         }
     }
 
@@ -2383,15 +2454,18 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             PickImagePage(onPicked = { path, uri -> image = path ?: uri })
             return@SmallTitlePage
         }
-        GroupCard {
-            Item(s.compactSource, pickName(image.orEmpty()))
-            Item(
-                s.compactDisk,
-                s.compactUsage(fmtBytes(capBytes), if (allocKnown) fmtBytes(usedBytes) else "—"),
-            )
+        // ★ 第 1 条（用户 2026-11-12）：选完映像后正文块错峰弹入
+        BlockEnter(0) {
+            GroupCard {
+                Item(s.compactSource, pickName(image.orEmpty()))
+                Item(
+                    s.compactDisk,
+                    s.compactUsage(fmtBytes(capBytes), if (allocKnown) fmtBytes(usedBytes) else "—"),
+                )
+            }
+            // F1：映像是只读打开的（SAF 只拿到 "r"）→ 说明白改不了
+            ReadonlyImageNote()
         }
-        // F1：映像是只读打开的（SAF 只拿到 "r"）→ 说明白改不了
-        ReadonlyImageNote()
         Note(s.compactNote)
         if (fmt == "raw") Note(s.compactRawNote)
         if (fmt.isNotEmpty() && fmt != "qcow2") Note(s.compactFmtNote(fmt))
@@ -2399,19 +2473,54 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
         if (!supported) {
             Note(s.compactUnsupported, warn = true)
         } else {
-            Note(s.compactMode)
-            ChoiceCard(
-                options = listOf(
-                    Choice(s.compactModeTight, s.compactModeTightSummary),
-                    Choice(s.compactModeZip, s.compactModeZipSummary),
-                ),
-                selected = mode,
-                onSelect = {
-                    if (it == 1 && !zipOk) onToast(s.compactModeZipOff) else mode = it
-                },
-            )
-            if (!zipOk) Note(s.compactModeZipOff)
-            outFile?.let { Note(s.compactOutNote(it.name)) }
+            // ★ 输出文件名 + 保存位置（用户 2026-11-12 追加）
+            BlockEnter(1) {
+                GroupTitle(s.compactOutName)
+                TextField(
+                    value = outName,
+                    onValueChange = {
+                        // 允许空格、括号和点（扩展名要留得住）
+                        outName = it.filter { c -> c.isLetterOrDigit() || c in "-_ ()（）." }.take(64)
+                    },
+                    // 编辑完顺手去重：撞名自动加序号（顶部 toast 通知）
+                    modifier = Modifier.fillMaxWidth().onFocusChanged { st ->
+                        if (!st.isFocused) dedupeOutName()
+                    },
+                )
+
+                GroupTitle(s.compactSaveWhere)
+                ChoiceCard(
+                    options = listOf(
+                        Choice(s.compactSaveSame, srcDir),
+                        Choice(s.compactSaveCustom, outCustomDir ?: s.noFolder),
+                    ),
+                    selected = outDirMode,
+                ) { i ->
+                    when {
+                        i == 0 -> outDirMode = 0
+                        outCustomDir != null -> outDirMode = 1
+                        else -> dirPicker.launch(null)
+                    }
+                }
+                outFile?.let { Note(s.compactOutNote(it.absolutePath)) }
+                if (!StorageAccess.canWrite(File(outDir))) Note(s.compactOutUnwritable, warn = true)
+            }
+
+            BlockEnter(2) {
+                Note(s.compactMode)
+                ChoiceCard(
+                    options = listOf(
+                        Choice(s.compactModeTight, s.compactModeTightSummary),
+                        Choice(s.compactModeZip, s.compactModeZipSummary),
+                    ),
+                    selected = mode,
+                    onSelect = {
+                        if (it == 1 && !zipOk) onToast(s.compactModeZipOff) else mode = it
+                    },
+                )
+                if (!zipOk) Note(s.compactModeZipOff)
+            }
+
             doneText?.let { Note(it) }
             err?.let { Note(it, warn = true) }
 
@@ -2426,13 +2535,10 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     }
 }
 
-/** 紧凑另存的默认落点：同目录 `<名字>-compact.qcow2`，重名顺延。 */
-private fun suggestCompactOut(img: String): File {
-    val f = File(img)
-    val dir = f.parentFile ?: File("/")
-    val base = f.name.substringBeforeLast('.', f.name)
-    var out = File(dir, "$base-compact.qcow2")
-    var n = 2
-    while (out.exists()) out = File(dir, "$base-compact-${n++}.qcow2")
-    return out
+/** 压缩的默认输出名：`<源文件名去扩展名>-compact.qcow2`（用户 2026-11-12）。 */
+private fun defaultCompactName(img: String?): String {
+    if (img == null) return ""
+    val name = File(img).name
+    val base = name.substringBeforeLast('.', name)
+    return if (base.isEmpty()) "compact.qcow2" else "$base-compact.qcow2"
 }

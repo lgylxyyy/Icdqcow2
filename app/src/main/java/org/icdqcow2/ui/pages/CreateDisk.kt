@@ -440,31 +440,6 @@ private const val APPLY = 3
  *
  * 结构：保存位置 → 镜像名 / 容量 → 磁盘类型 → 分区设置（二级页）→ 创建。
  */
-/**
- * 目录里已有同名文件就顺延成 `名称 (1)`、`名称 (2)`…
- *
- * ★ 必须在**组合阶段**就能调用（`remember` 里算），不能只靠 `LaunchedEffect`：
- *   effect 是"第一帧画完才跑"，那一帧按旧名字渲染 → 会先闪一条「同名映像已存在」
- *   再改名（用户 2026-11-11 报了两次，第二次就是因为我上次只加了显示门控）。
- *
- * @param dup 名字模板（`name.dup`，中英都是 `{0} ({1})`）
- */
-private fun uniqueNameIn(
-    dir: File,
-    ext: String,
-    wanted: String,
-    dup: (String, Int) -> String,
-): String {
-    if (!File(dir, "$wanted.$ext").exists()) return wanted
-    val suffix = 4                       // " (n)" = 空格 + ( + 数字 + )
-    val keep = (DiskLimits.NAME_MAX - suffix - 1).coerceAtLeast(1)
-    for (n in 1..99) {
-        val cand = dup(wanted.take(keep), n)
-        if (!File(dir, "$cand.$ext").exists()) return cand
-    }
-    return wanted                       // 99 个都撞上：保持原名，让冲突照常报出来
-}
-
 @Composable
 fun CreateDiskPage(
     onBack: () -> Unit,

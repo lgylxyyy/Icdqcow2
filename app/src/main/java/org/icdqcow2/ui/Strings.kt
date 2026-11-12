@@ -397,6 +397,16 @@ class Strings(val code: String) {
     val compactModeZipSummary get() = raw("compact.modeZipSummary")
     val compactModeZipOff get() = raw("compact.modeZipOff")
     fun compactOutNote(name: String) = tpl("compact.outNote", name)
+    /** 输出文件名输入框（用户 2026-11-12 追加）。 */
+    val compactOutName get() = raw("compact.outName")
+    /** 保存位置选项卡（用户 2026-11-12 追加；与创建磁盘页各存各的）。 */
+    val compactSaveWhere get() = raw("compact.saveWhere")
+    val compactSaveSame get() = raw("compact.saveSame")
+    val compactSaveCustom get() = raw("compact.saveCustom")
+    /** 撞名自动顺延 → 顶部 toast（用户 2026-11-12 拍板）。 */
+    fun compactNameAuto(name: String) = tpl("compact.nameAuto", name)
+    val compactNeedName get() = raw("compact.needName")
+    val compactOutUnwritable get() = raw("compact.outUnwritable")
     val compactRun get() = raw("compact.run")
     val compactRunning get() = raw("compact.running")
     fun compactDone(name: String, before: String, after: String) = tpl("compact.done", name, before, after)
