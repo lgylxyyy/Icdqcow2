@@ -2128,7 +2128,9 @@ fun FormatPage(onBack: () -> Unit, onToast: (String) -> Unit) {
 @Composable
 fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     val s = LocalStrings.current
-    val image by ImageRepo.current.collectAsState()
+    // ★ 2026-11-12 用户定：进页面先出「选择映像」页，不再默默绑上一次用的映像
+    //   （和引导修复/注册表那些页同一套：没有映像时，后面的功能块统统不显示）。
+    var image by remember { mutableStateOf<String?>(null) }
     val sparsify = ToolCaps.SPARSIFY
     val trimOk = ToolCaps.has("img.trim")
     val supported = sparsify || trimOk
@@ -2236,14 +2238,17 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     }
 
     SmallTitlePage(title = s.trimTitle, onBack = onBack) {
+        if (image == null) {
+            Note(s.trimNeedImage)
+            PickImagePage(onPicked = { path, uri -> image = path ?: uri })
+            return@SmallTitlePage
+        }
         GroupCard {
             Item(s.trimSource, pickName(image.orEmpty()))
-            if (image != null) {
-                Item(
-                    s.trimDisk,
-                    s.trimUsage(fmtBytes(capBytes), if (allocKnown) fmtBytes(usedBytes) else "—"),
-                )
-            }
+            Item(
+                s.trimDisk,
+                s.trimUsage(fmtBytes(capBytes), if (allocKnown) fmtBytes(usedBytes) else "—"),
+            )
         }
         Note(s.trimNote)
         if (fmt == "raw") Note(s.trimRawNote)
@@ -2308,7 +2313,8 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
 @Composable
 fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     val s = LocalStrings.current
-    val image by ImageRepo.current.collectAsState()
+    // ★ 2026-11-12 用户定：进页面先出「选择映像」页，不默默绑上一次的映像。
+    var image by remember { mutableStateOf<String?>(null) }
     val supported = ToolCaps.has("img.compact")
     val zipOk = ToolCaps.COMPACT_COMPRESS
 
@@ -2368,14 +2374,17 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     }
 
     SmallTitlePage(title = s.compactTitle, onBack = onBack) {
+        if (image == null) {
+            Note(s.compactNeedImage)
+            PickImagePage(onPicked = { path, uri -> image = path ?: uri })
+            return@SmallTitlePage
+        }
         GroupCard {
             Item(s.compactSource, pickName(image.orEmpty()))
-            if (image != null) {
-                Item(
-                    s.compactDisk,
-                    s.compactUsage(fmtBytes(capBytes), if (allocKnown) fmtBytes(usedBytes) else "—"),
-                )
-            }
+            Item(
+                s.compactDisk,
+                s.compactUsage(fmtBytes(capBytes), if (allocKnown) fmtBytes(usedBytes) else "—"),
+            )
         }
         Note(s.compactNote)
         if (fmt == "raw") Note(s.compactRawNote)
