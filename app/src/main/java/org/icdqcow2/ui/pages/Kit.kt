@@ -241,7 +241,20 @@ data class Choice(
 
 /** 单选卡片：一张卡里若干行，选中行左侧出对勾、文字转主题色。 */
 @Composable
-fun ChoiceCard(options: List<Choice>, selected: Int, onSelect: (Int) -> Unit) {
+fun ChoiceCard(
+    options: List<Choice>,
+    selected: Int,
+    /**
+     * 逐行是否可用（false = 整行置灰）；null = 全部可用。
+     *
+     * ★ 铁律：**灰着也能点**（点了由调用方解释）——
+     *   用户 2026-11-12：释放空间页「按内容全零」在 qcow2 上要置灰，
+     *   但点了还得给一句说明，不能"点了没反应"。
+     *   所以这里只改**颜色**，不动 BasicComponent 的 enabled（那会让点击直接失效）。
+     */
+    enabled: List<Boolean>? = null,
+    onSelect: (Int) -> Unit,
+) {
     val colors = MiuixTheme.colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -251,15 +264,24 @@ fun ChoiceCard(options: List<Choice>, selected: Int, onSelect: (Int) -> Unit) {
         Column {
             options.forEachIndexed { i, option ->
                 val on = i == selected
+                val en = enabled?.getOrNull(i) ?: true
                 BasicComponent(
                     title = option.title,
                     summary = option.summary,
                     titleColor = BasicComponentColors(
-                        color = if (on) colors.primary else colors.onBackground,
+                        color = when {
+                            !en -> colors.disabledOnSecondaryVariant
+                            on -> colors.primary
+                            else -> colors.onBackground
+                        },
                         disabledColor = colors.disabledOnSecondaryVariant,
                     ),
                     summaryColor = BasicComponentColors(
-                        color = if (on) colors.primary.copy(alpha = 0.7f) else colors.onSurfaceVariantSummary,
+                        color = when {
+                            !en -> colors.disabledOnSecondaryVariant
+                            on -> colors.primary.copy(alpha = 0.7f)
+                            else -> colors.onSurfaceVariantSummary
+                        },
                         disabledColor = colors.disabledOnSecondaryVariant,
                     ),
                     startAction = { RadioButton(selected = on, onClick = null) },

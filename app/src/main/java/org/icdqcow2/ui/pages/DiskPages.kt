@@ -2249,34 +2249,42 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             PickImagePage(onPicked = { path, uri -> image = path ?: uri })
             return@SmallTitlePage
         }
-        GroupCard {
-            Item(s.trimSource, pickName(image.orEmpty()))
-            Item(
-                s.trimDisk,
-                s.trimUsage(fmtBytes(capBytes), if (allocKnown) fmtBytes(usedBytes) else "—"),
-            )
+        // ★ 第 1 条（用户 2026-11-12）：选完映像后正文块错峰弹入
+        BlockEnter(0) {
+            GroupCard {
+                Item(s.trimSource, pickName(image.orEmpty()))
+                Item(
+                    s.trimDisk,
+                    s.trimUsage(fmtBytes(capBytes), if (allocKnown) fmtBytes(usedBytes) else "—"),
+                )
+            }
+            // F1：映像是只读打开的（SAF 只拿到 "r"）→ 说明白改不了
+            ReadonlyImageNote()
         }
-        // F1：映像是只读打开的（SAF 只拿到 "r"）→ 说明白改不了
-        ReadonlyImageNote()
         Note(s.trimNote)
         if (fmt == "raw") Note(s.trimRawNote)
 
         if (!supported) {
             Note(s.trimUnsupported, warn = true)
         } else {
-            if (!sparsify) Note(s.trimLegacy, warn = true)
-            Note(s.trimMode)
-            ChoiceCard(
-                options = listOf(
-                    Choice(s.trimModeFs, s.trimModeFsSummary),
-                    Choice(s.trimModeZero, s.trimModeZeroSummary),
-                ),
-                selected = mode,
-                onSelect = {
-                    if (it == 1 && !zeroAvailable()) onToast(s.trimModeZeroOff) else mode = it
-                },
-            )
-            if (!zeroAvailable()) Note(s.trimModeZeroOff)
+            BlockEnter(1) {
+                if (!sparsify) Note(s.trimLegacy, warn = true)
+                Note(s.trimMode)
+                ChoiceCard(
+                    options = listOf(
+                        Choice(s.trimModeFs, s.trimModeFsSummary),
+                        Choice(s.trimModeZero, s.trimModeZeroSummary),
+                    ),
+                    selected = mode,
+                    // qcow2 本身就按块分配，不需要按内容扫全盘 → 整行置灰
+                    //（**灰着也能点**：点了照旧给一句"这个格式用不上"）
+                    enabled = listOf(true, zeroAvailable()),
+                    onSelect = {
+                        if (it == 1 && !zeroAvailable()) onToast(s.trimModeZeroOff) else mode = it
+                    },
+                )
+                if (!zeroAvailable()) Note(s.trimModeZeroOff)
+            }
 
             planBytes?.let {
                 Note(s.trimPlan(fmtBytes(it)))
