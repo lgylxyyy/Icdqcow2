@@ -1925,6 +1925,9 @@ fun FilesScreen(
             },
             elapsedMs = pv?.elapsedMs ?: 0L,
             etaSec = pv?.eta ?: -1,
+            dstItem = pv?.dstItem?.takeIf { it.isNotBlank() },
+            filesCur = pv?.filesCur ?: 0L,
+            filesTotal = pv?.filesTotal ?: 0L,
             cancelText = s.cancel,
             onCancel = {
                 ToolRunner.cancel()

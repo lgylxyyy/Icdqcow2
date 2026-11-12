@@ -650,8 +650,6 @@ private fun CreateDiskForm(
         else StorageAccess.canWrite(ImageRepo.defaultDir())
     }
 
-    /** 刚被自动加过序号的名字（用来在输入框下面显示一句提示）。 */
-    var autoRenamedTo by remember { mutableStateOf<String?>(null) }
     // 默认名已被占用 → 自动顺延：`名称 (1)` / `名称 (2)`…
     // ★ 中英一律**半角括号 + 括号前一个空格**（用户 2026-11-11 定：以前中文用全角，
     //   同一个目录里中英两套写法并存，看着不统一）。
@@ -671,9 +669,8 @@ private fun CreateDiskForm(
         val fixed = uniqueNameIn(targetDir, draft.format, draft.name) { b, n -> s.nameDup(b, n) }
         if (fixed != draft.name) {
             draft.name = fixed
-            autoRenamedTo = fixed
-        } else {
-            autoRenamedTo = null
+            // ★ 通知用**顶部 toast**（用户 2026-11-12 拍板 Q3）：输入框下方不再挂灰字。
+            onToast(s.createNameAuto(fixed))
         }
     }
 
@@ -796,7 +793,6 @@ private fun CreateDiskForm(
                     // 允许空格与括号：重名顺延会生成 `名称 (1)`，编辑时不能把它吃掉
                     draft.name = it.filter { c -> c.isLetterOrDigit() || c in "-_ ()（）" }
                         .take(DiskLimits.NAME_MAX)
-                    autoRenamedTo = null       // 用户又开始改了，先别挂上一轮那句提示
                 },
                 // 编辑完（点别处 / 收起键盘）就顺手去重：撞名自动加序号，不用等到点创建
                 modifier = Modifier.fillMaxWidth().onFocusChanged { st ->
@@ -819,11 +815,9 @@ private fun CreateDiskForm(
                 },
             )
         }
-        // 名称重复的提示就在输入框下面（不再用"创建时拦下来 + 弹 toast"那套）
-        when {
-            autoRenamedTo != null -> Note(s.createNameAuto(autoRenamedTo!!))
-            exists -> Note(s.createNameWillAuto)
-        }
+        // 名称重复的提示（用户 2026-11-12 拍板 Q3：自动顺延的通知走**顶部 toast**，
+        // 输入框下方只留一句"创建时会自动加序号"，不挂顺延后的名字）
+        if (exists) Note(s.createNameWillAuto)
         Note(s.nameHint)
 
         GroupTitle(s.secCapacity)

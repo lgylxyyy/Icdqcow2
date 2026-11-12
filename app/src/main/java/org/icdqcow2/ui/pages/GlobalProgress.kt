@@ -71,6 +71,10 @@ fun GlobalProgressOverlay(onToast: (String) -> Unit) {
         else -> 0L
     }
     val item = p?.item?.takeIf { it.isNotBlank() }
+    // REQ-77：item 是**源**路径，dst_item 是**目标**路径（写文件类任务才有）
+    val dst = p?.dstItem?.takeIf { it.isNotBlank() }
+    val filesCur = p?.filesCur ?: 0L
+    val filesTotal = p?.filesTotal ?: 0L
     val elapsedMs = p?.elapsedMs?.takeIf { it > 0L }
     val etaSec = p?.eta?.takeIf { it >= 0 }
     val colors = MiuixTheme.colorScheme
@@ -112,6 +116,22 @@ fun GlobalProgressOverlay(onToast: (String) -> Unit) {
                     Spacer(Modifier.height(6.dp))
                     Text(
                         s.progItem(item),
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = colors.onSurfaceVariantSummary,
+                    )
+                }
+                if (!dst.isNullOrEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        s.progDst(dst),
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = colors.onSurfaceVariantSummary,
+                    )
+                }
+                if (filesTotal > 0L) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        s.progFiles(filesCur.toString(), filesTotal.toString()),
                         style = MiuixTheme.textStyles.footnote2,
                         color = colors.onSurfaceVariantSummary,
                     )

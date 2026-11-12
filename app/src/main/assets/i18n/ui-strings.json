@@ -1767,6 +1767,16 @@
       "en": "Working on: {0}",
       "note": "进度浮层 · 正在处理的条目（工具端 progress 的 item）"
     },
+    "prog.dst": {
+      "zh": "正在写入：{0}",
+      "en": "Writing to: {0}",
+      "note": "进度浮层 · 正在写入的目标路径（工具端 REQ-77 新增的 dst_item）"
+    },
+    "prog.files": {
+      "zh": "文件 {0} / {1}",
+      "en": "Files {0} / {1}",
+      "note": "进度浮层 · 文件计数（工具端 REQ-77 新增的 files_cur/files_total）"
+    },
     "prog.elapsed": {
       "zh": "已用 {0}",
       "en": "Elapsed {0}",

@@ -42,6 +42,17 @@ object ToolEvents {
         /** 压缩包口径。RAR 的 cur 是准的；zip/7z 拿不到 → 0（**0 = 给不了，不是没进度**）。 */
         val archiveCurBytes: Long = 0L,
         val archiveTotalBytes: Long = 0L,
+        /**
+         * 文件计数（REQ-77 Q1）：`files_cur` / `files_total`。
+         * 0 = 这个任务没有文件概念，或总数未知（**不是"还有 0 个"**）。
+         */
+        val filesCur: Long = 0L,
+        val filesTotal: Long = 0L,
+        /**
+         * 正在写到哪里（REQ-77 Q2）：`dst_item`。
+         * [item] 是**源**路径，这个是**目标**路径（写文件类任务才有）。
+         */
+        val dstItem: String = "",
     )
 
     private val _progress = MutableStateFlow<Progress?>(null)
@@ -94,6 +105,10 @@ object ToolEvents {
                 bytesKind = f.optString("bytes_kind", "raw"),
                 archiveCurBytes = f.optLong("archive_cur_bytes", 0L),
                 archiveTotalBytes = f.optLong("archive_total_bytes", 0L),
+                // REQ-77：文件计数 + 正在写入的目标路径
+                filesCur = f.optLong("files_cur", 0L),
+                filesTotal = f.optLong("files_total", 0L),
+                dstItem = f.optString("dst_item", ""),
             )
         }
     }

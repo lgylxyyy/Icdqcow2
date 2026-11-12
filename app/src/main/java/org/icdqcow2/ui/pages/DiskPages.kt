@@ -2234,13 +2234,13 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 val d = r.data
                 val freed = if (sparsify) (d?.optLong("freed_bytes", 0L) ?: 0L)
                 else (d?.optLong("guest_bytes_freed", 0L) ?: 0L)
-                // ★ 占用口径统一走 img.info 的 alloc_bytes（宿主占用）：
-                //   工具端 img.sparsify 在 qcow2 上的 bytes_before/bytes_after 是在
-                //   内部 trim（已经 punch 完）之后才量的 → 两个数相等，
-                //   直接拿来显示会变成"释放了 150 MB，占用 226 MB → 226 MB"，自相矛盾。
-                //   工具端已在 REQ-76 里报了这个口径问题，App 这边先用 img.info 前后对比。
-                val before = usedBytes
-                val after = runCatching { ImageRepo.info(img).data?.optLong("alloc_bytes", 0L) ?: 0L }
+                // ★ 占用口径：工具端 REQ-76 已修 —— sparsify 的 bytes_before/after 现在就是
+                //   "执行前后的宿主占用"（st_blocks×512），freed_bytes = 两者之差。
+                //   所以直接用工具端给的数，不用再跑一遍 img.info 去凑（省一次全盘统计）。
+                //   trim（老库）那条没有这两个字段，仍用 img.info 的 alloc_bytes。
+                val before = if (sparsify) (d?.optLong("bytes_before", 0L) ?: usedBytes) else usedBytes
+                val after = if (sparsify) (d?.optLong("bytes_after", 0L) ?: 0L)
+                else runCatching { ImageRepo.info(img).data?.optLong("alloc_bytes", 0L) ?: 0L }
                     .getOrDefault(0L)
                 doneText = s.trimDone(fmtBytes(freed), fmtBytes(before), fmtBytes(after))
                 if (freed <= 0L) note = s.trimNothing

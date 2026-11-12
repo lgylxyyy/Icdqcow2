@@ -452,6 +452,11 @@ fun BlockingProgressCard(
     remainBytes: Long = 0L,
     elapsedMs: Long = 0L,
     etaSec: Int = -1,
+    /** 正在写入的目标路径（REQ-77 的 dst_item）。 */
+    dstItem: String? = null,
+    /** 文件计数（REQ-77 的 files_cur/files_total）；总数为 0 = 不显示。 */
+    filesCur: Long = 0L,
+    filesTotal: Long = 0L,
 ) {
     val colors = MiuixTheme.colorScheme
     // 进度卡也遵守"返回 = 取消"：有取消按钮就当按下它
@@ -494,6 +499,22 @@ fun BlockingProgressCard(
                     Spacer(Modifier.height(6.dp))
                     Text(
                         item,
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = colors.onSurfaceVariantSummary,
+                    )
+                }
+                if (!dstItem.isNullOrEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        LocalStrings.current.progDst(dstItem),
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = colors.onSurfaceVariantSummary,
+                    )
+                }
+                if (filesTotal > 0L) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        LocalStrings.current.progFiles(filesCur.toString(), filesTotal.toString()),
                         style = MiuixTheme.textStyles.footnote2,
                         color = colors.onSurfaceVariantSummary,
                     )

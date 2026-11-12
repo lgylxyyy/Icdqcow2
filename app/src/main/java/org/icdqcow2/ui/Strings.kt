@@ -556,6 +556,10 @@ class Strings(val code: String) {
     // ── 统一进度浮层（用户 2026-11-12）──
     fun progRemaining(size: String) = tpl("prog.remaining", size)
     fun progItem(item: String) = tpl("prog.item", item)
+    /** 正在写入的目标路径（REQ-77 的 dst_item）。 */
+    fun progDst(path: String) = tpl("prog.dst", path)
+    /** 文件计数（REQ-77 的 files_cur/files_total）。 */
+    fun progFiles(cur: String, total: String) = tpl("prog.files", cur, total)
     fun progElapsed(t: String) = tpl("prog.elapsed", t)
     fun progEta(t: String) = tpl("prog.eta", t)
     /** 任务运行时误触返回 → 顶部 toast。 */
