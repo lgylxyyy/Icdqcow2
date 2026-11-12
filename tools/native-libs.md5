@@ -14,6 +14,12 @@ a1798199a5115653de846d515be54598  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 #   提交：e312574（T1–T7：vmdk 落盘 / compact 四格式 / move moved_by / img.info 占用 /
 #         copy --sparse / img.sparsify 四格式 / compact --compress=zlib）
 #         ★ 之后 imgtool 只改过 README（14bff26），二进制与 e312574 相同，不重建换库。
+#   上游后续：9a24af1「XP/2000 的 SP 级别兜底读 SYSTEM 的 DWORD（REQ-75）」——
+#         **本仓库暂不换库**：REPLY-75 §7 明确说这条 .so 不重编，
+#         因为在测的 versionCode 2 包（so md5 e3fda8e8…）中途换库会让结论对不上号；
+#         下一版 App 发布链一起带上，届时本文件与 jniLibs 同步更新。
+#         ★ 在换库之前，XP/2000 盘只会缺 SP 段（`Windows XP 专业版 · 2600`），
+#           显示不会错（XP 的 SP2/SP3 只差这一段）。
 #   导出符号指纹：nm -D --defined-only libimgtool.so | awk '{print $2,$3}' | sort | sha256sum
 #                 = 6be189edee63ef0947ac7f102093090ea011af236d25d1a40861bc3df356151d（1407 个）
 #   ★ md5 只在「同 clang + 同 NDK + 同一套 stage 依赖」下可复现；换机器请比符号指纹 + 提交号

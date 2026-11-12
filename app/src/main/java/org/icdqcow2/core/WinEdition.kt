@@ -162,7 +162,12 @@ object WinEdition {
         installationType: String? = null,
     ): String? {
         val fam = family(build, installationType)   // 认识的 build 才给家族名，不认识就是 null
-        val ed = editionZh(editionId) ?: legacyEditionZh(productName)
+        var ed = editionZh(editionId) ?: legacyEditionZh(productName)
+        // Server 家族名里已经带 "Windows Server"，版本名里的 "Server " 是重复的
+        // （Server 数据中心版 + Windows Server 2025 → Windows Server 2025 数据中心版）
+        if (fam != null && fam.startsWith("Windows Server ") && ed != null && ed.startsWith("Server ")) {
+            ed = ed.removePrefix("Server ")
+        }
         val pn = cleanProductName(productName)
         if (fam != null && ed != null) return "$fam $ed"
         if (fam != null && pn != null) {
