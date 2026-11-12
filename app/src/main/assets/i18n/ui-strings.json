@@ -5297,6 +5297,16 @@
       "en": "Written at full size, using {0}",
       "note": "文件页 · 复制完成提示（目标不支持稀疏）"
     },
+    "files.fatSparseWarn": {
+      "zh": "目标卷不支持稀疏文件，将按完整容量写入",
+      "en": "The target volume doesn't support sparse files; the copy will be written at full size",
+      "note": "文件页 · FAT32/exFAT 目标复制前的强提示标题（§2.2）"
+    },
+    "files.fatSparseBody": {
+      "zh": "将按完整容量写入，目标存储需有同等可用空间。建议改用 qcow2。",
+      "en": "The copy will be written at full size and the target storage needs equal free space. Consider using qcow2 instead.",
+      "note": "文件页 · FAT32/exFAT 强提示的正文（§2.2）"
+    },
     "files.movedByRename": {
       "zh": "同卷移动，没有复制数据",
       "en": "Moved within the same volume without copying data",

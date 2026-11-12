@@ -421,6 +421,10 @@ class Strings(val code: String) {
     // ── 文件页：复制/移动结果（A3）──
     fun filesSparseKept(used: String) = tpl("files.sparseKept", used)
     fun filesSparseLost(used: String) = tpl("files.sparseLost", used)
+
+    // ── FAT32/exFAT 目标先行强提示（§2.2）──
+    val filesFatSparseWarn get() = raw("files.fatSparseWarn")
+    val filesFatSparseBody get() = raw("files.fatSparseBody")
     val filesMovedByRename get() = raw("files.movedByRename")
 
     // ── 卷标 ──

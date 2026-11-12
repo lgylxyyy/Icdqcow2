@@ -514,6 +514,7 @@ fun FilesScreen(
     var pendingConflictName by remember { mutableStateOf("") }
     /** 设置=「每次询问」时，先问一句再搬（T4/A3）。 */
     var pendingSparseJob by remember { mutableStateOf<TransferJob?>(null) }
+    var pendingFatJob by remember { mutableStateOf<TransferJob?>(null) }
     // 选 WIM/ESD 的映像索引
     // ── 搜索（⋮ 菜单里的"搜索"）──
     // 范围 = 聚焦栏的**当前目录及其子目录**；宿主目录走 Java 遍历，容器内走逐层 ls（BFS）。
@@ -950,6 +951,12 @@ fun FilesScreen(
         val dup = items.filter { (a, b) -> a == b }.map { it.first }.toSet()
         val clash = if (hostBoth) items.filter { (a, b) -> a != b && File(b).exists() } else emptyList()
         val job = TransferJob(move, focus, toIdx, items, dup)
+        // ★ §2.2：目标是 FAT32/exFAT 卷 → 不支持稀疏文件，宿主稀疏文件复制进去会按完整容量写。
+        //   与 A3 的「宿主→宿主询问」并存：那边问保不保稀疏，这边直接告知必然实体化。
+        if (dst.loc.kind == Kind.FAT && items.any { isSparseHostFile(it.first) }) {
+            pendingFatJob = job
+            return
+        }
         // ★ A3：设置里选了「每次询问」且源里确实有稀疏的宿主文件 → 先问一句。
         //   问的是「保持稀疏 / 按完整容量」——这两个结果对手机存储是天壤之别。
         if (rawCopyMode == "ask" && hostBoth && items.any { isSparseHostFile(it.first) }) {
@@ -1728,6 +1735,23 @@ fun FilesScreen(
             onSelect = { i ->
                 pendingSparseJob = null
                 runTransfer(spj, conflictPolicy, sparseOverride = if (i == 1) "never" else "auto")
+            },
+        )
+    }
+
+    // ── FAT32/exFAT 目标先行强提示（§2.2）──
+    val pfj = pendingFatJob
+    if (pfj != null) {
+        ConfirmDialog(
+            title = s.filesFatSparseWarn,
+            summary = s.filesFatSparseBody,
+            confirmText = s.confirm,
+            cancelText = s.cancel,
+            danger = false,
+            onDismiss = { pendingFatJob = null },
+            onConfirm = {
+                pendingFatJob = null
+                runTransfer(pfj, conflictPolicy)
             },
         )
     }
