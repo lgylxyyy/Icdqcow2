@@ -110,7 +110,7 @@ fun LargeTitlePage(
         )
 
         if (effects) {
-            TopFadeBand(height = barHeightDp * 5f / 6f)
+            TopFadeBand(height = barHeightDp)
         }
 
         TopAppBar(
@@ -176,7 +176,7 @@ fun LargeTitleScaffold(
         )
 
         if (effects) {
-            TopFadeBand(height = with(density) { (if (collapsed) smallPx else largePx).toDp() } * 5f / 6f)
+            TopFadeBand(height = with(density) { (if (collapsed) smallPx else largePx).toDp() })
         }
 
         Box(
@@ -283,7 +283,7 @@ fun SmallTitlePage(
         }
 
         if (effects) {
-            TopFadeBand(height = barHeightDp * 5f / 6f)
+            TopFadeBand(height = barHeightDp)
         }
 
         SmallTopAppBar(
@@ -322,9 +322,13 @@ private fun TopFadeBand(height: Dp) {
             .drawBehind {
                 drawRect(
                     brush = Brush.verticalGradient(
-                        // 渐变整体下移 15%：顶部 15% 是纯色，之后才开始化开
+                        // 渐变整体下移：顶部 45% 是纯色，之后才慢慢化开。
+                        // ★ 2026-11-12：原来是「15% 纯色、5/6 高度」——大标题折叠的中间态
+                        //   内容已经滚进标题区，而带子太矮太透，压不住，大标题文字直接
+                        //   叠在卡片上（设置页第一张白卡最明显，用户 2026-11-12 截图报）。
+                        //   改成全高 + 45% 实底：标题区基本被表面色盖住，玻璃感在底部保留。
                         0f to pageColor,
-                        0.15f to pageColor,
+                        0.45f to pageColor,
                         1f to Color.Transparent,
                     ),
                 )
