@@ -5,17 +5,15 @@
 #
 # 校验：md5sum app/src/main/jniLibs/arm64-v8a/*.so
 
-1e6fd29512a2e9ee98c198ff8189114e  app/src/main/jniLibs/arm64-v8a/libimgtool.so
+6d9eebecc8468e96a615064c26023043  app/src/main/jniLibs/arm64-v8a/libimgtool.so
 a1798199a5115653de846d515be54598  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 
 # ── 来源 ──
-# libimgtool.so （6,821,496 B）
+# libimgtool.so （6,821,416 B）
 #   仓库：https://github.com/lgylxyyy/imgtool
-#   提交：0bbf2cb（含 dc19e9c「REQ-76：中间洞漏算 + qcow2 的 bytes_before 口径」、
-#         9a24af1「REQ-75：XP/2000 的 SP 级别兜底读 SYSTEM 的 DWORD」、
+#   提交：f56e0f4（含 dc19e9c「REQ-76：中间洞漏算 + qcow2 的 bytes_before 口径」、
+#         9a24af1 + f56e0f4「REQ-75：XP/2000 SP 兜底 + XP CurrentBuild=1 的真盘修正」、
 #         e312574「T1–T7 基线」）
-#   ★ 2026-11-12 决定：**换库**。REQ-76 ①是真缺陷——sparse_source/sparse_kept
-#     直接决定 App 的提示语与真机复制行为，拖着不换库等于让用户复制一个
-#     256 MB 的盘凭空多写 268 MB；「中途换库会让结论对不上号」的顾虑让位于此。
-#   ★ versionCode 2 包（so md5 e3fda8e8…）作废：BP 需换 versionCode 3 包重测，
-#     REPLY-76 已通知。
+#   ★ 2026-11-12 换库两次：versionCode 3（0bbf2cb，REQ-76 修复）→
+#     versionCode 4（f56e0f4，XP 真盘实测后修 CurrentBuild=1 的显示）。
+#     versionCode 2/3 的包都作废，BP 用 versionCode 4 的包测。
