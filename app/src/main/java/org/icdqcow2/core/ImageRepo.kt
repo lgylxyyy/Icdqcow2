@@ -37,21 +37,71 @@ object ImageRepo {
      * 为什么需要：别的应用（虚拟机、下载器）在 `/Documents` 里建的镜像可能是它们的 uid + 0660，
      * 光靠「管理所有文件」在某些 ROM/版本上仍然 `Permission denied`。传给工具端 fd 就绕开了路径权限
      * （手册：只读命令走 SAF fd 可用）。fd >= 0 时**路径传 null**。
+     *
+     * ★ 2026-11-12（批次 A）：**只读 fd 不再顶掉真实路径**。
+     *   以前 `openFd` 拿 "rw" 失败就退 "r"，而退到的那个只读 fd 也照样塞进来 →
+     *   [pathForTool] 把真实路径丢掉、工具端拿着只读 fd 去写 →
+     *   报「映像是只读打开的」；`img.info` 也因此算不出宿主占用（显示 "—"）。
+     *   现在分成两个槽：
+     *   · [pickedFd] = 真正可写（"rw" 成功）→ 顶掉路径，写操作走它；
+     *   · [readonlyFd] = 只读（只拿到 "r"）→ **只给读操作兜底**，并把
+     *     [imageReadonly] 置真，界面上提示「此文件只读」。
+     *   两个都没有时一律走真实路径。
      */
     private var pickedFd: android.os.ParcelFileDescriptor? = null
 
-    fun setPickedFd(pfd: android.os.ParcelFileDescriptor?) {
+    /** SAF 只读 fd（"rw" 失败、只拿到 "r"）：只给读操作兜底，不顶掉路径。 */
+    private var readonlyFd: android.os.ParcelFileDescriptor? = null
+
+    private val _imageReadonly = MutableStateFlow(false)
+
+    /** 当前映像是不是只读打开的（SAF 只拿到 "r"）。写功能的页面据此提示用户。 */
+    val imageReadonly: StateFlow<Boolean> = _imageReadonly.asStateFlow()
+
+    /**
+     * 记下 SAF 打开的 fd（会关掉上一个）。
+     *
+     * @param writable true = "rw" 打开成功（可写）；false = 只拿到 "r"（只读）。
+     */
+    fun setPickedFd(pfd: android.os.ParcelFileDescriptor?, writable: Boolean = true) {
         runCatching { pickedFd?.close() }
-        pickedFd = pfd
+        runCatching { readonlyFd?.close() }
+        pickedFd = null
+        readonlyFd = null
+        if (pfd != null) {
+            if (writable) pickedFd = pfd else readonlyFd = pfd
+        }
+        _imageReadonly.value = readonlyFd != null
     }
 
-    /** 当前有没有可用的 SAF fd。 */
+    /** 当前有没有**可写**的 SAF fd（写操作的资格）。 */
     fun hasFd(): Boolean = pickedFd != null
+
+    /** 当前有没有 SAF fd（可写或只读）—— 读操作用这个。 */
+    fun hasAnyFd(): Boolean = pickedFd != null || readonlyFd != null
 
     private fun fdValue(): Int = pickedFd?.fd ?: -1
 
-    /** 有 fd 就把路径让位（工具端要求二选一）。 */
+    /** 读操作用哪个 fd：优先可写的，没有才用只读的。 */
+    private fun anyFdValue(): Int = pickedFd?.fd ?: readonlyFd?.fd ?: -1
+
+    /**
+     * 有**可写** fd 就把路径让位（工具端要求二选一）；只读 fd **不让位** ——
+     * 真实路径能写就写路径，写不了再由上层报「只读」。
+     */
     private fun pathForTool(path: String?): String? = if (pickedFd != null) null else path
+
+    /**
+     * 读操作的目标：(路径, fd) 二选一。
+     *
+     * 优先级：可写 fd（fd 取代路径）→ 真实路径 → 只读 fd 兜底。
+     * 只读 fd 永远不顶掉真实路径 —— 那正是「占用显示不出来」的根因。
+     */
+    private fun readTarget(path: String?): Pair<String?, Int> = when {
+        pickedFd != null -> null to fdValue()
+        path != null -> path to -1
+        else -> null to anyFdValue()
+    }
 
     private val _current = MutableStateFlow<String?>(null)
 
@@ -315,17 +365,29 @@ object ImageRepo {
         args: Map<String, String> = emptyMap(),
         path: String? = _current.value,
         writable: Boolean = false,
-    ): ToolRunner.Result = ToolRunner.exec(
-        cmd = cmd,
-        args = args,
-        imagePath = pathForTool(path),
-        writable = writable,
-        imageFd = fdValue(),
-    )
+    ): ToolRunner.Result {
+        // 写操作但既没有可写 fd、又拿不到真实路径：
+        // · 有只读 fd → 明确报「只读」（别让工具端报一堆 open fail，用户看不懂）；
+        // · 连只读 fd 都没有 → 调用点应该已经挡了，这里兜底报「还没有选择镜像」。
+        if (writable && pickedFd == null && path == null) {
+            return if (readonlyFd != null) readonlyImage() else missing()
+        }
+        val effPath = pathForTool(path)
+        return ToolRunner.exec(
+            cmd = cmd,
+            args = args,
+            imagePath = effPath,
+            writable = writable,
+            // 写操作只认可写 fd：把只读 fd 塞进写命令必然失败，不如提前拦。
+            imageFd = if (effPath != null) -1 else if (writable) fdValue() else anyFdValue(),
+        )
+    }
 
-    suspend fun info(path: String? = _current.value): ToolRunner.Result =
-        if (path == null && !hasFd()) missing()
-        else ToolRunner.exec("img.info", imagePath = pathForTool(path), imageFd = fdValue())
+    suspend fun info(path: String? = _current.value): ToolRunner.Result {
+        if (path == null && !hasAnyFd()) return missing()
+        val (p, fd) = readTarget(path)
+        return ToolRunner.exec("img.info", imagePath = p, imageFd = fd)
+    }
 
     /**
      * 就地清理（`img.trim`，REQ-20261110-66）。
@@ -426,9 +488,11 @@ object ImageRepo {
         return exec(cmd, args = args, path = path, writable = true)
     }
 
-    suspend fun parts(path: String? = _current.value): ToolRunner.Result =
-        if (path == null && !hasFd()) missing()
-        else ToolRunner.exec("part.show", imagePath = pathForTool(path), imageFd = fdValue())
+    suspend fun parts(path: String? = _current.value): ToolRunner.Result {
+        if (path == null && !hasAnyFd()) return missing()
+        val (p, fd) = readTarget(path)
+        return ToolRunner.exec("part.show", imagePath = p, imageFd = fd)
+    }
 
     /**
      * 格式化一个分区（`fs.format`）。
@@ -561,14 +625,16 @@ object ImageRepo {
      *
      * `out` 给路径就写文件；不给只把内容回在 `data.pt` 里。
      */
-    suspend fun exportTable(out: String? = null, path: String? = _current.value): ToolRunner.Result =
-        if (path == null && !hasFd()) missing()
-        else ToolRunner.exec(
+    suspend fun exportTable(out: String? = null, path: String? = _current.value): ToolRunner.Result {
+        if (path == null && !hasAnyFd()) return missing()
+        val (p, fd) = readTarget(path)
+        return ToolRunner.exec(
             "part.export",
             args = buildMap { if (out != null) put("out", out) },
-            imagePath = pathForTool(path),
-            imageFd = fdValue(),
+            imagePath = p,
+            imageFd = fd,
         )
+    }
 
     /**
      * 按表文件**覆盖**目标盘的分区表（`part.apply`，REQ-14）。
@@ -1123,6 +1189,19 @@ object ImageRepo {
         summary = "还没有选择镜像",
     )
 
+    /**
+     * 映像是只读打开的（SAF 只拿到 "r"），改不了。
+     *
+     * 2026-11-12（批次 A）：以前这种情形是把只读 fd 塞给写命令，工具端报
+     * 一堆 IMG-OPEN-FAIL，用户看不懂；现在 App 侧直接说清楚"只读、怎么才能改"。
+     */
+    private fun readonlyImage() = ToolRunner.Result(
+        cmd = "-",
+        ok = false,
+        code = "IMG-READONLY",
+        summary = "映像是只读打开的",
+    )
+
     /** 单个分区的文件系统口径（`part.scan`）。 */
     data class Scan(
         val fs: String,
@@ -1142,14 +1221,16 @@ object ImageRepo {
      *
      * 会挂载卷，比 `part.show` 慢（几百 ms/分区），所以只在需要展示的页面上按需调。
      */
-    suspend fun scan(lba: Long, path: String? = _current.value): ToolRunner.Result =
-        if (path == null && !hasFd()) missing()
-        else ToolRunner.exec(
+    suspend fun scan(lba: Long, path: String? = _current.value): ToolRunner.Result {
+        if (path == null && !hasAnyFd()) return missing()
+        val (p, fd) = readTarget(path)
+        return ToolRunner.exec(
             "part.scan",
-            imagePath = pathForTool(path),
-            imageFd = fdValue(),
+            imagePath = p,
+            imageFd = fd,
             args = mapOf("lba" to lba.toString()),
         )
+    }
 
     fun parseScan(r: ToolRunner.Result): Scan? {
         val d = r.data ?: return null
@@ -1187,11 +1268,10 @@ object ImageRepo {
 
     /** 改 GPT 分区属性（`part.attr`）；MBR 盘工具端会拒绝。 */
     suspend fun setPartAttr(lba: Long, attr: String, path: String? = _current.value): ToolRunner.Result =
-        ToolRunner.exec(
+        exec(
             "part.attr",
-            mapOf("lba" to lba.toString(), "attr" to attr),
-            imagePath = pathForTool(path),
-            imageFd = fdValue(),
+            args = mapOf("lba" to lba.toString(), "attr" to attr),
+            path = path,
             writable = true,
         )
 

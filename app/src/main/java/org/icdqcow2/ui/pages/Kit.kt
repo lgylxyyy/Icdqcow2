@@ -1,6 +1,7 @@
 package org.icdqcow2.ui.pages
 
 import androidx.compose.ui.graphics.Color
+import org.icdqcow2.core.ImageRepo
 import org.icdqcow2.core.StorageAccess
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.foundation.background
@@ -72,6 +73,7 @@ import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.DropdownDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -490,9 +492,18 @@ fun CurrentFileCard(
      * 传空串 = 这一块外面已经有自己的分组标题（如捕获映像页的「磁盘映像」）。
      */
     title: String? = null,
+    /**
+     * 这个页面是不是**要写盘**。
+     *
+     * 只读功能（浏览分区表、看注册表、全量自检）**不显示**「只读」提示 ——
+     * 只读对只读不冲突，挂一行灰字只会让人以为出错了（用户 2026-11-12 定）。
+     * 写功能（释放空间/压缩/格式化/WinRE/部署）才提示：这个文件改不了。
+     */
+    writable: Boolean = false,
 ) {
     val s = LocalStrings.current
     val ctx = androidx.compose.ui.platform.LocalContext.current
+    val readonly by ImageRepo.imageReadonly.collectAsState()
     // 选盘页可能给的是 content:// uri（没有真实路径时）→ 先还原成路径再算目录
     val real = path?.let {
         if (it.startsWith("content://")) {
@@ -521,7 +532,21 @@ fun CurrentFileCard(
                 },
             )
         }
+        // F1（2026-11-12）：SAF 只拿到只读 fd 时，在路径下方说明白"改不了"。
+        if (writable && readonly) Note(s.pickReadonlyNote)
     }
+}
+
+/**
+ * 「当前文件是只读的」灰字（用户 2026-11-12 补充需求 F1）。
+ *
+ * 单独拆出来给不用 [CurrentFileCard] 的页面用（如释放空间页、压缩页自己画卡片）。
+ * 只读功能页面**不要**调用它。
+ */
+@Composable
+fun ReadonlyImageNote() {
+    val readonly by ImageRepo.imageReadonly.collectAsState()
+    if (readonly) Note(LocalStrings.current.pickReadonlyNote)
 }
 
 /**

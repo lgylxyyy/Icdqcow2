@@ -43,10 +43,27 @@ fun PickImagePage(
     // 进页面刷一次：筛掉文件真没了的、修掉老版本存坏的路径、补齐缺失的大小
     LaunchedEffect(Unit) { ImageHistory.refresh() }
 
-    /** 拿到 SAF 的 fd（写优先，退只读）；别的应用的镜像只有这条路走得通。 */
-    fun openFd(uri: Uri) = runCatching { ctx.contentResolver.openFileDescriptor(uri, "rw") }
-        .recoverCatching { ctx.contentResolver.openFileDescriptor(uri, "r") }
-        .getOrNull()
+    /**
+     * 拿到 SAF 的 fd：**先试 "rw"**，拿不到再退 "r"。
+     *
+     * ★ 2026-11-12（批次 A）：退到 "r" 得到的**只读 fd 不再顶掉真实路径**。
+     *   以前不管 rw/r 都塞给 [ImageRepo.setPickedFd]，于是
+     *   「别的应用的文件」（如虚拟机目录里的 qcow2）被当成可写映像：
+     *   写命令报「映像是只读打开的」，`img.info` 还因为走了只读 fd
+     *   算不出宿主占用（界面显示「容量 16.0 GB · 占用 —」）。
+     *   现在退到只读时要**如实上报**：只读 fd 只给读操作兜底，真实路径照走，
+     *   界面按 [ImageRepo.imageReadonly] 提示「此文件只读」。
+     *
+     * @return (fd, 是否可写)；两个模式都打不开时返回 null。
+     */
+    fun openFd(uri: Uri): Pair<android.os.ParcelFileDescriptor, Boolean>? {
+        runCatching { ctx.contentResolver.openFileDescriptor(uri, "rw") }
+            .getOrNull()
+            ?.let { return it to true }
+        return runCatching { ctx.contentResolver.openFileDescriptor(uri, "r") }
+            .getOrNull()
+            ?.let { it to false }
+    }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
@@ -67,7 +84,9 @@ fun PickImagePage(
             onToastPlaceholder(s.partsNotQcow2)
             return@rememberLauncherForActivityResult
         }
-        ImageRepo.setPickedFd(openFd(uri))
+        val fd = openFd(uri)
+        // 只读 fd 也记下来（只读提示要用），但**不再顶掉真实路径**
+        ImageRepo.setPickedFd(fd?.first, writable = fd?.second ?: true)
         scope.launch {
             val r = ImageRepo.info(path)
             if (!r.ok) {
@@ -103,8 +122,10 @@ fun PickImagePage(
                         scope.launch {
                             // 历史条目可能只有 uri：重新拿 fd 再验一遍
                             val u = e.uri?.let { runCatching { Uri.parse(it) }.getOrNull() }
-                            val pfd = u?.let { openFd(it) }
-                            if (pfd != null) ImageRepo.setPickedFd(pfd)
+                            val fd = u?.let { openFd(it) }
+                            // 拿不到 fd 也要清掉上一个文件的 fd —— 否则会拿着**别人的** fd
+                            // 去开这个文件（2026-11-12 批次 A 顺手修的串文件隐患）
+                            ImageRepo.setPickedFd(fd?.first, writable = fd?.second ?: true)
                             val r = ImageRepo.info(e.path)
                             if (!r.ok) {
                                 onToastPlaceholder(s.partsBadImage(toolErrorText(s, r)))

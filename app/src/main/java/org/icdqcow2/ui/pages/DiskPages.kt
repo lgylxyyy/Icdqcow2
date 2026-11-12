@@ -629,7 +629,7 @@ fun PartsPage(
 
     suspend fun load() {
         val path = image
-        if (path == null && !ImageRepo.hasFd()) {
+        if (path == null && !ImageRepo.hasAnyFd()) {
             loading = false
             parts = emptyList()
             scans = emptyMap()
@@ -1298,6 +1298,7 @@ fun PartsPage(
                 name = pickName(image!!),
                 path = image,
                 onToast = onToast,
+                writable = true,
             )
         }
 
@@ -1975,6 +1976,7 @@ fun FormatPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 name = image?.let { pickName(it) } ?: "—",
                 path = image,
                 onToast = onToast,
+                writable = true,
             )
         }
         if (imgFmt == "raw") Note(s.fmtRawWriteNote)
@@ -2250,6 +2252,8 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 s.trimUsage(fmtBytes(capBytes), if (allocKnown) fmtBytes(usedBytes) else "—"),
             )
         }
+        // F1：映像是只读打开的（SAF 只拿到 "r"）→ 说明白改不了
+        ReadonlyImageNote()
         Note(s.trimNote)
         if (fmt == "raw") Note(s.trimRawNote)
 
@@ -2386,6 +2390,8 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 s.compactUsage(fmtBytes(capBytes), if (allocKnown) fmtBytes(usedBytes) else "—"),
             )
         }
+        // F1：映像是只读打开的（SAF 只拿到 "r"）→ 说明白改不了
+        ReadonlyImageNote()
         Note(s.compactNote)
         if (fmt == "raw") Note(s.compactRawNote)
         if (fmt.isNotEmpty() && fmt != "qcow2") Note(s.compactFmtNote(fmt))

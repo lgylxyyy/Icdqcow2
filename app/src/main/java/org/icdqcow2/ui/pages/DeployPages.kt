@@ -436,7 +436,7 @@ fun DeployPage(
                     reload += 1
                 })
             } else {
-                CurrentFileCard(name = pickName(pickedNow), path = pickedNow, onToast = onToast)
+                CurrentFileCard(name = pickName(pickedNow), path = pickedNow, onToast = onToast, writable = true)
             }
 
             // 正文：和分区管理同一个模板——卡片自己错峰弹入，正文块紧接着"高度展开"

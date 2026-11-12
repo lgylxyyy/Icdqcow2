@@ -36,6 +36,8 @@ internal fun toolErrorText(s: Strings, r: ToolRunner.Result): String {
         "PART-READ-FAIL" -> s.errorNoTable
         // 常见错误码全部转为可读文本；实在没有的才回退成"未知错误（码）"
         "IMG-OPEN-FAIL" -> s.errOpen
+        // App 侧判定：SAF 只拿到只读 fd，映像改不了（2026-11-12 批次 A）
+        "IMG-READONLY" -> s.errReadonlyImage
         "QC-OPEN-FAIL" -> s.errQcOpen
         "IMG-FORMAT" -> s.errImgFormat
         "HOST-OPEN-FAIL" -> s.errHostOpen

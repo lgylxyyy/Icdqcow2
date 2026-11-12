@@ -539,6 +539,8 @@ class Strings(val code: String) {
     val historyTitle get() = raw("history.title")
     val historyEmpty get() = raw("history.empty")
     val pickPick get() = raw("pick.pick")
+    /** F1：当前文件是只读打开的（SAF 只拿到 "r"）——写在"当前文件"卡下方。 */
+    val pickReadonlyNote get() = raw("pick.readonlyNote")
     val permDlgTitle get() = raw("perm.dlgTitle")
     val permDlgBody get() = raw("perm.dlgBody")
     val permDlgGo get() = raw("perm.dlgGo")
@@ -586,6 +588,8 @@ class Strings(val code: String) {
     fun partsNeedFront(front: String) = tpl("parts.needFront", front)
     // ── 错误码生成说明文本 ──
     val errOpen get() = raw("err.open")
+    /** 映像只读打开、不能改（2026-11-12 批次 A）。 */
+    val errReadonlyImage get() = raw("err.readonlyImage")
     val errQcOpen get() = raw("err.qcOpen")
     val errImgFormat get() = raw("err.imgFormat")
     val errHostOpen get() = raw("err.hostOpen")

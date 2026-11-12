@@ -196,7 +196,7 @@ fun BootRepairPage(
                     tick += 1
                 })
             } else {
-                CurrentFileCard(name = pickName(image!!), path = image, onToast = onToast)
+                CurrentFileCard(name = pickName(image!!), path = image, onToast = onToast, writable = true)
             }
         }
 
@@ -893,7 +893,7 @@ fun WinRePage(
                     tick += 1
                 })
             } else {
-                CurrentFileCard(name = pickName(image!!), path = image, onToast = onToast)
+                CurrentFileCard(name = pickName(image!!), path = image, onToast = onToast, writable = true)
             }
         }
 

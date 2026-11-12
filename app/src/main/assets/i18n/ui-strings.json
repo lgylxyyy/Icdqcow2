@@ -1747,6 +1747,11 @@
       "en": "Pick an image file",
       "note": "选镜像 · 信息行 · pick.pick"
     },
+    "pick.readonlyNote": {
+      "zh": "该目录为私有或系统目录，无法修改其中的文件（此文件为只读）",
+      "en": "This folder is private or system-owned; files in it cannot be modified (this file is read-only)",
+      "note": "选镜像 · 「当前操作的文件」卡下方灰字 · pick.readonlyNote（SAF 只拿到只读 fd 时；只读功能页不显示）"
+    },
     "perm.dlgTitle": {
       "zh": "需要「管理所有文件」权限",
       "en": "All-files access required",
@@ -1886,6 +1891,11 @@
       "zh": "无法打开映像文件，路径错误、无权限或文件被占用",
       "en": "Cannot open the image: wrong path, no permission, or the file is in use",
       "note": "错误映射 · 文案位 · err.open"
+    },
+    "err.readonlyImage": {
+      "zh": "映像是只读打开的，无法修改；请先把它复制到应用目录",
+      "en": "This image is opened read-only and cannot be modified; copy it to a folder the app can write to first",
+      "note": "错误映射 · 文案位 · err.readonlyImage（SAF 只拿到只读 fd 时，App 侧自己判的码）"
     },
     "err.qcOpen": {
       "zh": "不是有效的 qcow2 映像，文件头不符",

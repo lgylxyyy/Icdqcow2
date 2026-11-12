@@ -199,6 +199,7 @@ fun CapturePage(
                     CurrentFileCard(
                         name = pickName(image!!), path = image, onToast = onToast,
                         title = "",   // 外层已经有「磁盘映像」
+                        writable = true,
                     )
                 }
             }
