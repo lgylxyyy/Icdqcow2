@@ -129,6 +129,8 @@ fun progressPhaseText(phase: String?): String? {
  * @param phase 阶段文字（[progressPhaseText]）
  * @param countsText 可选的一行「1.2 GB / 3.4 GB」之类
  * @param item 当前正在读/写的文件（完整路径 + 文件名）
+ * @param dstText 正在写入的**目标**路径（REQ-77 的 dst_item；item 是源，这两个分两行）
+ * @param filesText 文件计数「3 / 40」（REQ-77 的 files_cur/files_total）
  */
 @Composable
 fun RunProgressBlock(
@@ -137,6 +139,8 @@ fun RunProgressBlock(
     phase: String? = null,
     countsText: String? = null,
     item: String? = null,
+    dstText: String? = null,
+    filesText: String? = null,
     ringSize: Dp = 188.dp,
 ) {
     val colors = MiuixTheme.colorScheme
@@ -207,6 +211,26 @@ fun RunProgressBlock(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            )
+        }
+        if (!dstText.isNullOrBlank()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                dstText,
+                style = MiuixTheme.textStyles.footnote2,
+                color = colors.onSurfaceVariantSummary,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            )
+        }
+        if (!filesText.isNullOrBlank()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                filesText,
+                style = MiuixTheme.textStyles.footnote2,
+                color = colors.onSurfaceVariantSummary,
             )
         }
     }

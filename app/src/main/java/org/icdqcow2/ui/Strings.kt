@@ -560,8 +560,6 @@ class Strings(val code: String) {
     fun progDst(path: String) = tpl("prog.dst", path)
     /** 文件计数（REQ-77 的 files_cur/files_total）。 */
     fun progFiles(cur: String, total: String) = tpl("prog.files", cur, total)
-    fun progElapsed(t: String) = tpl("prog.elapsed", t)
-    fun progEta(t: String) = tpl("prog.eta", t)
     /** 任务运行时误触返回 → 顶部 toast。 */
     val progBlocked get() = raw("prog.blocked")
     /** 浮层底部：没有取消按钮，得说明白。 */

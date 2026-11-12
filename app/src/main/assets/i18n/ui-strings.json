@@ -1948,9 +1948,9 @@
       "note": "错误映射 · 文案位 · err.open"
     },
     "err.readonlyImage": {
-      "zh": "映像是只读打开的，无法修改；请先把它复制到应用目录",
-      "en": "This image is opened read-only and cannot be modified; copy it to a folder the app can write to first",
-      "note": "错误映射 · 文案位 · err.readonlyImage（SAF 只拿到只读 fd 时，App 侧自己判的码）"
+      "zh": "映像是只读打开的，无法修改；请先复制一份到应用可写的目录（复制出来的新文件就归本应用所有，可以改）",
+      "en": "This image is opened read-only and cannot be modified; copy it to a folder the app can write to first (the copy belongs to this app and can be modified)",
+      "note": "错误映射 · 文案位 · err.readonlyImage（SAF 只拿到只读 fd 时，App 侧自己判的码；说清「复制」为什么有用：新文件的属主是复制者）"
     },
     "err.qcOpen": {
       "zh": "不是有效的 qcow2 映像，文件头不符",

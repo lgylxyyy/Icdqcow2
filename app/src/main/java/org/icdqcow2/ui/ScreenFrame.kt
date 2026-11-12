@@ -252,6 +252,13 @@ fun SmallTitlePage(
     val density = LocalDensity.current
     var barHeight by remember { mutableIntStateOf(with(density) { FALLBACK_SMALL_BAR.roundToPx() }) }
     val barHeightDp = with(density) { barHeight.toDp() }
+    // 滚动状态单拎出来：**滚动时清焦点**（用户 2026-11-12：压缩页的输出文件名框
+    // 滑动屏幕/点下面选项时"压根儿不失焦"，onFocusChanged 的去重就不触发）。
+    // Compose 里滚动本身不清焦点，得自己来 —— 这也是 Android 输入框的惯例行为。
+    val pageScroll = rememberScrollState()
+    LaunchedEffect(pageScroll.isScrollInProgress) {
+        if (pageScroll.isScrollInProgress) focus.clearFocus(force = true)
+    }
 
     Box(
         Modifier
@@ -261,7 +268,7 @@ fun SmallTitlePage(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(pageScroll),
         ) {
             Spacer(Modifier.height(barHeightDp + CONTENT_TOP_GAP))
             Column(

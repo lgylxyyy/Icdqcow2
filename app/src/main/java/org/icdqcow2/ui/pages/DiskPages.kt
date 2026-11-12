@@ -2385,6 +2385,12 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     var confirmStart by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
+    // 点下面的选项卡时把输入框的焦点收掉：不然焦点还挂在文件名框上，
+    // 失焦去重不触发，继续打字还会打进框里（用户 2026-11-12 报"压根儿不失焦"）
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+
+    /** 收掉输入框焦点（点任何选项/按钮前调一下）。 */
+    fun dropFocus() = focusManager.clearFocus(force = true)
 
     // 自定义保存目录：SAF 只用来拿"真实路径"，写盘仍走 File（需要「所有文件访问」）
     val dirPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
@@ -2544,6 +2550,7 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                     ),
                     selected = outDirMode,
                 ) { i ->
+                    dropFocus()
                     when {
                         i == 0 -> outDirMode = 0
                         outCustomDir != null -> outDirMode = 1
@@ -2563,6 +2570,7 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                     ),
                     selected = mode,
                     onSelect = {
+                        dropFocus()
                         if (it == 1 && !zipOk) onToast(s.compactModeZipOff) else mode = it
                     },
                 )

@@ -372,6 +372,12 @@ object ImageRepo {
         if (writable && pickedFd == null && path == null) {
             return if (readonlyFd != null) readonlyImage() else missing()
         }
+        // ★ 只读 fd + 真实路径也写不进（目录/文件属主不是本应用）→ 提前说清楚，
+        //   别让用户点了才开始、跑一半才被工具端一句"权限不足"弹回来。
+        if (writable && pickedFd == null && readonlyFd != null && path != null) {
+            val canWritePath = runCatching { java.io.File(path).canWrite() }.getOrDefault(false)
+            if (!canWritePath) return readonlyImage()
+        }
         val effPath = pathForTool(path)
         return ToolRunner.exec(
             cmd = cmd,

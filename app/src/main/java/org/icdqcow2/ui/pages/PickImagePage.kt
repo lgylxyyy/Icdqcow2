@@ -54,12 +54,25 @@ fun PickImagePage(
      *   现在退到只读时要**如实上报**：只读 fd 只给读操作兜底，真实路径照走，
      *   界面按 [ImageRepo.imageReadonly] 提示「此文件只读」。
      *
+     * ★★ 2026-11-12 晚（用户报「没提示但报只读」）：**请求 "rw" 成功 ≠ fd 真能写**。
+     *   有的 provider 会「成功返回」一个只读 fd（openFileDescriptor 不报错，
+     *   但 fd 的实际访问模式是 O_RDONLY）→ 以前 `writable=true`、灰字不显示，
+     *   工具端拿这个假 rw fd 去写才失败。现在拿到 fd 后用 `F_GETFL` 看真实模式，
+     *   是 O_RDONLY 就按只读处理（关掉重拿 "r"，并如实上报只读 → 灰字会出现）。
+     *
      * @return (fd, 是否可写)；两个模式都打不开时返回 null。
      */
     fun openFd(uri: Uri): Pair<android.os.ParcelFileDescriptor, Boolean>? {
-        runCatching { ctx.contentResolver.openFileDescriptor(uri, "rw") }
-            .getOrNull()
-            ?.let { return it to true }
+        val rw = runCatching { ctx.contentResolver.openFileDescriptor(uri, "rw") }.getOrNull()
+        if (rw != null) {
+            val mode = runCatching {
+                android.system.Os.fcntlInt(rw.fileDescriptor, android.system.OsConstants.F_GETFL, 0)
+            }.getOrDefault(android.system.OsConstants.O_RDONLY)
+            val realRw = (mode and android.system.OsConstants.O_ACCMODE) == android.system.OsConstants.O_RDWR
+            if (realRw) return rw to true
+            // 假 rw：请求了写但给的是只读 fd → 关掉，按"只读"重走下面那条路
+            runCatching { rw.close() }
+        }
         return runCatching { ctx.contentResolver.openFileDescriptor(uri, "r") }
             .getOrNull()
             ?.let { it to false }

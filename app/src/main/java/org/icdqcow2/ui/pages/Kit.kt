@@ -430,15 +430,19 @@ fun ProgressBar(pct: Int, text: String) {
  * 为什么要挡：以前进度条挂在标题下方，用户还能继续点别的行 → 同一个文件被搬两次、
  * 目标目录写一半被刷新，工具端直接写失败。挡住是最省事也最不容易出错的解法。
  *
- * @param detail 进度条下面那行小字（一般是 `45% · 12.3 MB/s` 或错误详情）
- * @param counts 再下面一行（`12 / 40 项 · 3.2 GB / 9.1 GB`），null 就不显示
- * @param item 正在处理的条目（工具端 progress 的 item）；null 就不显示
- * @param remainBytes 剩余大小（字节）；0 = 不显示
- * @param elapsedMs / etaSec 已用与预计剩余；给不出就不显示
+ * ★ 进度图形用 [RunProgressBlock]（**圆盘模板**）—— 用户 2026-11-10 定过
+ *   「进度不能一个长条一个圆盘，只能有一个模板」；2026-11-12 晚用户重申。
  *
- * ★ 显示内容与全局进度浮层（[GlobalProgressOverlay]）保持一致：
- *   文件页这里**保留取消按钮**（复制/删除这类任务可以中止），
- *   而压缩/释放空间/WinRE/部署那四个不允许取消，用浮层。
+ * 与全局进度浮层（[GlobalProgressOverlay]）同一套显示内容（剩余/已用/预计/正在写入/文件计数），
+ * 区别只有一点：这里**保留取消按钮**（复制/删除这类任务可以中止），
+ * 压缩/释放空间/WinRE/部署那四个不允许取消，用浮层。
+ *
+ * @param detail 兼容参数：原来进度条下那行小字（现在并进 counts 行）
+ * @param counts `12 / 40 项 · 3.2 GB / 9.1 GB`，null 就不显示
+ * @param remainBytes 剩余大小（字节）；0 = 不显示
+ * @param elapsedMs / etaSec 已用与预计剩余
+ * @param dstItem 正在写入的目标路径（REQ-77 的 dst_item）
+ * @param filesCur / filesTotal 文件计数；总数为 0 = 不显示
  */
 @Composable
 fun BlockingProgressCard(
@@ -452,13 +456,12 @@ fun BlockingProgressCard(
     remainBytes: Long = 0L,
     elapsedMs: Long = 0L,
     etaSec: Int = -1,
-    /** 正在写入的目标路径（REQ-77 的 dst_item）。 */
     dstItem: String? = null,
-    /** 文件计数（REQ-77 的 files_cur/files_total）；总数为 0 = 不显示。 */
     filesCur: Long = 0L,
     filesTotal: Long = 0L,
 ) {
     val colors = MiuixTheme.colorScheme
+    val s = LocalStrings.current
     // 进度卡也遵守"返回 = 取消"：有取消按钮就当按下它
     BackHandler(enabled = onCancel != null) { onCancel?.invoke() }
     Box(
@@ -480,67 +483,32 @@ fun BlockingProgressCard(
         contentAlignment = Alignment.Center,
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             insideMargin = PaddingValues(18.dp),
         ) {
             Column(Modifier.fillMaxWidth()) {
                 Text(title, style = MiuixTheme.textStyles.title4, color = colors.onSurface)
-                Spacer(Modifier.height(12.dp))
-                ProgressBar(pct, detail)
-                if (!counts.isNullOrEmpty()) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
+                Spacer(Modifier.height(14.dp))
+                RunProgressBlock(
+                    pct = pct,
+                    timeText = progressTimeText(elapsedMs, etaSec),
+                    // detail 里可能有"解压后"之类的口径标注 → 并进 counts 那行；
+                    // 剩余大小（工具端给了字节口径时）也并在这里
+                    countsText = listOf(
+                        detail.takeIf { it.isNotBlank() && item != null },
                         counts,
-                        style = MiuixTheme.textStyles.footnote2,
-                        color = colors.onSurfaceVariantSummary,
+                        if (remainBytes > 0L) s.progRemaining(fmtBytes(remainBytes)) else null,
                     )
-                }
-                if (!item.isNullOrEmpty()) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        item,
-                        style = MiuixTheme.textStyles.footnote2,
-                        color = colors.onSurfaceVariantSummary,
-                    )
-                }
-                if (!dstItem.isNullOrEmpty()) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        LocalStrings.current.progDst(dstItem),
-                        style = MiuixTheme.textStyles.footnote2,
-                        color = colors.onSurfaceVariantSummary,
-                    )
-                }
-                if (filesTotal > 0L) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        LocalStrings.current.progFiles(filesCur.toString(), filesTotal.toString()),
-                        style = MiuixTheme.textStyles.footnote2,
-                        color = colors.onSurfaceVariantSummary,
-                    )
-                }
-                if (remainBytes > 0L || elapsedMs > 0L || etaSec >= 0) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        buildString {
-                            if (remainBytes > 0L) {
-                                append(LocalStrings.current.progRemaining(fmtBytes(remainBytes)))
-                            }
-                            if (elapsedMs > 0L) {
-                                if (isNotEmpty()) append(" · ")
-                                append(LocalStrings.current.progElapsed(fmtSeconds(elapsedMs / 1000L)))
-                            }
-                            if (etaSec >= 0) {
-                                if (isNotEmpty()) append(" · ")
-                                append(LocalStrings.current.progEta(fmtSeconds(etaSec.toLong())))
-                            }
-                        },
-                        style = MiuixTheme.textStyles.footnote2,
-                        color = colors.onSurfaceVariantSummary,
-                    )
-                }
+                        .filterNotNull()
+                        .joinToString(" · ")
+                        .ifEmpty { null },
+                    item = item,
+                    dstText = dstItem,
+                    filesText = if (filesTotal > 0L) s.progFiles(filesCur.toString(), filesTotal.toString()) else null,
+                    ringSize = 148.dp,
+                )
                 if (onCancel != null) {
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(14.dp))
                     Button(
                         onClick = onCancel,
                         modifier = Modifier.fillMaxWidth(),

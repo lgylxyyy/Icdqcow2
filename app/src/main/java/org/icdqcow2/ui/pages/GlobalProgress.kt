@@ -33,12 +33,12 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  * 页面自己不用管浮层 —— 以前只有文件页有进度卡，压缩/释放空间/WinRE/部署
  * 跑起来时界面一点变化都没有，用户不知道在干什么。
  *
- * 显示内容（用户第 8 条）：
- * · 进度条 + 百分比
- * · **剩余大小**（overall 口径优先：多段任务的总账；否则 total-cur）
- * · 正在处理：{item}（工具端给的当前文件名/路径）
- * · 已用 / 预计剩余（`elapsedMs` / `eta`）
- * · 一行「开始后不可取消」—— 提醒用户别以为能中断
+ * ★ 进度图形用 [RunProgressBlock]（**圆盘模板**，与释放映像/捕获映像同一套）——
+ *   用户 2026-11-10 就定过「进度不能一个长条一个圆盘，只能有一个模板」。
+ *   第一版浮层我画了个线性条，被用户抓了现行（2026-11-12），已改回圆盘。
+ *
+ * 显示内容（用户第 8 条）：圆盘 + 百分比 + 剩余大小 + 正在处理/写入 + 文件计数 + 已用/预计剩余
+ * + 一行「开始后不可取消」。
  *
  * ★ **不允许取消**（用户 2026-11-12 拍板 Q4）：这四个任务（压缩/释放空间/
  *   WinRE 写入/部署）中途停手可能把映像写坏，所以
@@ -61,7 +61,8 @@ fun GlobalProgressOverlay(onToast: (String) -> Unit) {
     if (cur.silent) return
 
     val p = prog ?: cur.fallback
-    val pct = p?.pct?.takeIf { it >= 0 } ?: 0
+    // 工具端没给百分比 → -1 = 不定态圆环（转圈），别画成 0% 像卡死
+    val pct = p?.pct?.takeIf { it in 0..100 } ?: -1
     // 剩余：overall 是"整件事的总账"（wim.apply 这类多段任务），
     // 没有 overall 才退到本段 total-cur。
     val remain = when {
@@ -70,13 +71,13 @@ fun GlobalProgressOverlay(onToast: (String) -> Unit) {
         p.totalBytes > 0 -> (p.totalBytes - p.curBytes).coerceAtLeast(0L)
         else -> 0L
     }
-    val item = p?.item?.takeIf { it.isNotBlank() }
+    val item = p?.item?.takeIf { it.isNotBlank() }?.let { prettyProgressItem(it) }
     // REQ-77：item 是**源**路径，dst_item 是**目标**路径（写文件类任务才有）
     val dst = p?.dstItem?.takeIf { it.isNotBlank() }
     val filesCur = p?.filesCur ?: 0L
     val filesTotal = p?.filesTotal ?: 0L
-    val elapsedMs = p?.elapsedMs?.takeIf { it > 0L }
-    val etaSec = p?.eta?.takeIf { it >= 0 }
+    val elapsedMs = p?.elapsedMs?.takeIf { it > 0L } ?: 0L
+    val etaSec = p?.eta?.takeIf { it >= 0 } ?: -1
     val colors = MiuixTheme.colorScheme
 
     Box(
@@ -96,61 +97,22 @@ fun GlobalProgressOverlay(onToast: (String) -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             insideMargin = PaddingValues(18.dp),
         ) {
             Column(Modifier.fillMaxWidth()) {
                 Text(cur.title, style = MiuixTheme.textStyles.title4, color = colors.onSurface)
-                Spacer(Modifier.height(12.dp))
-                ProgressBar(
-                    pct,
-                    buildString {
-                        append(pct).append("%")
-                        if (remain > 0L) {
-                            append(" · ")
-                            append(s.progRemaining(fmtBytes(remain)))
-                        }
-                    },
+                Spacer(Modifier.height(14.dp))
+                RunProgressBlock(
+                    pct = pct,
+                    timeText = progressTimeText(elapsedMs, etaSec),
+                    countsText = if (remain > 0L) s.progRemaining(fmtBytes(remain)) else null,
+                    item = item,
+                    dstText = dst?.let { s.progDst(it) },
+                    filesText = if (filesTotal > 0L) s.progFiles(filesCur.toString(), filesTotal.toString()) else null,
+                    ringSize = 148.dp,
                 )
-                if (!item.isNullOrEmpty()) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        s.progItem(item),
-                        style = MiuixTheme.textStyles.footnote2,
-                        color = colors.onSurfaceVariantSummary,
-                    )
-                }
-                if (!dst.isNullOrEmpty()) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        s.progDst(dst),
-                        style = MiuixTheme.textStyles.footnote2,
-                        color = colors.onSurfaceVariantSummary,
-                    )
-                }
-                if (filesTotal > 0L) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        s.progFiles(filesCur.toString(), filesTotal.toString()),
-                        style = MiuixTheme.textStyles.footnote2,
-                        color = colors.onSurfaceVariantSummary,
-                    )
-                }
-                if (elapsedMs != null || etaSec != null) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        buildString {
-                            if (elapsedMs != null) append(s.progElapsed(fmtSeconds(elapsedMs / 1000L)))
-                            if (etaSec != null) {
-                                if (isNotEmpty()) append(" · ")
-                                append(s.progEta(fmtSeconds(etaSec.toLong())))
-                            }
-                        },
-                        style = MiuixTheme.textStyles.footnote2,
-                        color = colors.onSurfaceVariantSummary,
-                    )
-                }
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(12.dp))
                 Text(
                     s.progNoCancel,
                     style = MiuixTheme.textStyles.footnote2,
@@ -159,11 +121,4 @@ fun GlobalProgressOverlay(onToast: (String) -> Unit) {
             }
         }
     }
-}
-
-/** 秒 → 「12 秒」/「3 分 05 秒」。 */
-internal fun fmtSeconds(sec: Long): String = when {
-    sec < 60L -> "$sec 秒"
-    sec < 3600L -> "%d 分 %02d 秒".format(sec / 60L, sec % 60L)
-    else -> "%d 小时 %02d 分".format(sec / 3600L, (sec % 3600L) / 60L)
 }
