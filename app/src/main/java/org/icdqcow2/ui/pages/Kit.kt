@@ -432,6 +432,13 @@ fun ProgressBar(pct: Int, text: String) {
  *
  * @param detail 进度条下面那行小字（一般是 `45% · 12.3 MB/s` 或错误详情）
  * @param counts 再下面一行（`12 / 40 项 · 3.2 GB / 9.1 GB`），null 就不显示
+ * @param item 正在处理的条目（工具端 progress 的 item）；null 就不显示
+ * @param remainBytes 剩余大小（字节）；0 = 不显示
+ * @param elapsedMs / etaSec 已用与预计剩余；给不出就不显示
+ *
+ * ★ 显示内容与全局进度浮层（[GlobalProgressOverlay]）保持一致：
+ *   文件页这里**保留取消按钮**（复制/删除这类任务可以中止），
+ *   而压缩/释放空间/WinRE/部署那四个不允许取消，用浮层。
  */
 @Composable
 fun BlockingProgressCard(
@@ -441,6 +448,10 @@ fun BlockingProgressCard(
     counts: String?,
     cancelText: String,
     onCancel: (() -> Unit)?,
+    item: String? = null,
+    remainBytes: Long = 0L,
+    elapsedMs: Long = 0L,
+    etaSec: Int = -1,
 ) {
     val colors = MiuixTheme.colorScheme
     // 进度卡也遵守"返回 = 取消"：有取消按钮就当按下它
@@ -475,6 +486,34 @@ fun BlockingProgressCard(
                     Spacer(Modifier.height(6.dp))
                     Text(
                         counts,
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = colors.onSurfaceVariantSummary,
+                    )
+                }
+                if (!item.isNullOrEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        item,
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = colors.onSurfaceVariantSummary,
+                    )
+                }
+                if (remainBytes > 0L || elapsedMs > 0L || etaSec >= 0) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        buildString {
+                            if (remainBytes > 0L) {
+                                append(LocalStrings.current.progRemaining(fmtBytes(remainBytes)))
+                            }
+                            if (elapsedMs > 0L) {
+                                if (isNotEmpty()) append(" · ")
+                                append(LocalStrings.current.progElapsed(fmtSeconds(elapsedMs / 1000L)))
+                            }
+                            if (etaSec >= 0) {
+                                if (isNotEmpty()) append(" · ")
+                                append(LocalStrings.current.progEta(fmtSeconds(etaSec.toLong())))
+                            }
+                        },
                         style = MiuixTheme.textStyles.footnote2,
                         color = colors.onSurfaceVariantSummary,
                     )

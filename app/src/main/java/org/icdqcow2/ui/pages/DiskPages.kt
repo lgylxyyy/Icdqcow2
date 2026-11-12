@@ -47,6 +47,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.icdqcow2.core.ImageRepo
 import org.icdqcow2.core.ToolCaps
+import org.icdqcow2.core.ToolRun
 import org.icdqcow2.core.ToolRunner
 import org.icdqcow2.ui.LocalStrings
 import org.icdqcow2.ui.SmallTitlePage
@@ -2155,6 +2156,8 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     var note by remember { mutableStateOf<String?>(null) }
     var verified by remember { mutableStateOf<Boolean?>(null) }
     var err by remember { mutableStateOf<String?>(null) }
+    /** 开始前的确认框（用户 2026-11-12 拍板 Q4：开始后不可取消）。 */
+    var confirmStart by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     fun zeroAvailable(): Boolean = sparsify && fmt.isNotEmpty() && fmt != "qcow2"
@@ -2190,18 +2193,24 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             note = null
             verified = null
             planBytes = null
-            val r = withContext(Dispatchers.IO) {
-                if (sparsify) ImageRepo.sparsify(img, modeArg(), dryRun = true)
-                else ImageRepo.trim(img = img, dryRun = true)
+            // 分析也要扫全盘（几十秒起），接上统一进度浮层（用户 2026-11-12）
+            ToolRun.start(s.trimTitle)
+            try {
+                val r = withContext(Dispatchers.IO) {
+                    if (sparsify) ImageRepo.sparsify(img, modeArg(), dryRun = true)
+                    else ImageRepo.trim(img = img, dryRun = true)
+                }
+                if (!r.ok) {
+                    err = toolErrorText(s, r)
+                    return@launch
+                }
+                val d = r.data
+                planBytes = if (sparsify) (d?.optLong("would_free_bytes", 0L) ?: 0L)
+                else (d?.optLong("guest_bytes_freed", 0L) ?: 0L)
+            } finally {
+                analyzing = false
+                ToolRun.finish()
             }
-            analyzing = false
-            if (!r.ok) {
-                err = toolErrorText(s, r)
-                return@launch
-            }
-            val d = r.data
-            planBytes = if (sparsify) (d?.optLong("would_free_bytes", 0L) ?: 0L)
-            else (d?.optLong("guest_bytes_freed", 0L) ?: 0L)
         }
     }
 
@@ -2212,34 +2221,39 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             err = null
             note = null
             verified = null
-            val r = withContext(Dispatchers.IO) {
-                if (sparsify) ImageRepo.sparsify(img, modeArg(), dryRun = false)
-                else ImageRepo.trim(img = img, dryRun = false, punch = true)
+            ToolRun.start(s.trimTitle)
+            try {
+                val r = withContext(Dispatchers.IO) {
+                    if (sparsify) ImageRepo.sparsify(img, modeArg(), dryRun = false)
+                    else ImageRepo.trim(img = img, dryRun = false, punch = true)
+                }
+                if (!r.ok) {
+                    err = toolErrorText(s, r)
+                    return@launch
+                }
+                val d = r.data
+                val freed = if (sparsify) (d?.optLong("freed_bytes", 0L) ?: 0L)
+                else (d?.optLong("guest_bytes_freed", 0L) ?: 0L)
+                // ★ 占用口径统一走 img.info 的 alloc_bytes（宿主占用）：
+                //   工具端 img.sparsify 在 qcow2 上的 bytes_before/bytes_after 是在
+                //   内部 trim（已经 punch 完）之后才量的 → 两个数相等，
+                //   直接拿来显示会变成"释放了 150 MB，占用 226 MB → 226 MB"，自相矛盾。
+                //   工具端已在 REQ-76 里报了这个口径问题，App 这边先用 img.info 前后对比。
+                val before = usedBytes
+                val after = runCatching { ImageRepo.info(img).data?.optLong("alloc_bytes", 0L) ?: 0L }
+                    .getOrDefault(0L)
+                doneText = s.trimDone(fmtBytes(freed), fmtBytes(before), fmtBytes(after))
+                if (freed <= 0L) note = s.trimNothing
+                verified = d?.optBoolean("verified", false)
+                val pn = d?.optString("punch_note")?.takeIf { it.isNotBlank() }
+                if (pn != null) note = pn
+                planBytes = null
+                if (image != null) refreshInfo(image!!)
+                onToast(s.trimDone(fmtBytes(freed), fmtBytes(before), fmtBytes(after)))
+            } finally {
+                working = false
+                ToolRun.finish()
             }
-            working = false
-            if (!r.ok) {
-                err = toolErrorText(s, r)
-                return@launch
-            }
-            val d = r.data
-            val freed = if (sparsify) (d?.optLong("freed_bytes", 0L) ?: 0L)
-            else (d?.optLong("guest_bytes_freed", 0L) ?: 0L)
-            // ★ 占用口径统一走 img.info 的 alloc_bytes（宿主占用）：
-            //   工具端 img.sparsify 在 qcow2 上的 bytes_before/bytes_after 是在
-            //   内部 trim（已经 punch 完）之后才量的 → 两个数相等，
-            //   直接拿来显示会变成"释放了 150 MB，占用 226 MB → 226 MB"，自相矛盾。
-            //   工具端已在 REQ-76 里报了这个口径问题，App 这边先用 img.info 前后对比。
-            val before = usedBytes
-            val after = runCatching { ImageRepo.info(img).data?.optLong("alloc_bytes", 0L) ?: 0L }
-                .getOrDefault(0L)
-            doneText = s.trimDone(fmtBytes(freed), fmtBytes(before), fmtBytes(after))
-            if (freed <= 0L) note = s.trimNothing
-            verified = d?.optBoolean("verified", false)
-            val pn = d?.optString("punch_note")?.takeIf { it.isNotBlank() }
-            if (pn != null) note = pn
-            planBytes = null
-            if (image != null) refreshInfo(image!!)
-            onToast(s.trimDone(fmtBytes(freed), fmtBytes(before), fmtBytes(after)))
         }
     }
 
@@ -2308,10 +2322,27 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 when {
                     image == null -> onToast(s.trimNeedImage)
                     planBytes == null -> analyze()
-                    else -> run()
+                    // 写盘前先确认：明说"开始后不可取消"
+                    else -> confirmStart = true
                 }
             }
         }
+    }
+
+    // 开始前确认（用户 2026-11-12 拍板 Q4）
+    if (confirmStart) {
+        ConfirmDialog(
+            title = s.progConfirmTitle,
+            summary = s.progConfirmBody,
+            confirmText = s.trimClean,
+            cancelText = s.cancel,
+            danger = true,
+            onDismiss = { confirmStart = false },
+            onConfirm = {
+                confirmStart = false
+                run()
+            },
+        )
     }
 }
 
@@ -2350,6 +2381,8 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
 
     var doneText by remember { mutableStateOf<String?>(null) }
     var err by remember { mutableStateOf<String?>(null) }
+    /** 开始前的确认框（用户 2026-11-12 拍板 Q4：开始后不可取消）。 */
+    var confirmStart by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
 
@@ -2438,21 +2471,28 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             busy = true
             err = null
             doneText = null
-            val r = withContext(Dispatchers.IO) {
-                ImageRepo.compact(
-                    src = img,
-                    out = out.absolutePath,
-                    compress = if (mode == 1) "zlib" else null,
-                )
+            // ★ 统一进度浮层（用户 2026-11-12）：登记任务，浮层挂在 AppRoot 层，
+            //   页面自己不用管；期间系统返回被吃掉，不能中途退出。
+            ToolRun.start(s.compactTitle)
+            try {
+                val r = withContext(Dispatchers.IO) {
+                    ImageRepo.compact(
+                        src = img,
+                        out = out.absolutePath,
+                        compress = if (mode == 1) "zlib" else null,
+                    )
+                }
+                if (!r.ok) {
+                    err = toolErrorText(s, r)
+                    return@launch
+                }
+                val before = runCatching { File(img).length() }.getOrDefault(0L)
+                val after = runCatching { out.length() }.getOrDefault(0L)
+                doneText = s.compactDone(out.name, fmtBytes(before), fmtBytes(after))
+            } finally {
+                busy = false
+                ToolRun.finish()
             }
-            busy = false
-            if (!r.ok) {
-                err = toolErrorText(s, r)
-                return@launch
-            }
-            val before = runCatching { File(img).length() }.getOrDefault(0L)
-            val after = runCatching { out.length() }.getOrDefault(0L)
-            doneText = s.compactDone(out.name, fmtBytes(before), fmtBytes(after))
         }
     }
 
@@ -2537,9 +2577,25 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 enabled = !busy && image != null,
                 muted = image == null,
             ) {
-                if (image == null) onToast(s.compactNeedImage) else run()
+                if (image == null) onToast(s.compactNeedImage) else confirmStart = true
             }
         }
+    }
+
+    // 开始前确认：明说"开始后不可取消"（用户 2026-11-12 拍板 Q4）
+    if (confirmStart) {
+        ConfirmDialog(
+            title = s.progConfirmTitle,
+            summary = s.progConfirmBody,
+            confirmText = s.compactRun,
+            cancelText = s.cancel,
+            danger = true,
+            onDismiss = { confirmStart = false },
+            onConfirm = {
+                confirmStart = false
+                run()
+            },
+        )
     }
 }
 

@@ -36,6 +36,7 @@ import org.icdqcow2.core.BootMode
 import org.icdqcow2.core.ImageRepo
 import org.icdqcow2.core.StorageAccess
 import org.icdqcow2.core.ToolRunner
+import org.icdqcow2.core.ToolRun
 import org.icdqcow2.core.probeBootMode
 import org.icdqcow2.ui.LocalStrings
 import org.icdqcow2.ui.SmallTitlePage
@@ -719,6 +720,9 @@ fun WinRePage(
     var expanded by remember { mutableStateOf(false) }
     /** `null` = 还没选；`"write"` = 重新写入（展开完整写入设置）；`"fix"` = 原地修复。 */
     var mode by remember { mutableStateOf<String?>(null) }
+    /** 开始前的确认框（用户 2026-11-12 拍板 Q4：开始后不可取消）。 */
+    var confirmFix by remember { mutableStateOf(false) }
+    var confirmWrite by remember { mutableStateOf(false) }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
@@ -1035,29 +1039,8 @@ fun WinRePage(
                                     text = if (running) s.wrWriting else s.wrFix,
                                     enabled = !running && !loading && win != null && rec != null,
                                 ) {
-                                    val img = image
-                                    if (img != null && rec != null) scope.launch {
-                                        running = true
-                                        val rep = repairRecInPlace(
-                                            ctx = ctx,
-                                            img = img,
-                                            sysLba = win?.lba ?: 0L,
-                                            recLba = rec.lba,
-                                            needSdi = !sdiOk,
-                                            needAgent = !agentOk,
-                                            withScript = script,
-                                        )
-                                        running = false
-                                        result = if (rep.ok) s.wrFixDone
-                                        else s.wrFail + "：" + when (rep.err) {
-                                            "NO-SDI", "EXP-SDI" -> s.wrFixNoSdi
-                                            "NO-REC" -> s.wrPartNone
-                                            else -> rep.err.orEmpty()
-                                        }
-                                        onToast(result!!)
-                                        mode = if (rep.ok) null else "fix"
-                                        tick += 1
-                                    }
+                                    // 写盘前先确认：明说"开始后不可取消"（用户 2026-11-12 拍板 Q4）
+                                    if (image != null && rec != null) confirmFix = true
                                 }
                             }
                         }
@@ -1152,31 +1135,93 @@ fun WinRePage(
                                     text = if (running) s.wrWriting else s.wrWrite,
                                     enabled = !running && !loading && !probeBusy && hasSource && targetLba > 0L,
                                 ) {
-                                    val img = image
-                                    if (img != null) scope.launch {
-                                        running = true
-                                        val r = writeNow(img, useSys, targetLba, script)
-                                        running = false
-                                        if (r.ok) {
-                                            // 统一：写盘成功**不自动跳页**，留在本页显示结果，
-                                            // 由用户点返回（返回 = 上一级，不是首页）
-                                            onToast(s.wrOk)
-                                            result = s.wrOk
-                                            mode = null
-                                            expanded = false
-                                            tick += 1
-                                        } else {
-                                            result = s.wrFail + "：" + toolErrorText(s, r)
-                                            onToast(result!!)
-                                            tick += 1
-                                        }
-                                    }
+                                    // 写盘前先确认：明说"开始后不可取消"（用户 2026-11-12 拍板 Q4）
+                                    if (image != null) confirmWrite = true
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+        // 开始前确认（用户 2026-11-12 拍板 Q4：开始后不可取消）
+        if (confirmFix) {
+            ConfirmDialog(
+                title = s.progConfirmTitle,
+                summary = s.progConfirmBody,
+                confirmText = s.wrFix,
+                cancelText = s.cancel,
+                danger = true,
+                onDismiss = { confirmFix = false },
+                onConfirm = {
+                    confirmFix = false
+                    val img = image
+                    if (img != null && rec != null) scope.launch {
+                        running = true
+                        ToolRun.start(s.wrFixTitle)
+                        try {
+                            val rep = repairRecInPlace(
+                                ctx = ctx,
+                                img = img,
+                                sysLba = win?.lba ?: 0L,
+                                recLba = rec.lba,
+                                needSdi = !sdiOk,
+                                needAgent = !agentOk,
+                                withScript = script,
+                            )
+                            result = if (rep.ok) s.wrFixDone
+                            else s.wrFail + "：" + when (rep.err) {
+                                "NO-SDI", "EXP-SDI" -> s.wrFixNoSdi
+                                "NO-REC" -> s.wrPartNone
+                                else -> rep.err.orEmpty()
+                            }
+                            onToast(result!!)
+                            mode = if (rep.ok) null else "fix"
+                            tick += 1
+                        } finally {
+                            running = false
+                            ToolRun.finish()
+                        }
+                    }
+                },
+            )
+        }
+        if (confirmWrite) {
+            ConfirmDialog(
+                title = s.progConfirmTitle,
+                summary = s.progConfirmBody,
+                confirmText = s.wrWrite,
+                cancelText = s.cancel,
+                danger = true,
+                onDismiss = { confirmWrite = false },
+                onConfirm = {
+                    confirmWrite = false
+                    val img = image
+                    if (img != null) scope.launch {
+                        running = true
+                        ToolRun.start(s.wrWrite)
+                        try {
+                            val r = writeNow(img, useSys, targetLba, script)
+                            if (r.ok) {
+                                // 统一：写盘成功**不自动跳页**，留在本页显示结果，
+                                // 由用户点返回（返回 = 上一级，不是首页）
+                                onToast(s.wrOk)
+                                result = s.wrOk
+                                mode = null
+                                expanded = false
+                                tick += 1
+                            } else {
+                                result = s.wrFail + "：" + toolErrorText(s, r)
+                                onToast(result!!)
+                                tick += 1
+                            }
+                        } finally {
+                            running = false
+                            ToolRun.finish()
+                        }
+                    }
+                },
+            )
         }
         Spacer(Modifier.height(24.dp))
     }

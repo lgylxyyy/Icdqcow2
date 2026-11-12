@@ -475,6 +475,11 @@ private fun AppRoot(settings: SettingsStore) {
                         .windowInsetsPadding(WindowInsets.statusBars)
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                 )
+
+                // 全局进度浮层（用户 2026-11-12）：压缩/释放空间/WinRE/部署这类
+                // 长任务跑起来时，浮层挂在**所有页面之上** —— 页面自己不用管。
+                // 画在 ToastHost 之后 → 压在提示条上面（提示条是半透明的，压得住）。
+                org.icdqcow2.ui.pages.GlobalProgressOverlay(onToast = toast)
             }
         }
     }

@@ -477,6 +477,11 @@
       "en": "Deploy",
       "note": "释放映像 · 按钮 · dep.start"
     },
+    "dep.noCancel": {
+      "zh": "开始后不可取消，中途不能退出",
+      "en": "This cannot be cancelled once it starts",
+      "note": "释放映像 · 开始前确认框最后一行（用户 2026-11-12 拍板 Q4）"
+    },
     "dep.done": {
       "zh": "已释放到 {0}",
       "en": "Deployed to {0}",
@@ -1751,6 +1756,46 @@
       "zh": "该目录为私有或系统目录，无法修改其中的文件（此文件为只读）",
       "en": "This folder is private or system-owned; files in it cannot be modified (this file is read-only)",
       "note": "选镜像 · 「当前操作的文件」卡下方灰字 · pick.readonlyNote（SAF 只拿到只读 fd 时；只读功能页不显示）"
+    },
+    "prog.remaining": {
+      "zh": "剩余 {0}",
+      "en": "{0} left",
+      "note": "进度浮层 · 进度条右侧（剩余大小，用户第 8 条）"
+    },
+    "prog.item": {
+      "zh": "正在处理：{0}",
+      "en": "Working on: {0}",
+      "note": "进度浮层 · 正在处理的条目（工具端 progress 的 item）"
+    },
+    "prog.elapsed": {
+      "zh": "已用 {0}",
+      "en": "Elapsed {0}",
+      "note": "进度浮层 · 已用时长"
+    },
+    "prog.eta": {
+      "zh": "预计剩余 {0}",
+      "en": "About {0} left",
+      "note": "进度浮层 · 预计剩余时长（工具端给的 eta）"
+    },
+    "prog.blocked": {
+      "zh": "任务进行中，返回可能损坏文件，已拦截",
+      "en": "Task in progress; leaving now could damage files, so it was blocked",
+      "note": "进度浮层 · 任务运行时误触返回的 toast（用户 2026-11-12 拍板：不允许取消）"
+    },
+    "prog.noCancel": {
+      "zh": "开始后不可取消，中途不能退出",
+      "en": "This cannot be cancelled once it starts",
+      "note": "进度浮层 · 底部一行提醒（没有取消按钮，得说明白）"
+    },
+    "prog.confirmTitle": {
+      "zh": "开始后不可取消",
+      "en": "Cannot be cancelled once started",
+      "note": "长任务开始前的确认框标题（用户 2026-11-12 拍板 Q4）"
+    },
+    "prog.confirmBody": {
+      "zh": "这个操作会改写映像文件，中途退出可能损坏文件。确定现在开始吗？",
+      "en": "This rewrites the image file; stopping midway may damage it. Start anyway?",
+      "note": "长任务开始前的确认框正文（压缩/释放空间/WinRE 写入/部署）"
     },
     "perm.dlgTitle": {
       "zh": "需要「管理所有文件」权限",

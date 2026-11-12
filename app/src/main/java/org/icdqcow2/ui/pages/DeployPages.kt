@@ -749,6 +749,8 @@ fun DeployPage(
                     s.depLine(s.depRecScript, if (writeScript) s.depOn else s.depOff),
                 )
             }
+            // 开始后不可取消（用户 2026-11-12 拍板 Q4）—— 在确认框里就说清楚
+            append("\n"); append(s.depNoCancel)
         } }.orEmpty()
         ConfirmDialog(
             title = s.depConfirmTitle,
@@ -759,157 +761,149 @@ fun DeployPage(
             onConfirm = {
                 confirm = false
                 scope.launch {
-                    org.icdqcow2.core.ToolEvents.clear()
-                    etaMeter.reset()
-                    etaSec = -1
+                    // ★ 任务跑着不能退出（用户 2026-11-12 拍板 Q4）：登记一下，
+                    //   返回箭头会隐藏、系统返回会被吃掉（部署页自己已有步骤条进度，
+                    //   所以 silent = 不再叠一层浮层）。
+                    org.icdqcow2.core.ToolRun.start(s.deploy, silent = true)
+                    try {
+                        org.icdqcow2.core.ToolEvents.clear()
+                        etaMeter.reset()
+                        etaSec = -1
 
-                    // 目标分区统一叫 `Windows OS`；别的分区占着这名字的先清掉（用户：先改名再释放）
-                    val others = parts.filter {
-                        it.lba != target.lba &&
-                            scans[it.lba]?.label?.equals(ImageRepo.LABEL_WIN, true) == true
-                    }
-                    val steps = buildList {
-                        if (others.isNotEmpty()) add(s.depRunRename)
-                        // 不格式化 = 目标盘里已有系统：先把它们搬进 Windows.old（用户 2026-10-29 定）
-                        if (!formatFirst) add(s.depRunOld)
-                        add(s.depRunApply)
-                        if (writeRec) add(s.depRunRec)
-                        if (writeBoot) add(s.depRunBoot)
-                    }
-                    run = DeployRun(steps, 0)
-                    var step = 0
-                    var failure: String? = null
+                        // 目标分区统一叫 `Windows OS`；别的分区占着这名字的先清掉（用户：先改名再释放）
+                        val others = parts.filter {
+                            it.lba != target.lba &&
+                                scans[it.lba]?.label?.equals(ImageRepo.LABEL_WIN, true) == true
+                        }
+                        // ★ Windows.old 只在"目标分区里确实有旧系统"时才做（用户 2026-11-12 拍板 Q1）：
+                        //   目标分区根目录没有 /Windows → 目标盘里根本没有旧系统，
+                        //   这时显示"创建 Windows.old"有歧义（搬什么？），这一步就不做。
+                        val targetHasWindows = scans[target.lba]?.looksLikeWindows == true
+                        val steps = buildList {
+                            if (others.isNotEmpty()) add(s.depRunRename)
+                            // 不格式化 = 目标盘里已有系统：先把它们搬进 Windows.old（用户 2026-10-29 定）
+                            if (!formatFirst && targetHasWindows) add(s.depRunOld)
+                            add(s.depRunApply)
+                            if (writeRec) add(s.depRunRec)
+                            if (writeBoot) add(s.depRunBoot)
+                        }
+                        run = DeployRun(steps, 0)
+                        var step = 0
+                        var failure: String? = null
 
-                    // ① 重命名：清掉重名的旧卷标（NTFS 空卷标 = 清除）
-                    if (others.isNotEmpty()) {
-                        for (p in others) {
-                            val fs = scans[p.lba]?.fs ?: "NTFS"
-                            val r = ImageRepo.label(p.lba, fs, null, image)
-                            if (!r.ok) {
-                                failure = toolErrorText(s, r)
-                                break
+                        // ① 重命名：清掉重名的旧卷标（NTFS 空卷标 = 清除）
+                        if (others.isNotEmpty()) {
+                            for (p in others) {
+                                val fs = scans[p.lba]?.fs ?: "NTFS"
+                                val r = ImageRepo.label(p.lba, fs, null, image)
+                                if (!r.ok) {
+                                    failure = toolErrorText(s, r)
+                                    break
+                                }
+                            }
+                            if (failure == null) {
+                                step++
+                                run = run?.copy(index = step)
                             }
                         }
-                        if (failure == null) {
-                            step++
-                            run = run?.copy(index = step)
-                        }
-                    }
 
-                    // 每一步开始都把进度快照清掉：上一步的 100% 不能算到这一步头上
-                    org.icdqcow2.core.ToolEvents.clear()
-                    // ② 写系统：ISO 里的 WIM **直读**（REPLY-29 起 `--inner` 不落临时文件）
-                    val wimSrc = wimPath
-                    // 灌盘前先判两件事（架构位数、有没有 WinRE），别让用户白等 40 秒才失败
-                    if (failure == null && wimSrc != null) {
-                        if (isGpt) {
-                            val probe = ImageRepo.wimIdentify(wimSrc, inner = wimInner)
-                            val archNow = probe.data?.optJSONArray("images")?.let { arr ->
-                                (0 until arr.length()).mapNotNull { arr.optJSONObject(it) }
-                                    .firstOrNull { it.optInt("index", -1) == wimIndex }
-                            }?.optString("arch").orEmpty()
-                            if (archNow.equals("x86", true)) failure = s.depBit32
+                        // 每一步开始都把进度快照清掉：上一步的 100% 不能算到这一步头上
+                        org.icdqcow2.core.ToolEvents.clear()
+                        // ② 写系统：ISO 里的 WIM **直读**（REPLY-29 起 `--inner` 不落临时文件）
+                        val wimSrc = wimPath
+                        // 灌盘前先判两件事（架构位数、有没有 WinRE），别让用户白等 40 秒才失败
+                        if (failure == null && wimSrc != null) {
+                            if (isGpt) {
+                                val probe = ImageRepo.wimIdentify(wimSrc, inner = wimInner)
+                                val archNow = probe.data?.optJSONArray("images")?.let { arr ->
+                                    (0 until arr.length()).mapNotNull { arr.optJSONObject(it) }
+                                        .firstOrNull { it.optInt("index", -1) == wimIndex }
+                                }?.optString("arch").orEmpty()
+                                if (archNow.equals("x86", true)) failure = s.depBit32
+                            }
+                            if (failure == null && (writeRec || writeScript) && reSrcPath == null) {
+                                val has = ImageRepo.winreProbe(wimSrc, wimInner, wimIndex)
+                                if (has.empty) failure = s.depWinreNote
+                            }
                         }
-                        if (failure == null && (writeRec || writeScript) && reSrcPath == null) {
-                            val has = ImageRepo.winreProbe(wimSrc, wimInner, wimIndex)
-                            if (has.empty) failure = s.depWinreNote
-                        }
-                    }
-                    // 把目标分区根目录里的东西**全部**搬进 Windows.old（和 Windows 安装程序同款）。
-                    // 不挑名字：wimlib 只要看到目录非空就可能报 46，我们干脆把根清空。
-                    suspend fun makeWindowsOld(): Int {
-                        val base = "$image!lba${target.lba}:"
-                        runCatching {
-                            org.icdqcow2.core.ToolRunner.exec(
-                                "ntfs.mkdir",
-                                mapOf("lba" to target.lba.toString(), "path" to "/Windows.old"),
-                                imagePath = image,
-                                writable = true,
-                            )
-                        }
-                        val ls = org.icdqcow2.core.ToolRunner.exec(
-                            "ntfs.list",
-                            mapOf(
-                                "lba" to target.lba.toString(),
-                                "path" to "/",
-                                "limit" to "2000",
-                            ),
-                            imagePath = image,
-                            writable = false,
-                        )
-                        val names = ls.data?.optJSONArray("names")?.let { arr ->
-                            (0 until arr.length()).mapNotNull { arr.optJSONObject(it)?.optString("name") }
-                        }.orEmpty()
-                        var moved = 0
-                        val fails = ArrayList<String>()
-                        for (n in names) {
-                            if (n.equals("Windows.old", true)) continue
-                            val mv = org.icdqcow2.core.ToolRunner.exec(
-                                "move",
-                                mapOf(
-                                    "src" to "$base/$n",
-                                    "dst" to "$base/Windows.old/$n",
-                                    "recursive" to "true",
-                                    "create_parents" to "true",
-                                    "conflict" to "fail",
-                                    "allow_host_delete" to "false",
-                                ),
-                                imagePath = null,
-                                writable = true,
-                                imageFd = -1,
-                            )
-                            if (mv.ok) moved++ else fails += "$n:${mv.code ?: "?"}"
-                        }
-                        // 静默失败最要命（用户 2026-10-29 就踩了：根目录还在、Windows.old 是空的）。
-                        // 失败项直接说出来，别让用户以为搬好了。
-                        if (fails.isNotEmpty()) {
-                            android.util.Log.w("Deploy", "Windows.old 搬运失败: " + fails.joinToString())
-                            onToast(s.depOldFail(fails.size, fails.first()))
-                        }
-                        return moved
-                    }
-                    // 独立一步：创建 Windows.old（不格式化时才有这一步）
-                    if (failure == null && !formatFirst) {
-                        run = run?.copy(index = step)
-                        val moved = makeWindowsOld()
-                        if (moved > 0) onToast(s.depOldMoved("Windows.old"))
-                        // 搬完核对一遍：根目录里除了 Windows.old 还有东西 → 别急着灌，
-                        // 不然 wimlib 又会写一半失败（用户 2026-10-29 的教训）。
-                        val left = runCatching {
-                            val ls2 = org.icdqcow2.core.ToolRunner.exec(
+                        // 把目标分区根目录里的东西**全部**搬进 Windows.old（和 Windows 安装程序同款）。
+                        // 不挑名字：wimlib 只要看到目录非空就可能报 46，我们干脆把根清空。
+                        suspend fun makeWindowsOld(): Int {
+                            val base = "$image!lba${target.lba}:"
+                            runCatching {
+                                org.icdqcow2.core.ToolRunner.exec(
+                                    "ntfs.mkdir",
+                                    mapOf("lba" to target.lba.toString(), "path" to "/Windows.old"),
+                                    imagePath = image,
+                                    writable = true,
+                                )
+                            }
+                            val ls = org.icdqcow2.core.ToolRunner.exec(
                                 "ntfs.list",
-                                mapOf("lba" to target.lba.toString(), "path" to "/", "limit" to "2000"),
+                                mapOf(
+                                    "lba" to target.lba.toString(),
+                                    "path" to "/",
+                                    "limit" to "2000",
+                                ),
                                 imagePath = image,
                                 writable = false,
                             )
-                            ls2.data?.optJSONArray("names")?.let { arr ->
+                            val names = ls.data?.optJSONArray("names")?.let { arr ->
                                 (0 until arr.length()).mapNotNull { arr.optJSONObject(it)?.optString("name") }
-                                    .count { !it.equals("Windows.old", true) && it.isNotEmpty() }
-                            } ?: 0
-                        }.getOrDefault(0)
-                        if (left > 0) failure = s.depOldLeft(left)
-                        step++
-                        run = run?.copy(index = step)
-                    }
-                    if (failure == null && wimSrc != null) {
-                        var r = ImageRepo.applyWim(
-                            lba = target.lba,
-                            wim = wimSrc,
-                            index = wimIndex,
-                            format = formatFirst,
-                            label = ImageRepo.LABEL_WIN,
-                            inner = wimInner,
-                            path = image,
-                        )
-                        // 只有 41（WIMLIB_ERR_NOTEMPTY：目录非空）才"清空再重试"；
-                        // 46 是 libntfs-3g 底层错（脏卷/只读/空间），重试毫无意义（REPLY-46-48）。
-                        val wcode = runCatching {
-                            org.json.JSONObject(r.raw).optJSONObject("err")?.optInt("wimlib_code", -1)
-                        }.getOrNull() ?: -1
-                        if (!r.ok && !formatFirst && wcode == 41) {
+                            }.orEmpty()
+                            var moved = 0
+                            val fails = ArrayList<String>()
+                            for (n in names) {
+                                if (n.equals("Windows.old", true)) continue
+                                val mv = org.icdqcow2.core.ToolRunner.exec(
+                                    "move",
+                                    mapOf(
+                                        "src" to "$base/$n",
+                                        "dst" to "$base/Windows.old/$n",
+                                        "recursive" to "true",
+                                        "create_parents" to "true",
+                                        "conflict" to "fail",
+                                        "allow_host_delete" to "false",
+                                    ),
+                                    imagePath = null,
+                                    writable = true,
+                                    imageFd = -1,
+                                )
+                                if (mv.ok) moved++ else fails += "$n:${mv.code ?: "?"}"
+                            }
+                            // 静默失败最要命（用户 2026-10-29 就踩了：根目录还在、Windows.old 是空的）。
+                            // 失败项直接说出来，别让用户以为搬好了。
+                            if (fails.isNotEmpty()) {
+                                android.util.Log.w("Deploy", "Windows.old 搬运失败: " + fails.joinToString())
+                                onToast(s.depOldFail(fails.size, fails.first()))
+                            }
+                            return moved
+                        }
+                        // 独立一步：创建 Windows.old（不格式化、且目标分区里确实有旧系统时才有这一步）
+                        if (failure == null && !formatFirst && targetHasWindows) {
+                            run = run?.copy(index = step)
                             val moved = makeWindowsOld()
                             if (moved > 0) onToast(s.depOldMoved("Windows.old"))
-                            r = ImageRepo.applyWim(
+                            // 搬完核对一遍：根目录里除了 Windows.old 还有东西 → 别急着灌，
+                            // 不然 wimlib 又会写一半失败（用户 2026-10-29 的教训）。
+                            val left = runCatching {
+                                val ls2 = org.icdqcow2.core.ToolRunner.exec(
+                                    "ntfs.list",
+                                    mapOf("lba" to target.lba.toString(), "path" to "/", "limit" to "2000"),
+                                    imagePath = image,
+                                    writable = false,
+                                )
+                                ls2.data?.optJSONArray("names")?.let { arr ->
+                                    (0 until arr.length()).mapNotNull { arr.optJSONObject(it)?.optString("name") }
+                                        .count { !it.equals("Windows.old", true) && it.isNotEmpty() }
+                                } ?: 0
+                            }.getOrDefault(0)
+                            if (left > 0) failure = s.depOldLeft(left)
+                            step++
+                            run = run?.copy(index = step)
+                        }
+                        if (failure == null && wimSrc != null) {
+                            var r = ImageRepo.applyWim(
                                 lba = target.lba,
                                 wim = wimSrc,
                                 index = wimIndex,
@@ -918,136 +912,156 @@ fun DeployPage(
                                 inner = wimInner,
                                 path = image,
                             )
-                        }
-                        if (!r.ok) {
-                            failure = toolErrorText(s, r)
-                        } else if (!formatFirst) {
-                            // 没格式化 → 卷标得单独写
-                            val lr = ImageRepo.label(
-                                target.lba, targetScan?.fs ?: "NTFS", ImageRepo.LABEL_WIN, image,
-                            )
-                            if (!lr.ok) failure = toolErrorText(s, lr)
-                        }
-                    }
-                    if (failure == null) {
-                        step++
-                        run = run?.copy(index = step)
-                    }
-
-                    // ③ 恢复分区
-                    org.icdqcow2.core.ToolEvents.clear()
-                    if (failure == null && writeRec) {
-                        // ramdisk 要的 boot.sdi 在恢复分区里也得有一份（`boot.check` 的 rec.bootsdi
-                        // 就是查这个）——工具端只吃本地文件，先从系统分区抽出来
-                        val sdiTmp = java.io.File(TempDirs.stagingDir(ctx), "deploy-boot.sdi")
-                        val sdiRel = if (isGpt) {
-                            "/Windows/Boot/DVD/EFI/boot.sdi"
-                        } else {
-                            "/Windows/Boot/DVD/PCAT/boot.sdi"
-                        }
-                        // ★ 直接从映像里取（实测 3.4 s、3 MB），不碰系统分区：
-                        //   这条 2026-10-27 晚换成 `wim.extract`，`--inner` 直读 ISO 成员。
-                        var sdiOk = if (wimSrc != null) {
-                            ImageRepo.wimExtract(
-                                wim = wimSrc,
-                                path = sdiRel,
-                                dst = sdiTmp.absolutePath,
-                                index = wimIndex,
-                                inner = wimInner,
-                            ).ok
-                        } else {
-                            false
-                        }
-                        // 兜底：映像里取不出来，就从刚灌好的卷里导（老路，3 MB）
-                        if (!sdiOk) {
-                            sdiOk = ImageRepo.ntfsExport(
-                                target.lba, sdiRel, sdiTmp.absolutePath, image,
-                            ).ok
-                        }
-                        // 抽取模式：ISO 成员读不了 → 用刚从 ISO 抽出来的 install.wim 当来源
-                        val reSrc = reSrcPath ?: wimSrc!!
-                        val rp = ImageRepo.recoveryPopulate(
-                            lba = recPart?.lba ?: target.lba,
-                            // RE 来源：单独选的那份优先（可能另一份 ISO/ESD/WIM）
-                            wim = reSrc,
-                            // `--winre-index` = WinRE 在哪条映像里；另选来源但没探成时给 1，让工具自己找
-                            index = reSrcHit?.index
-                                ?: (if (reSrcPath != null) 1 else curWinre?.index ?: wimIndex),
-                            enableScript = writeScript,
-                            osLba = target.lba,
-                            system = recPart == null,
-                            inner = if (reSrcPath != null) null
-                            else (curWinre?.inner ?: wimInner),
-                            bootsdi = if (sdiOk) sdiTmp.absolutePath else null,
-                            winrePath = (reSrcHit ?: curWinre)?.internalPath,
-                            // ★ 独立恢复分区：先格式化再填（工具端 format 默认 false）。
-                            //   `recovery.populate` 填充后要复核，旧内容会让它失败。
-                            //   系统分区那条（recPart == null）**不能格**，那是 Windows 本尊。
-                            format = recPart != null,
-                            path = image,
-                        )
-                        runCatching { sdiTmp.delete() }
-                        // ★ 工具端 `recovery.populate` **不写 ReAgent.xml**（`img_ntfs_write_reagent`
-                        //   有实现但没有调用者），所以建完盘跑全量自检必报「ReAgent.xml 缺失」。
-                        //   这里顺手补上：只补这一个文件，不格式化、不碰 WinRE（用户 2026-11-11 报的就是这个）。
-                        val imgNow = image
-                        if (rp.ok && recPart != null && imgNow != null) {
-                            runCatching {
-                                repairRecInPlace(
-                                    ctx = ctx,
-                                    img = imgNow,
-                                    sysLba = target.lba,
-                                    recLba = recPart.lba,
-                                    needSdi = false,
-                                    needAgent = true,
-                                    withScript = false,
+                            // 只有 41（WIMLIB_ERR_NOTEMPTY：目录非空）才"清空再重试"；
+                            // 46 是 libntfs-3g 底层错（脏卷/只读/空间），重试毫无意义（REPLY-46-48）。
+                            val wcode = runCatching {
+                                org.json.JSONObject(r.raw).optJSONObject("err")?.optInt("wimlib_code", -1)
+                            }.getOrNull() ?: -1
+                            if (!r.ok && !formatFirst && wcode == 41) {
+                                val moved = makeWindowsOld()
+                                if (moved > 0) onToast(s.depOldMoved("Windows.old"))
+                                r = ImageRepo.applyWim(
+                                    lba = target.lba,
+                                    wim = wimSrc,
+                                    index = wimIndex,
+                                    format = formatFirst,
+                                    label = ImageRepo.LABEL_WIN,
+                                    inner = wimInner,
+                                    path = image,
                                 )
                             }
+                            if (!r.ok) {
+                                failure = toolErrorText(s, r)
+                            } else if (!formatFirst) {
+                                // 没格式化 → 卷标得单独写
+                                val lr = ImageRepo.label(
+                                    target.lba, targetScan?.fs ?: "NTFS", ImageRepo.LABEL_WIN, image,
+                                )
+                                if (!lr.ok) failure = toolErrorText(s, lr)
+                            }
                         }
-                        if (!rp.ok) failure = toolErrorText(s, rp)
-                        else {
+                        if (failure == null) {
                             step++
                             run = run?.copy(index = step)
                         }
-                    }
 
-                    // ④ 引导：一条 `boot.populate` 铺完（REPLY-20：ESP 格式化 + bootmgfw/bootx64
-                    //    + Fonts + boot.sdi + BCD；BIOS 则 SR + 活动标志 + bootmgr + 内置 MBR/VBR 码）
-                    org.icdqcow2.core.ToolEvents.clear()
-                    var bootNote: String? = null
-                    // 32 位 + GPT 以前在这里硬拦；现在交给工具端判（它能读 WIM 的真实版本号）：
-                    //   Vista/Win7 x86 + GPT → `BOOT-ARCH-NO-UEFI`
-                    //   Win8+ x86 + GPT      → `BOOT-FORMAT-NEEDS-CONFIRM`（带 force 再来一次）
-                    if (failure == null && writeBoot) {
-                        var bp = ImageRepo.bootPopulate(
-                            sysLba = target.lba,
-                            espLba = if (isGpt) espPart?.lba else null,
-                            srLba = if (isGpt) null else (srPart ?: target).lba,
-                            path = image,
-                        )
-                        // 32 位 + GPT：工具端判"能做但有风险"（BOOT-FORMAT-NEEDS-CONFIRM），
-                        // 带 force 再来一次就是用户已经确认过的意思。
-                        if (!bp.ok && bp.code == "BOOT-FORMAT-NEEDS-CONFIRM") {
-                            bp = ImageRepo.bootPopulate(
+                        // ③ 恢复分区
+                        org.icdqcow2.core.ToolEvents.clear()
+                        if (failure == null && writeRec) {
+                            // ramdisk 要的 boot.sdi 在恢复分区里也得有一份（`boot.check` 的 rec.bootsdi
+                            // 就是查这个）——工具端只吃本地文件，先从系统分区抽出来
+                            val sdiTmp = java.io.File(TempDirs.stagingDir(ctx), "deploy-boot.sdi")
+                            val sdiRel = if (isGpt) {
+                                "/Windows/Boot/DVD/EFI/boot.sdi"
+                            } else {
+                                "/Windows/Boot/DVD/PCAT/boot.sdi"
+                            }
+                            // ★ 直接从映像里取（实测 3.4 s、3 MB），不碰系统分区：
+                            //   这条 2026-10-27 晚换成 `wim.extract`，`--inner` 直读 ISO 成员。
+                            var sdiOk = if (wimSrc != null) {
+                                ImageRepo.wimExtract(
+                                    wim = wimSrc,
+                                    path = sdiRel,
+                                    dst = sdiTmp.absolutePath,
+                                    index = wimIndex,
+                                    inner = wimInner,
+                                ).ok
+                            } else {
+                                false
+                            }
+                            // 兜底：映像里取不出来，就从刚灌好的卷里导（老路，3 MB）
+                            if (!sdiOk) {
+                                sdiOk = ImageRepo.ntfsExport(
+                                    target.lba, sdiRel, sdiTmp.absolutePath, image,
+                                ).ok
+                            }
+                            // 抽取模式：ISO 成员读不了 → 用刚从 ISO 抽出来的 install.wim 当来源
+                            val reSrc = reSrcPath ?: wimSrc!!
+                            val rp = ImageRepo.recoveryPopulate(
+                                lba = recPart?.lba ?: target.lba,
+                                // RE 来源：单独选的那份优先（可能另一份 ISO/ESD/WIM）
+                                wim = reSrc,
+                                // `--winre-index` = WinRE 在哪条映像里；另选来源但没探成时给 1，让工具自己找
+                                index = reSrcHit?.index
+                                    ?: (if (reSrcPath != null) 1 else curWinre?.index ?: wimIndex),
+                                enableScript = writeScript,
+                                osLba = target.lba,
+                                system = recPart == null,
+                                inner = if (reSrcPath != null) null
+                                else (curWinre?.inner ?: wimInner),
+                                bootsdi = if (sdiOk) sdiTmp.absolutePath else null,
+                                winrePath = (reSrcHit ?: curWinre)?.internalPath,
+                                // ★ 独立恢复分区：先格式化再填（工具端 format 默认 false）。
+                                //   `recovery.populate` 填充后要复核，旧内容会让它失败。
+                                //   系统分区那条（recPart == null）**不能格**，那是 Windows 本尊。
+                                format = recPart != null,
+                                path = image,
+                            )
+                            runCatching { sdiTmp.delete() }
+                            // ★ 工具端 `recovery.populate` **不写 ReAgent.xml**（`img_ntfs_write_reagent`
+                            //   有实现但没有调用者），所以建完盘跑全量自检必报「ReAgent.xml 缺失」。
+                            //   这里顺手补上：只补这一个文件，不格式化、不碰 WinRE（用户 2026-11-11 报的就是这个）。
+                            val imgNow = image
+                            if (rp.ok && recPart != null && imgNow != null) {
+                                runCatching {
+                                    repairRecInPlace(
+                                        ctx = ctx,
+                                        img = imgNow,
+                                        sysLba = target.lba,
+                                        recLba = recPart.lba,
+                                        needSdi = false,
+                                        needAgent = true,
+                                        withScript = false,
+                                    )
+                                }
+                            }
+                            if (!rp.ok) failure = toolErrorText(s, rp)
+                            else {
+                                step++
+                                run = run?.copy(index = step)
+                            }
+                        }
+
+                        // ④ 引导：一条 `boot.populate` 铺完（REPLY-20：ESP 格式化 + bootmgfw/bootx64
+                        //    + Fonts + boot.sdi + BCD；BIOS 则 SR + 活动标志 + bootmgr + 内置 MBR/VBR 码）
+                        org.icdqcow2.core.ToolEvents.clear()
+                        var bootNote: String? = null
+                        // 32 位 + GPT 以前在这里硬拦；现在交给工具端判（它能读 WIM 的真实版本号）：
+                        //   Vista/Win7 x86 + GPT → `BOOT-ARCH-NO-UEFI`
+                        //   Win8+ x86 + GPT      → `BOOT-FORMAT-NEEDS-CONFIRM`（带 force 再来一次）
+                        if (failure == null && writeBoot) {
+                            var bp = ImageRepo.bootPopulate(
                                 sysLba = target.lba,
                                 espLba = if (isGpt) espPart?.lba else null,
                                 srLba = if (isGpt) null else (srPart ?: target).lba,
-                                force = true,
                                 path = image,
                             )
+                            // 32 位 + GPT：工具端判"能做但有风险"（BOOT-FORMAT-NEEDS-CONFIRM），
+                            // 带 force 再来一次就是用户已经确认过的意思。
+                            if (!bp.ok && bp.code == "BOOT-FORMAT-NEEDS-CONFIRM") {
+                                bp = ImageRepo.bootPopulate(
+                                    sysLba = target.lba,
+                                    espLba = if (isGpt) espPart?.lba else null,
+                                    srLba = if (isGpt) null else (srPart ?: target).lba,
+                                    force = true,
+                                    path = image,
+                                )
+                            }
+                            if (!bp.ok) {
+                                failure = toolErrorText(s, bp)
+                            } else {
+                                // 工具端内部已经跑过一次 boot.check，直接把结论拿过来用
+                                val bad = bp.data?.optJSONObject("boot_check")?.optInt("required_fail", 0) ?: 0
+                                bootNote = if (bad > 0) s.depRunBootFail(bad) else s.depRunBootOk
+                            }
                         }
-                        if (!bp.ok) {
-                            failure = toolErrorText(s, bp)
-                        } else {
-                            // 工具端内部已经跑过一次 boot.check，直接把结论拿过来用
-                            val bad = bp.data?.optJSONObject("boot_check")?.optInt("required_fail", 0) ?: 0
-                            bootNote = if (bad > 0) s.depRunBootFail(bad) else s.depRunBootOk
-                        }
-                    }
 
-                    org.icdqcow2.core.ToolEvents.clear()
-                    run = run?.copy(done = failure == null, error = failure, note = bootNote)
-                    if (failure == null) onToast(s.depDone("#$targetIdx · ${fmtBytes(target.bytes)}"))
+                        org.icdqcow2.core.ToolEvents.clear()
+                        run = run?.copy(done = failure == null, error = failure, note = bootNote)
+                        if (failure == null) onToast(s.depDone("#$targetIdx · ${fmtBytes(target.bytes)}"))
+                    } finally {
+                        org.icdqcow2.core.ToolRun.finish()
+                    }
                 }
             },
         )

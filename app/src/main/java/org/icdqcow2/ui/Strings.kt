@@ -149,6 +149,8 @@ class Strings(val code: String) {
 
     val depFormat get() = raw("dep.format")
     val depStart get() = raw("dep.start")
+    /** 开始前确认框最后一行：开始后不可取消（用户 2026-11-12 拍板 Q4）。 */
+    val depNoCancel get() = raw("dep.noCancel")
     fun depDone(name: String) = tpl("dep.done", name)
     val depConfirmTitle get() = raw("dep.confirmTitle")
 
@@ -551,6 +553,18 @@ class Strings(val code: String) {
     val pickPick get() = raw("pick.pick")
     /** F1：当前文件是只读打开的（SAF 只拿到 "r"）——写在"当前文件"卡下方。 */
     val pickReadonlyNote get() = raw("pick.readonlyNote")
+    // ── 统一进度浮层（用户 2026-11-12）──
+    fun progRemaining(size: String) = tpl("prog.remaining", size)
+    fun progItem(item: String) = tpl("prog.item", item)
+    fun progElapsed(t: String) = tpl("prog.elapsed", t)
+    fun progEta(t: String) = tpl("prog.eta", t)
+    /** 任务运行时误触返回 → 顶部 toast。 */
+    val progBlocked get() = raw("prog.blocked")
+    /** 浮层底部：没有取消按钮，得说明白。 */
+    val progNoCancel get() = raw("prog.noCancel")
+    /** 开始前的确认框（不允许取消）。 */
+    val progConfirmTitle get() = raw("prog.confirmTitle")
+    val progConfirmBody get() = raw("prog.confirmBody")
     val permDlgTitle get() = raw("perm.dlgTitle")
     val permDlgBody get() = raw("perm.dlgBody")
     val permDlgGo get() = raw("perm.dlgGo")

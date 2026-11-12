@@ -1915,6 +1915,16 @@ fun FilesScreen(
                 append(pv?.item?.takeIf { it.isNotEmpty() } ?: "")
             }.trim(),
             counts = counts.ifEmpty { null },
+            // ★ 与全局进度浮层同一套显示内容（用户 2026-11-12 第 8 条）：
+            //   剩余大小 / 已用 / 预计剩余。文件页**保留取消按钮**（这类任务可以中止）。
+            remainBytes = when {
+                pv == null -> 0L
+                pv.overallTotalBytes > 0L -> (pv.overallTotalBytes - pv.overallCurBytes).coerceAtLeast(0L)
+                pv.totalBytes > 0L -> (pv.totalBytes - pv.curBytes).coerceAtLeast(0L)
+                else -> 0L
+            },
+            elapsedMs = pv?.elapsedMs ?: 0L,
+            etaSec = pv?.eta ?: -1,
             cancelText = s.cancel,
             onCancel = {
                 ToolRunner.cancel()

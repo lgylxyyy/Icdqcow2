@@ -23,6 +23,8 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import org.icdqcow2.core.ToolRun
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.getValue
@@ -237,6 +239,10 @@ fun SmallTitlePage(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val effects = LocalVisualEffects.current
+    // ★ 任务运行时不显示返回箭头（用户 2026-11-12 拍板 Q4：不允许取消）。
+    //   这几个任务（压缩/释放空间/WinRE 写入/部署）中途退出可能把映像写坏，
+    //   浮层那边还会吃掉系统返回，这里把"能退回去"的暗示也去掉。
+    val busy by ToolRun.run.collectAsState()
     // 页面一进来就清焦点：否则第一个 TextField 抢焦点后 bringIntoView 会把整页滚上去
     val focus = LocalFocusManager.current
     LaunchedEffect(Unit) {
@@ -279,7 +285,7 @@ fun SmallTitlePage(
             color = if (effects) Color.Transparent else MiuixTheme.colorScheme.surface,
             actions = actions,
             navigationIcon = {
-                if (onBack != null) {
+                if (onBack != null && busy == null) {
                     IconButton(onClick = onBack) {
                         Icon(MiuixIcons.Back, contentDescription = "返回")
                     }
