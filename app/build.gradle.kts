@@ -120,10 +120,10 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.activity:activity-compose:1.9.3")
     // Miuix 的 WindowDialog 需要 NavigationEventDispatcherOwner（见 MainActivity）
-    implementation("androidx.navigationevent:navigationevent-compose:1.1.2")
-    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.navigationevent:navigationevent-compose:1.2.0")
+    implementation("androidx.core:core-ktx:1.19.1")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     // Shizuku：借 shell 权限读 /storage/emulated、/data 这类普通应用进不去的位置
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
