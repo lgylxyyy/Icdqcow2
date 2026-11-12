@@ -105,7 +105,7 @@ static void prog_to_json(void *ud, const img_progress_t *p){
     imgapp_event_cb cb = g_ev_cb;
     if(!cb || !p) return;
     if((int)IMG_LV_INFO > g_ev_lv) return;
-    char line[2048];   /* REQ-69 §5：补了 elapsed/overall/msg，留够余量 */
+    char line[4096];   /* REQ-69 §5：补了 elapsed/overall/msg；REQ-77 又加 dst_item，留够余量 */
     jw w = { line, line + sizeof line - 1 };
     jw_ch(&w,'{');
     jw_key(&w,"level");  jw_str(&w,"INFO");  jw_ch(&w,',');
@@ -129,7 +129,12 @@ static void prog_to_json(void *ud, const img_progress_t *p){
     jw_key(&w,"overall_cur_bytes");   jw_num(&w,(long long)p->overall_cur_bytes);   jw_ch(&w,',');
     jw_key(&w,"overall_total_bytes"); jw_num(&w,(long long)p->overall_total_bytes); jw_ch(&w,',');
     jw_key(&w,"msg");    jw_str(&w, p->msg ? p->msg : ""); jw_ch(&w,',');
-    jw_key(&w,"item");   jw_str(&w, p->item ? p->item : "");
+    jw_key(&w,"item");   jw_str(&w, p->item ? p->item : ""); jw_ch(&w,',');
+    /* ★ REQ-77 Q1：文件计数（0 = 该任务没有文件概念，或总数未知）。*/
+    jw_key(&w,"files_cur");   jw_num(&w,(long long)p->files_cur);   jw_ch(&w,',');
+    jw_key(&w,"files_total"); jw_num(&w,(long long)p->files_total); jw_ch(&w,',');
+    /* ★ REQ-77 Q2：正在写到哪里（item 是【源】路径，这个是【目标】）。*/
+    jw_key(&w,"dst_item"); jw_str(&w, p->dst_item ? p->dst_item : "");
     jw_ch(&w,'}'); jw_ch(&w,'}');
     *w.p = 0;
     cb(line, g_ev_ud);

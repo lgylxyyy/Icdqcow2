@@ -5,15 +5,24 @@
 #
 # 校验：md5sum app/src/main/jniLibs/arm64-v8a/*.so
 
-6d9eebecc8468e96a615064c26023043  app/src/main/jniLibs/arm64-v8a/libimgtool.so
-a1798199a5115653de846d515be54598  app/src/main/jniLibs/arm64-v8a/libimgapp.so
+828e77aaec79451ecf1ebd40a47df6b0  app/src/main/jniLibs/arm64-v8a/libimgtool.so
+c27a4d904318245fb39ee74eeec984c5  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 
 # ── 来源 ──
-# libimgtool.so （6,821,416 B）
+# libimgtool.so （6,822,592 B）
 #   仓库：https://github.com/lgylxyyy/imgtool
-#   提交：f56e0f4（含 dc19e9c「REQ-76：中间洞漏算 + qcow2 的 bytes_before 口径」、
-#         9a24af1 + f56e0f4「REQ-75：XP/2000 SP 兜底 + XP CurrentBuild=1 的真盘修正」、
-#         e312574「T1–T7 基线」）
-#   ★ 2026-11-12 换库两次：versionCode 3（0bbf2cb，REQ-76 修复）→
-#     versionCode 4（f56e0f4，XP 真盘实测后修 CurrentBuild=1 的显示）。
-#     versionCode 2/3 的包都作废，BP 用 versionCode 4 的包测。
+#   提交：0115b27「REQ-77 Q1/Q2：进度事件加 files_cur/files_total/dst_item」
+#         （含 f56e0f4「REQ-75：XP/2000 SP 兜底 + XP CurrentBuild=1 的真盘修正」、
+#           dc19e9c「REQ-76：中间洞漏算 + qcow2 的 bytes_before 口径」、
+#           9a24af1、e312574「T1–T7 基线」）
+#   ★ 2026-11-12 换库三次：versionCode 3（0bbf2cb，REQ-76 修复）→
+#     versionCode 4（f56e0f4，XP 真盘实测后修 CurrentBuild=1 的显示）→
+#     versionCode 5（0115b27，REQ-77 进度事件加三个字段）。
+#     versionCode 2/3 的包都作废，BP 用 versionCode 5 的包测。
+#   ★ 0115b27 改了 img_progress_t 的结构体布局（加了两个计数 + 一个目标路径），
+#     所以 libimgapp.so **必须一起重编**（直读结构体字段）——本次两个 so 都换了。
+#
+# libimgapp.so （27,808 B）
+#   来源：本仓库 jni/（App 的 JNI 桥）。
+#   ★ 0115b27 同步：progress 事件的 JSON 由 jni/imgapp_bridge.c 自己拼（不走
+#     img_prog_json），所以 files_cur/files_total/dst_item 是在 bridge 里加的。
