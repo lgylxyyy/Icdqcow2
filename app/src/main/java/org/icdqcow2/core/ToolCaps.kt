@@ -28,6 +28,13 @@ object ToolCaps {
     /** 某个命令认不认这个参数（用它决定「新能力」要不要亮）。 */
     fun hasArg(cmd: String, arg: String): Boolean = ARGS[cmd]?.contains(arg) == true
 
+    /** 工具端 `cmd.list` 的 `features`（编进了哪些可选库）：wimlib / ntfs3g / zlib / zstd … */
+    var FEATURES: Set<String> = emptySet()
+        private set
+
+    /** 工具端有没有编入 libzstd（qcow2 的 zstd 压缩簇：读要解码器、写要编码器）。 */
+    val ZSTD: Boolean get() = "zstd" in FEATURES
+
     /** `img.sparsify` 到位（T7）：原地回收 raw/qcow2 未使用的块。 */
     val SPARSIFY get() = has("img.sparsify")
 
@@ -104,6 +111,16 @@ object ToolCaps {
             }
             if (names.isNotEmpty()) CMDS = names
             if (argMap.isNotEmpty()) ARGS = argMap
+            // features：编进了哪些可选库（zstd 等）。缺省 false 的键不收。
+            root.optJSONObject("features")?.let { feats ->
+                val set = mutableSetOf<String>()
+                val it = feats.keys()
+                while (it.hasNext()) {
+                    val k = it.next()
+                    if (feats.optBoolean(k, false)) set.add(k)
+                }
+                if (set.isNotEmpty()) FEATURES = set
+            }
         }
     }
 }

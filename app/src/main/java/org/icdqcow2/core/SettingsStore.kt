@@ -145,6 +145,18 @@ class SettingsStore(context: Context) {
         get() = sp.getInt("log_level", 2)
         set(v) = sp.edit().putInt("log_level", v).apply()
 
+    /**
+     * 「释放空间」等原地操作前，先自动复制一份副本（用户 2026-11-12 拍板 P2④）。
+     * 默认开：原地改写出错时用户至少还有一份原盘。
+     */
+    private val _autoBackup = MutableStateFlow(sp.getBoolean(KEY_AUTO_BACKUP, true))
+    val autoBackup: StateFlow<Boolean> = _autoBackup.asStateFlow()
+
+    fun setAutoBackup(on: Boolean) {
+        sp.edit().putBoolean(KEY_AUTO_BACKUP, on).apply()
+        _autoBackup.value = on
+    }
+
     companion object {
         /** 渐变模糊的最低系统版本：RuntimeShader 自 API 33 起可用。 */
         const val BLUR_MIN_SDK = Build.VERSION_CODES.TIRAMISU
@@ -155,5 +167,18 @@ class SettingsStore(context: Context) {
         private const val KEY_DYNAMIC = "dynamic_color"
         private const val KEY_VISUAL_EFFECTS = "visual_effects"
         private const val KEY_RAWCOPY = "raw_copy_mode"
+        private const val KEY_AUTO_BACKUP = "auto_backup"
+
+        @Volatile
+        private var global: SettingsStore? = null
+
+        /**
+         * 全局实例（页面层要读写设置项时用这个）。
+         * MainActivity 也用同一个（SettingsStore.get(this)）—— 同一份 SharedPreferences、
+         * 同一批 StateFlow，不会出现「设置页改了、页面没跟着变」。
+         */
+        fun get(context: Context): SettingsStore = global ?: synchronized(this) {
+            global ?: SettingsStore(context.applicationContext).also { global = it }
+        }
     }
 }

@@ -18,7 +18,7 @@ android {
         minSdk = 33
         targetSdk = 35
         // versionCode 每次发布 +1：Android 只允许用更大的版本号覆盖安装
-        versionCode = 5
+        versionCode = 6
         versionName = "0.1.0"
 
         // CI 构建时由 workflow 传 -PciRun=<run_number>，本地构建则是 local。

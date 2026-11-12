@@ -5262,6 +5262,193 @@
       "en": "This folder cannot be written to; pick another save location",
       "note": "压缩映像页 · 输出目录不可写时的提示"
     },
+    "compact.modeZstd": {
+      "zh": "zstd 压缩",
+      "en": "zstd compression",
+      "note": "压缩映像页 · 第三个模式（P2①，工具端 features.zstd）"
+    },
+    "compact.modeZstdSummary": {
+      "zh": "压得更小更快（产物需 QEMU 2.10+ 才能打开）",
+      "en": "Smaller and faster output (needs QEMU 2.10+ to open)",
+      "note": "压缩映像页 · zstd 模式副标题"
+    },
+    "compact.modeZstdOff": {
+      "zh": "当前工具库没有 zstd 支持",
+      "en": "This tool library has no zstd support",
+      "note": "压缩映像页 · so 没编 libzstd 时点 zstd 的说明"
+    },
+    "compact.zstdWarn": {
+      "zh": "zstd 产物是 qcow2 v3 + zstd 压缩：QEMU 2.10 起能打开，更老的虚拟机工具会拒绝这个映像",
+      "en": "zstd output is qcow2 v3 + zstd: QEMU 2.10+ can open it, older VM tools will refuse the image",
+      "note": "压缩映像页 · zstd 的兼容性代价（必须在界面上说清）"
+    },
+
+    "trim.backupTitle": {
+      "zh": "操作前自动副本",
+      "en": "Automatic backup before the operation",
+      "note": "释放空间页 · P2④ 自动副本开关标题"
+    },
+    "trim.backupOn": {
+      "zh": "先复制一份",
+      "en": "Make a copy first",
+      "note": "自动副本：开"
+    },
+    "trim.backupOnSummary": {
+      "zh": "释放空间会原地改写这个映像，先留一份副本（更安全，但要多占空间）",
+      "en": "Releasing space rewrites the image in place; keep a copy first (safer, but takes extra space)",
+      "note": "自动副本：开 · 副标题"
+    },
+    "trim.backupOff": {
+      "zh": "不复制，直接改",
+      "en": "No copy, edit directly",
+      "note": "自动副本：关"
+    },
+    "trim.backupOffSummary": {
+      "zh": "省空间，但改写出错就找不回原盘了",
+      "en": "Saves space, but a failed rewrite cannot be undone",
+      "note": "自动副本：关 · 副标题"
+    },
+    "trim.backupSpace": {
+      "zh": "副本放在映像旁边。多数手机的存储不支持稀疏复制，副本会占用与映像相同的空间",
+      "en": "The copy is placed next to the image. Most phone storage does not support sparse copies, so it takes the same space as the image",
+      "note": "自动副本的空间代价（必须说清）"
+    },
+    "trim.backupNoSpace": {
+      "zh": "空间不够：副本需要 {0}，当前只剩 {1}",
+      "en": "Not enough space: the copy needs {0}, only {1} left",
+      "note": "自动副本：空间预检失败"
+    },
+    "trim.backupFailed": {
+      "zh": "复制副本失败：{0}（原映像没有动）",
+      "en": "Copy failed: {0} (the original image was not touched)",
+      "note": "自动副本：复制失败"
+    },
+    "trim.backupMade": {
+      "zh": "已留副本：{0}",
+      "en": "Backup saved: {0}",
+      "note": "自动副本：成功后告诉用户副本在哪"
+    },
+
+    "batch.title": {
+      "zh": "批量任务",
+      "en": "Batch",
+      "note": "批量页 · 标题"
+    },
+    "batch.op": {
+      "zh": "要做什么",
+      "en": "What to do",
+      "note": "批量页 · 操作选择"
+    },
+    "batch.opCompact": {
+      "zh": "压缩映像",
+      "en": "Compress images",
+      "note": "批量页 · 操作一"
+    },
+    "batch.opCompactSummary": {
+      "zh": "每个映像另存一份更小的 qcow2（源不动）",
+      "en": "Save a smaller qcow2 of each image (source untouched)",
+      "note": "批量页 · 操作一副标题"
+    },
+    "batch.opReclaim": {
+      "zh": "释放空间",
+      "en": "Release space",
+      "note": "批量页 · 操作二"
+    },
+    "batch.opReclaimSummary": {
+      "zh": "在原文件上回收不再用的块（会先留副本）",
+      "en": "Reclaim unused blocks in place (a copy is kept first)",
+      "note": "批量页 · 操作二副标题"
+    },
+    "batch.images": {
+      "zh": "要处理的映像",
+      "en": "Images to process",
+      "note": "批量页 · 列表标题"
+    },
+    "batch.add": {
+      "zh": "添加映像",
+      "en": "Add image",
+      "note": "批量页 · 添加按钮"
+    },
+    "batch.clear": {
+      "zh": "清空列表",
+      "en": "Clear list",
+      "note": "批量页 · 清空按钮"
+    },
+    "batch.empty": {
+      "zh": "还没加映像",
+      "en": "No images yet",
+      "note": "批量页 · 空列表提示"
+    },
+    "batch.tapRemove": {
+      "zh": "点一下移除",
+      "en": "Tap to remove",
+      "note": "批量页 · 列表行副标题"
+    },
+    "batch.start": {
+      "zh": "开始",
+      "en": "Start",
+      "note": "批量页 · 开始按钮"
+    },
+    "batch.stop": {
+      "zh": "停止队列（当前项做完就停）",
+      "en": "Stop queue (finishes current item first)",
+      "note": "批量页 · 停止按钮（也用于通知栏动作）"
+    },
+    "batch.stopping": {
+      "zh": "已请求停止：当前这一项做完就停",
+      "en": "Stop requested: the current item will finish first",
+      "note": "批量页 · 停止中提示"
+    },
+    "batch.result": {
+      "zh": "结果",
+      "en": "Results",
+      "note": "批量页 · 结果标题"
+    },
+    "batch.noNotif": {
+      "zh": "没给通知权限，任务照样跑，但没有通知栏进度",
+      "en": "No notification permission: the task still runs, but there is no notification progress",
+      "note": "批量页 · 通知权限提示"
+    },
+    "batch.removeTitle": {
+      "zh": "移除这个映像？",
+      "en": "Remove this image?",
+      "note": "批量页 · 移除确认标题"
+    },
+    "batch.remove": {
+      "zh": "移除",
+      "en": "Remove",
+      "note": "批量页 · 移除确认按钮"
+    },
+    "batch.removeBody": {
+      "zh": "{0} 不会从磁盘删除，只是从这批里去掉",
+      "en": "{0} is not deleted from storage, only removed from this batch",
+      "note": "批量页 · 移除确认正文"
+    },
+    "batch.progress": {
+      "zh": "第 {0}/{1} 个 · {2}",
+      "en": "Item {0}/{1} · {2}",
+      "note": "批量页 · 进度文字"
+    },
+    "batch.failed": {
+      "zh": "{0} 项失败（其余已完成）",
+      "en": "{0} failed (the rest finished)",
+      "note": "批量页 · 失败汇总"
+    },
+    "batch.notifChannel": {
+      "zh": "批量压缩 / 批量释放空间的进度",
+      "en": "Progress of batch compression / reclaim",
+      "note": "批量页 · 通知渠道描述"
+    },
+    "batch.working": {
+      "zh": "处理中",
+      "en": "Working",
+      "note": "批量页 · 通知正文兜底"
+    },
+    "batch.preparing": {
+      "zh": "准备中",
+      "en": "Preparing",
+      "note": "批量页 · 通知正文（还没开始跑第一项时）"
+    },
     "compact.run": {
       "zh": "开始",
       "en": "Start",

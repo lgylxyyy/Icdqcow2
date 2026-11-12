@@ -46,7 +46,10 @@ import org.icdqcow2.core.DiskLimits
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.icdqcow2.core.ImageRepo
+import org.icdqcow2.core.SettingsStore
+import org.icdqcow2.core.BackupCopy
 import org.icdqcow2.core.ToolCaps
+import org.icdqcow2.core.ToolEvents
 import org.icdqcow2.core.ToolRun
 import org.icdqcow2.core.ToolRunner
 import org.icdqcow2.ui.LocalStrings
@@ -2158,6 +2161,12 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     var err by remember { mutableStateOf<String?>(null) }
     /** 开始前的确认框（用户 2026-11-12 拍板 Q4：开始后不可取消）。 */
     var confirmStart by remember { mutableStateOf(false) }
+    // ★ P2④：原地改写前先自动复制一份副本（默认开，开关在模式卡下面）
+    val ctx = LocalContext.current
+    val settings = remember { SettingsStore.get(ctx) }
+    val backupOn by settings.autoBackup.collectAsState()
+    /** 本次做出的副本文件名（做完给用户看一眼）。 */
+    var backupMade by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     fun zeroAvailable(): Boolean = sparsify && fmt.isNotEmpty() && fmt != "qcow2"
@@ -2175,6 +2184,7 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
         planBytes = null
         doneText = null
         note = null
+        backupMade = null
         verified = null
         err = null
         capBytes = 0L
@@ -2220,9 +2230,42 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             working = true
             err = null
             note = null
+            backupMade = null
             verified = null
             ToolRun.start(s.trimTitle)
             try {
+                // ★ P2④：原地改写之前先留一份副本。
+                //   释放空间是「在原文件上回收」——工具中途被杀、盘状态异常都会把盘改坏；
+                //   压缩（另存新文件）本来就不动源，不需要副本。
+                //   副本失败或空间不够 → 一步都不动原盘，直接报错。
+                if (backupOn) {
+                    val src = File(img)
+                    val dst = BackupCopy.backupFileFor(src)
+                    val (need, free) = withContext(Dispatchers.IO) {
+                        BackupCopy.requiredBytes(src) to
+                            (runCatching { src.parentFile?.usableSpace ?: 0L }.getOrDefault(0L))
+                    }
+                    if (need > free) {
+                        err = s.trimBackupNoSpace(fmtBytes(need), fmtBytes(free))
+                        return@launch
+                    }
+                    val reason = BackupCopy.copy(src, dst) { c, t ->
+                        val pct = if (t > 0) ((c * 100) / t).toInt().coerceIn(0, 100) else 0
+                        // 副本进度走浮层的兜底通道（工具端还没开跑，没有 progress 事件）
+                        ToolRun.updateFallback(
+                            ToolEvents.Progress(
+                                pct = pct, cur = c, total = t, curBytes = c, totalBytes = t,
+                                eta = -1, phase = "copy", op = "backup", item = dst.name, msg = "",
+                            )
+                        )
+                    }
+                    if (reason != null) {
+                        err = s.trimBackupFailed(reason)
+                        return@launch
+                    }
+                    backupMade = dst.name
+                    ToolRun.updateFallback(null)
+                }
                 val r = withContext(Dispatchers.IO) {
                     if (sparsify) ImageRepo.sparsify(img, modeArg(), dryRun = false)
                     else ImageRepo.trim(img = img, dryRun = false, punch = true)
@@ -2300,12 +2343,26 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 if (!zeroAvailable()) Note(s.trimModeZeroOff)
             }
 
+            // ★ P2④：自动副本开关（默认开）
+            BlockEnter(2) {
+                Note(s.trimBackupTitle)
+                ChoiceCard(
+                    options = listOf(
+                        Choice(s.trimBackupOn, s.trimBackupOnSummary),
+                        Choice(s.trimBackupOff, s.trimBackupOffSummary),
+                    ),
+                    selected = if (backupOn) 0 else 1,
+                ) { i -> settings.setAutoBackup(i == 0) }
+                if (backupOn) Note(s.trimBackupSpace)
+            }
+
             planBytes?.let {
                 Note(s.trimPlan(fmtBytes(it)))
                 Note(s.trimPlanHint)
             }
             doneText?.let { Note(it) }
             if (verified == true) Note(s.trimVerified)
+            backupMade?.let { Note(s.trimBackupMade(it)) }
             note?.let { Note(it) }
             err?.let { Note(it, warn = true) }
 
@@ -2364,6 +2421,7 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     var image by remember { mutableStateOf<String?>(null) }
     val supported = ToolCaps.has("img.compact")
     val zipOk = ToolCaps.COMPACT_COMPRESS
+    val zstdOk = ToolCaps.ZSTD
 
     var mode by remember { mutableIntStateOf(0) }
     var busy by remember { mutableStateOf(false) }
@@ -2371,6 +2429,8 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     var usedBytes by remember { mutableStateOf(0L) }
     var allocKnown by remember { mutableStateOf(true) }
     var fmt by remember { mutableStateOf("") }
+    /** 工具端给的兼容性提示（zstd 产物的 compat_note 原样透出）。 */
+    var note by remember { mutableStateOf<String?>(null) }
 
     // ★ 输出（用户 2026-11-12 追加）：文件名可改 + 保存位置可选。
     //   保存目录**与创建磁盘页各存各的**（用户拍板：不共用、互不覆盖）——
@@ -2431,6 +2491,7 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
         mode = 0
         doneText = null
         err = null
+        note = null
         capBytes = 0L
         usedBytes = 0L
         allocKnown = true
@@ -2477,6 +2538,7 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             busy = true
             err = null
             doneText = null
+            note = null
             // ★ 统一进度浮层（用户 2026-11-12）：登记任务，浮层挂在 AppRoot 层，
             //   页面自己不用管；期间系统返回被吃掉，不能中途退出。
             ToolRun.start(s.compactTitle)
@@ -2485,9 +2547,16 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                     ImageRepo.compact(
                         src = img,
                         out = out.absolutePath,
-                        compress = if (mode == 1) "zlib" else null,
+                        // P2①：0 = 只紧凑化（不传 compress）、1 = zlib、2 = zstd
+                        compress = when (mode) {
+                            1 -> "zlib"
+                            2 -> "zstd"
+                            else -> null
+                        },
                     )
                 }
+                // zstd 的兼容性代价由工具端随结果给（compat_note），原样透出
+                r.data?.optString("compat_note")?.takeIf { it.isNotBlank() }?.let { note = it }
                 if (!r.ok) {
                     err = toolErrorText(s, r)
                     return@launch
@@ -2567,17 +2636,28 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                     options = listOf(
                         Choice(s.compactModeTight, s.compactModeTightSummary),
                         Choice(s.compactModeZip, s.compactModeZipSummary),
+                        Choice(s.compactModeZstd, s.compactModeZstdSummary),
                     ),
                     selected = mode,
+                    // 灰着也能点：so 不支持时点了给一句说明（不静默吞掉）
+                    enabled = listOf(true, zipOk, zstdOk),
                     onSelect = {
                         dropFocus()
-                        if (it == 1 && !zipOk) onToast(s.compactModeZipOff) else mode = it
+                        when {
+                            it == 1 && !zipOk -> onToast(s.compactModeZipOff)
+                            it == 2 && !zstdOk -> onToast(s.compactModeZstdOff)
+                            else -> mode = it
+                        }
                     },
                 )
                 if (!zipOk) Note(s.compactModeZipOff)
+                if (!zstdOk) Note(s.compactModeZstdOff)
+                // zstd 的代价是兼容性：老 QEMU / 旧工具会拒绝打开整个产物
+                if (mode == 2) Note(s.compactZstdWarn, warn = true)
             }
 
             doneText?.let { Note(it) }
+            note?.let { Note(it, warn = true) }
             err?.let { Note(it, warn = true) }
 
             Action(

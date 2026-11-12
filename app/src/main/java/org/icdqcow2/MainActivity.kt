@@ -112,7 +112,7 @@ class MainActivity : ComponentActivity(), NavigationEventDispatcherOwner {
         // 伙伴联动：启动检测一次（用户可能在后台装了/卸了对方应用）
         org.icdqcow2.core.PartnerGate.init(this)
         enableEdgeToEdge()
-        settings = SettingsStore(this)
+        settings = SettingsStore.get(this)
         ImageRepo.init(this)
         org.icdqcow2.core.ImageHistory.init(this)
         // 界面文案表（assets/i18n/ui-strings.json）：新增语言只改这张表
