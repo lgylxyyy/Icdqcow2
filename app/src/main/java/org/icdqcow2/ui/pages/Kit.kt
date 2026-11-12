@@ -245,6 +245,16 @@ fun ChoiceCard(
     options: List<Choice>,
     selected: Int,
     /**
+     * 卡内标题（画在选项上方，**卡内**，不是页面上的分组标题）。
+     *
+     * ★ 为什么需要（用户 2026-11-12 报设置页错位）：
+     *   「文件操作」是整组的分组标题，它下面的「raw 复制行为」如果也用 [GroupTitle]，
+     *   渲染出来就是一个和「文件操作」平级的标题块，卡片被挤到中间 ——
+     *   看着像"标题和卡片之间插了一行"。正确结构是：
+     *   「文件操作」标题 → 一张卡，**卡内第一行**写「raw 复制行为」，下面跟选项。
+     */
+    header: String? = null,
+    /**
      * 逐行是否可用（false = 整行置灰）；null = 全部可用。
      *
      * ★ 铁律：**灰着也能点**（点了由调用方解释）——
@@ -262,6 +272,14 @@ fun ChoiceCard(
         insideMargin = PaddingValues(vertical = 0.dp),
     ) {
         Column {
+            if (!header.isNullOrBlank()) {
+                Text(
+                    header,
+                    style = MiuixTheme.textStyles.title4,
+                    color = colors.onBackground,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 4.dp),
+                )
+            }
             options.forEachIndexed { i, option ->
                 val on = i == selected
                 val en = enabled?.getOrNull(i) ?: true

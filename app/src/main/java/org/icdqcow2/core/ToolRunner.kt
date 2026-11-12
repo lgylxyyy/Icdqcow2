@@ -43,7 +43,17 @@ object ToolRunner {
         val hint: String? = null,
         /** 失败但活儿干了一半（`LABEL-WRITE-FAIL` + `formatted=true` = 卷已建好，只是名字没写上）。 */
         val formatted: Boolean = false,
-    )
+    ) {
+        /**
+         * 工具端失败信封里的 `err` 对象（从 [raw] 解析）。
+         *
+         * ★ 2026-11-12：Result 之前只把信封拆成 code/at/hint 几个字段，
+         *   新代码（批量引擎等）想直接读整个 `err`（`r.err?.optString("error_code")`）
+         *   就没法编译。这里补一个便捷入口：成功时为 null。
+         */
+        val err: JSONObject?
+            get() = runCatching { JSONObject(raw).optJSONObject("err") }.getOrNull()
+    }
 
     /** 命令表（cmd.list 的原始 JSON）。失败返回 null，调用方用静态兜底表。 */
     suspend fun listJson(): String? = withContext(Dispatchers.IO) {

@@ -148,11 +148,12 @@ fun SettingsScreen(
 
         section(s.secFiles)
         // raw 复制行为（T4/A3）：决定复制/跨卷移动 raw 映像时保不保持稀疏。
-        item {
-            GroupTitle(s.rawCopy)
-        }
+        // ★ 「raw 复制行为」是**卡内标题**，不是页面分组标题 ——
+        //   它属于「文件操作」这一组，写成 GroupTitle 会变成跟「文件操作」平级的标题块，
+        //   卡片被挤到中间（用户 2026-11-12 报）。所以这里用 ChoiceCard(header=…)。
         item {
             ChoiceCard(
+                header = s.rawCopy,
                 options = listOf(
                     Choice(s.rawCopyKeep, s.rawCopyKeepSummary),
                     Choice(s.rawCopyFull, s.rawCopyFullSummary),
