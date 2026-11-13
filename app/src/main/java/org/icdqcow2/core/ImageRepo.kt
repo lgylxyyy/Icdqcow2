@@ -62,8 +62,14 @@ object ImageRepo {
      * 记下 SAF 打开的 fd（会关掉上一个）。
      *
      * @param writable true = "rw" 打开成功（可写）；false = 只拿到 "r"（只读）。
+     * @param pathKnown 这个文件**有没有真实路径**可以用来写。
+     *
+     * ★ 2026-11-13（用户报「自己建的盘也提示只读」）：只读 fd **不再等于**「映像只读」。
+     *   只要拿得到真实路径，写操作就走路径（MANAGE_EXTERNAL_STORAGE 在通常能写），
+     *   灰字提示（[imageReadonly]）只在「既没有可写 fd、也没有真实路径」时才亮 ——
+     *   那才是真的没有任何写路子。有路径时写失败，由工具端返回的错误说明原因。
      */
-    fun setPickedFd(pfd: android.os.ParcelFileDescriptor?, writable: Boolean = true) {
+    fun setPickedFd(pfd: android.os.ParcelFileDescriptor?, writable: Boolean = true, pathKnown: Boolean = true) {
         runCatching { pickedFd?.close() }
         runCatching { readonlyFd?.close() }
         pickedFd = null
@@ -71,7 +77,7 @@ object ImageRepo {
         if (pfd != null) {
             if (writable) pickedFd = pfd else readonlyFd = pfd
         }
-        _imageReadonly.value = readonlyFd != null
+        _imageReadonly.value = readonlyFd != null && !pathKnown
     }
 
     /** 当前有没有**可写**的 SAF fd（写操作的资格）。 */
@@ -372,12 +378,16 @@ object ImageRepo {
         if (writable && pickedFd == null && path == null) {
             return if (readonlyFd != null) readonlyImage() else missing()
         }
-        // ★ 只读 fd + 真实路径也写不进（目录/文件属主不是本应用）→ 提前说清楚，
-        //   别让用户点了才开始、跑一半才被工具端一句"权限不足"弹回来。
-        if (writable && pickedFd == null && readonlyFd != null && path != null) {
-            val canWritePath = runCatching { java.io.File(path).canWrite() }.getOrDefault(false)
-            if (!canWritePath) return readonlyImage()
-        }
+        // ★ 2026-11-13：**删掉了「路径 canWrite 预检查」**（用户报「自己建的盘也说只读」）。
+        //   Android 的 FUSE 上 `File.canWrite()` 走 access(W_OK)，和真实写入权限
+        //   不一致（appops 给了 MANAGE_EXTERNAL_STORAGE 时实际能写，access 仍可能 false）
+        //   → 拿它当拦截依据会误伤自己建的文件。能不能写，交给工具端去试，它报的错更准。
+        android.util.Log.i(
+            "IcdqcowPick",
+            "exec $cmd writable=$writable path=${path ?: "(null)"} " +
+                "pickedFd=${pickedFd != null} readonlyFd=${readonlyFd != null} " +
+                "canWrite=${path?.let { runCatching { java.io.File(it).canWrite() }.getOrNull() }}",
+        )
         val effPath = pathForTool(path)
         return ToolRunner.exec(
             cmd = cmd,

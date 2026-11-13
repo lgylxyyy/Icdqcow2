@@ -2429,8 +2429,6 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     var usedBytes by remember { mutableStateOf(0L) }
     var allocKnown by remember { mutableStateOf(true) }
     var fmt by remember { mutableStateOf("") }
-    /** 工具端给的兼容性提示（zstd 产物的 compat_note 原样透出）。 */
-    var note by remember { mutableStateOf<String?>(null) }
 
     // ★ 输出（用户 2026-11-12 追加）：文件名可改 + 保存位置可选。
     //   保存目录**与创建磁盘页各存各的**（用户拍板：不共用、互不覆盖）——
@@ -2491,7 +2489,6 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
         mode = 0
         doneText = null
         err = null
-        note = null
         capBytes = 0L
         usedBytes = 0L
         allocKnown = true
@@ -2538,7 +2535,6 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
             busy = true
             err = null
             doneText = null
-            note = null
             // ★ 统一进度浮层（用户 2026-11-12）：登记任务，浮层挂在 AppRoot 层，
             //   页面自己不用管；期间系统返回被吃掉，不能中途退出。
             ToolRun.start(s.compactTitle)
@@ -2555,8 +2551,6 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                         },
                     )
                 }
-                // zstd 的兼容性代价由工具端随结果给（compat_note），原样透出
-                r.data?.optString("compat_note")?.takeIf { it.isNotBlank() }?.let { note = it }
                 if (!r.ok) {
                     err = toolErrorText(s, r)
                     return@launch
@@ -2564,6 +2558,10 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 val before = runCatching { File(img).length() }.getOrDefault(0L)
                 val after = runCatching { out.length() }.getOrDefault(0L)
                 doneText = s.compactDone(out.name, fmtBytes(before), fmtBytes(after))
+                // ★ 用户 2026-11-13：跑完把输出名**重置回基于源名的默认名** ——
+                //   以前连续压缩同一文件时，下一轮把「上一轮的输出名」当基名，
+                //   于是一路 (1)(1)(1)。重置后第二轮撞名自然顺延成 (2)。
+                outName = defaultCompactName(image)
             } finally {
                 busy = false
                 ToolRun.finish()
@@ -2652,12 +2650,9 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 )
                 if (!zipOk) Note(s.compactModeZipOff)
                 if (!zstdOk) Note(s.compactModeZstdOff)
-                // zstd 的代价是兼容性：老 QEMU / 旧工具会拒绝打开整个产物
-                if (mode == 2) Note(s.compactZstdWarn, warn = true)
             }
 
             doneText?.let { Note(it) }
-            note?.let { Note(it, warn = true) }
             err?.let { Note(it, warn = true) }
 
             Action(

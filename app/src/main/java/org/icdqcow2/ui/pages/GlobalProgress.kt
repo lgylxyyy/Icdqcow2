@@ -11,8 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -61,23 +65,34 @@ fun GlobalProgressOverlay(onToast: (String) -> Unit) {
     if (cur.silent) return
 
     val p = prog ?: cur.fallback
-    // 工具端没给百分比 → -1 = 不定态圆环（转圈），别画成 0% 像卡死
-    val pct = p?.pct?.takeIf { it in 0..100 } ?: -1
-    // 剩余：overall 是"整件事的总账"（wim.apply 这类多段任务），
-    // 没有 overall 才退到本段 total-cur。
+    // ★ 已用时间用 **App 本地计时**（用户 2026-11-13）：工具端的 elapsed_ms 实测会把上一轮
+    //   累计进来（一打开就 20:23），不再信它。响应式刷新在下面 LaunchedEffect 里。
+    var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
+    val startedAt = remember(cur) { System.currentTimeMillis() }
+    LaunchedEffect(cur) {
+        while (true) {
+            nowMs = System.currentTimeMillis()
+            kotlinx.coroutines.delay(500)
+        }
+    }
+    val elapsedMs = (nowMs - startedAt).coerceAtLeast(0L)
+    // ★ 工具端只在分区完成时报 100（img.compact）——任务还在跑就别画假 100%，转圈更诚实
+    val rawPct = p?.pct?.takeIf { it in 0..100 }
+    val pct = if (rawPct == null || rawPct >= 100) -1 else rawPct
+    // 字节口径：overall 是"整件事的总账"（多段任务），没有才退到本段
+    val doneBytes = if (p != null && p.overallTotalBytes > 0L) p.overallCurBytes else (p?.curBytes ?: 0L)
+    val totalBytes = if (p != null && p.overallTotalBytes > 0L) p.overallTotalBytes else (p?.totalBytes ?: 0L)
     val remain = when {
         p == null -> 0L
         p.overallTotalBytes > 0 -> (p.overallTotalBytes - p.overallCurBytes).coerceAtLeast(0L)
         p.totalBytes > 0 -> (p.totalBytes - p.curBytes).coerceAtLeast(0L)
         else -> 0L
     }
-    val item = p?.item?.takeIf { it.isNotBlank() }?.let { prettyProgressItem(it) }
+    val item = p?.item?.takeIf { it.isNotBlank() }
     // REQ-77：item 是**源**路径，dst_item 是**目标**路径（写文件类任务才有）
     val dst = p?.dstItem?.takeIf { it.isNotBlank() }
     val filesCur = p?.filesCur ?: 0L
     val filesTotal = p?.filesTotal ?: 0L
-    val elapsedMs = p?.elapsedMs?.takeIf { it > 0L } ?: 0L
-    val etaSec = p?.eta?.takeIf { it >= 0 } ?: -1
     val colors = MiuixTheme.colorScheme
 
     Box(
@@ -103,20 +118,19 @@ fun GlobalProgressOverlay(onToast: (String) -> Unit) {
             Column(Modifier.fillMaxWidth()) {
                 Text(cur.title, style = MiuixTheme.textStyles.title4, color = colors.onSurface)
                 Spacer(Modifier.height(14.dp))
-                RunProgressBlock(
+                // ★ 全 App 唯一的进度模板（用户 2026-11-13）
+                TaskProgressView(
                     pct = pct,
-                    timeText = progressTimeText(elapsedMs, etaSec),
-                    countsText = if (remain > 0L) s.progRemaining(fmtBytes(remain)) else null,
+                    doneBytes = doneBytes,
+                    totalBytes = totalBytes,
+                    elapsedMs = elapsedMs,
+                    remainBytes = remain,
+                    phase = progressPhaseText(p?.phase),
                     item = item,
-                    dstText = dst?.let { s.progDst(it) },
-                    filesText = if (filesTotal > 0L) s.progFiles(filesCur.toString(), filesTotal.toString()) else null,
+                    dst = dst,
+                    filesCur = filesCur,
+                    filesTotal = filesTotal,
                     ringSize = 148.dp,
-                )
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    s.progNoCancel,
-                    style = MiuixTheme.textStyles.footnote2,
-                    color = colors.onSurfaceVariantSummary,
                 )
             }
         }

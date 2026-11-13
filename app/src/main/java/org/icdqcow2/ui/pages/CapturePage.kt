@@ -172,20 +172,20 @@ fun CapturePage(
 
     SmallTitlePage(title = s.capTitle, onBack = onBack) {
         if (running) {
-            // 整页只留进度：圆盘 + 蓝边 + 圆心百分比 + 内下方时间 + 外下方当前文件
+            // 整页只留进度：与其它功能页同一个模板（用户 2026-11-13）
             BlockEnter(0) {
-                RunProgressBlock(
-                    pct = prog?.pct ?: -1,
-                    timeText = progressTimeText(
-                        maxOf(prog?.elapsedMs ?: 0L, elapsedMine),
-                        prog?.eta ?: -1,
-                    ),
+                val rawPct = prog?.pct?.takeIf { it in 0..100 }
+                TaskProgressView(
+                    // 100% 但还在跑（工具端只在收尾时报 100）→ 不定态转圈
+                    pct = if (rawPct == null || rawPct >= 100) -1 else rawPct,
+                    doneBytes = prog?.curBytes ?: 0L,
+                    totalBytes = prog?.totalBytes ?: 0L,
+                    elapsedMs = elapsedMine,   // App 本地计时（不再信工具端 elapsed）
                     phase = progressPhaseText(prog?.phase),
-                    countsText = prog?.let { g ->
-                        val tb = g.totalBytes
-                        if (tb > 0L) fmtBytes(g.curBytes) + "/" + fmtBytes(tb) else null
-                    },
-                    item = prog?.item?.takeIf { it.isNotBlank() }?.let { prettyProgressItem(it) },
+                    item = prog?.item?.takeIf { it.isNotBlank() },
+                    dst = prog?.dstItem?.takeIf { it.isNotBlank() },
+                    filesCur = prog?.filesCur ?: 0L,
+                    filesTotal = prog?.filesTotal ?: 0L,
                 )
             }
             Action(text = s.cancel, danger = true) { ToolRunner.cancel() }

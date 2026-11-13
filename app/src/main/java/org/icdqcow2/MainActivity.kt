@@ -466,7 +466,12 @@ private fun AppRoot(settings: SettingsStore) {
                     )
                 }
 
-                // 提示条：顶部滑下、半透明。最后画，保证压在玻璃栏上面
+                // 全局进度浮层（用户 2026-11-12）：压缩/释放空间/WinRE/部署这类
+                // 长任务跑起来时，浮层挂在**所有页面之上** —— 页面自己不用管。
+                org.icdqcow2.ui.pages.GlobalProgressOverlay(onToast = toast)
+
+                // 提示条：**最后画**（用户 2026-11-13：toast 永远在最上层，
+                // 不能被进度浮层压住——任务中按返回时得看得见拦截提示）
                 ToastHost(
                     state = toasts,
                     modifier = Modifier
@@ -475,11 +480,6 @@ private fun AppRoot(settings: SettingsStore) {
                         .windowInsetsPadding(WindowInsets.statusBars)
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                 )
-
-                // 全局进度浮层（用户 2026-11-12）：压缩/释放空间/WinRE/部署这类
-                // 长任务跑起来时，浮层挂在**所有页面之上** —— 页面自己不用管。
-                // 画在 ToastHost 之后 → 压在提示条上面（提示条是半透明的，压得住）。
-                org.icdqcow2.ui.pages.GlobalProgressOverlay(onToast = toast)
             }
         }
     }

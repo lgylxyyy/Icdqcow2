@@ -650,13 +650,18 @@ private fun CreateDiskForm(
         else StorageAccess.canWrite(ImageRepo.defaultDir())
     }
 
+    /** 刚被自动加过序号的名字 —— 输入框下方**常驻**提示，直到用户再改名字
+     *  （用户 2026-11-13：以前只在点创建后闪一下，要在顺延发生的同时就显示）。 */
+    var autoRenamedTo by remember { mutableStateOf<String?>(null) }
     // 默认名已被占用 → 自动顺延：`名称 (1)` / `名称 (2)`…
     // ★ 中英一律**半角括号 + 括号前一个空格**（用户 2026-11-11 定：以前中文用全角，
     //   同一个目录里中英两套写法并存，看着不统一）。
     // 只在进页面/换目录时算一次：用户之后手改的名字不会被抢回去。
     LaunchedEffect(targetDir) {
         // 幂等：名字本来就能用就原样返回；换个目录需要重新算一遍。
-        draft.name = uniqueNameIn(targetDir, draft.format, draft.name) { b, n -> s.nameDup(b, n) }
+        val fixed = uniqueNameIn(targetDir, draft.format, draft.name) { b, n -> s.nameDup(b, n) }
+        if (fixed != draft.name) autoRenamedTo = fixed   // 进页面就顺延 → 提示也常驻挂着
+        draft.name = fixed
     }
 
     /**
@@ -669,7 +674,8 @@ private fun CreateDiskForm(
         val fixed = uniqueNameIn(targetDir, draft.format, draft.name) { b, n -> s.nameDup(b, n) }
         if (fixed != draft.name) {
             draft.name = fixed
-            // ★ 通知用**顶部 toast**（用户 2026-11-12 拍板 Q3）：输入框下方不再挂灰字。
+            // 顺延发生的同时就在输入框下方挂提示（用户 2026-11-13）；toast 也弹一条
+            autoRenamedTo = fixed
             onToast(s.createNameAuto(fixed))
         }
     }
@@ -793,6 +799,7 @@ private fun CreateDiskForm(
                     // 允许空格与括号：重名顺延会生成 `名称 (1)`，编辑时不能把它吃掉
                     draft.name = it.filter { c -> c.isLetterOrDigit() || c in "-_ ()（）" }
                         .take(DiskLimits.NAME_MAX)
+                    autoRenamedTo = null       // 用户又开始改了：顺延提示撤掉
                 },
                 // 编辑完（点别处 / 收起键盘）就顺手去重：撞名自动加序号，不用等到点创建
                 modifier = Modifier.fillMaxWidth().onFocusChanged { st ->
@@ -815,8 +822,8 @@ private fun CreateDiskForm(
                 },
             )
         }
-        // 名称重复的提示（用户 2026-11-12 拍板 Q3：自动顺延的通知走**顶部 toast**，
-        // 输入框下方只留一句"创建时会自动加序号"，不挂顺延后的名字）
+        // 名称重复的提示（用户 2026-11-13：顺延后**常驻**挂在输入框下方，直到再改名字）
+        autoRenamedTo?.let { Note(s.createNameAuto(it)) }
         if (exists) Note(s.createNameWillAuto)
         Note(s.nameHint)
 

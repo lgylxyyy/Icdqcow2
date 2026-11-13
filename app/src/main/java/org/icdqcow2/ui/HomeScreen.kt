@@ -112,10 +112,6 @@ fun HomeScreen(onOpen: (String) -> Unit) {
             // 原来这里是「格式化」——单分区格式化已并进「分区管理」，位置换「导出分区表」（REQ-14）。
             Tile(s.exportTable, s.exportTableSummary, MiuixIcons.Download) { onOpen("ptexport") },
         )
-        // P2②③：批量压缩 / 批量释放（后台服务跑，通知栏有进度）
-        gridSingle(
-            Tile(s.batchTitle, s.batchOpCompactSummary, MiuixIcons.ListView) { onOpen("batch") },
-        )
 
         // 「系统部署」+「引导与恢复」合并成一组
         section(s.secSys)

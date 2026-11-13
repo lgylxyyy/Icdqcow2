@@ -1788,9 +1788,14 @@
       "note": "进度浮层 · 预计剩余时长（工具端给的 eta）"
     },
     "prog.blocked": {
-      "zh": "任务进行中，返回可能损坏文件，已拦截",
-      "en": "Task in progress; leaving now could damage files, so it was blocked",
-      "note": "进度浮层 · 任务运行时误触返回的 toast（用户 2026-11-12 拍板：不允许取消）"
+      "zh": "为防止文件损坏，当前页面不可退出",
+      "en": "To prevent file corruption, you cannot leave this page now",
+      "note": "进度浮层 · 任务运行时按返回的 toast（用户 2026-11-13 定稿文案）"
+    },
+    "prog.used": {
+      "zh": "已用 {0}",
+      "en": "Elapsed {0}",
+      "note": "进度模板 · 圈外那行「实际已用」（估算时间已删，用户 2026-11-13）"
     },
     "prog.noCancel": {
       "zh": "开始后不可取消，中途不能退出",
@@ -5329,126 +5334,6 @@
       "note": "自动副本：成功后告诉用户副本在哪"
     },
 
-    "batch.title": {
-      "zh": "批量任务",
-      "en": "Batch",
-      "note": "批量页 · 标题"
-    },
-    "batch.op": {
-      "zh": "要做什么",
-      "en": "What to do",
-      "note": "批量页 · 操作选择"
-    },
-    "batch.opCompact": {
-      "zh": "压缩映像",
-      "en": "Compress images",
-      "note": "批量页 · 操作一"
-    },
-    "batch.opCompactSummary": {
-      "zh": "每个映像另存一份更小的 qcow2（源不动）",
-      "en": "Save a smaller qcow2 of each image (source untouched)",
-      "note": "批量页 · 操作一副标题"
-    },
-    "batch.opReclaim": {
-      "zh": "释放空间",
-      "en": "Release space",
-      "note": "批量页 · 操作二"
-    },
-    "batch.opReclaimSummary": {
-      "zh": "在原文件上回收不再用的块（会先留副本）",
-      "en": "Reclaim unused blocks in place (a copy is kept first)",
-      "note": "批量页 · 操作二副标题"
-    },
-    "batch.images": {
-      "zh": "要处理的映像",
-      "en": "Images to process",
-      "note": "批量页 · 列表标题"
-    },
-    "batch.add": {
-      "zh": "添加映像",
-      "en": "Add image",
-      "note": "批量页 · 添加按钮"
-    },
-    "batch.clear": {
-      "zh": "清空列表",
-      "en": "Clear list",
-      "note": "批量页 · 清空按钮"
-    },
-    "batch.empty": {
-      "zh": "还没加映像",
-      "en": "No images yet",
-      "note": "批量页 · 空列表提示"
-    },
-    "batch.tapRemove": {
-      "zh": "点一下移除",
-      "en": "Tap to remove",
-      "note": "批量页 · 列表行副标题"
-    },
-    "batch.start": {
-      "zh": "开始",
-      "en": "Start",
-      "note": "批量页 · 开始按钮"
-    },
-    "batch.stop": {
-      "zh": "停止队列（当前项做完就停）",
-      "en": "Stop queue (finishes current item first)",
-      "note": "批量页 · 停止按钮（也用于通知栏动作）"
-    },
-    "batch.stopping": {
-      "zh": "已请求停止：当前这一项做完就停",
-      "en": "Stop requested: the current item will finish first",
-      "note": "批量页 · 停止中提示"
-    },
-    "batch.result": {
-      "zh": "结果",
-      "en": "Results",
-      "note": "批量页 · 结果标题"
-    },
-    "batch.noNotif": {
-      "zh": "没给通知权限，任务照样跑，但没有通知栏进度",
-      "en": "No notification permission: the task still runs, but there is no notification progress",
-      "note": "批量页 · 通知权限提示"
-    },
-    "batch.removeTitle": {
-      "zh": "移除这个映像？",
-      "en": "Remove this image?",
-      "note": "批量页 · 移除确认标题"
-    },
-    "batch.remove": {
-      "zh": "移除",
-      "en": "Remove",
-      "note": "批量页 · 移除确认按钮"
-    },
-    "batch.removeBody": {
-      "zh": "{0} 不会从磁盘删除，只是从这批里去掉",
-      "en": "{0} is not deleted from storage, only removed from this batch",
-      "note": "批量页 · 移除确认正文"
-    },
-    "batch.progress": {
-      "zh": "第 {0}/{1} 个 · {2}",
-      "en": "Item {0}/{1} · {2}",
-      "note": "批量页 · 进度文字"
-    },
-    "batch.failed": {
-      "zh": "{0} 项失败（其余已完成）",
-      "en": "{0} failed (the rest finished)",
-      "note": "批量页 · 失败汇总"
-    },
-    "batch.notifChannel": {
-      "zh": "批量压缩 / 批量释放空间的进度",
-      "en": "Progress of batch compression / reclaim",
-      "note": "批量页 · 通知渠道描述"
-    },
-    "batch.working": {
-      "zh": "处理中",
-      "en": "Working",
-      "note": "批量页 · 通知正文兜底"
-    },
-    "batch.preparing": {
-      "zh": "准备中",
-      "en": "Preparing",
-      "note": "批量页 · 通知正文（还没开始跑第一项时）"
-    },
     "compact.run": {
       "zh": "开始",
       "en": "Start",

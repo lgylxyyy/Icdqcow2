@@ -80,13 +80,21 @@ fun PickImagePage(
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
+        val fd = openFd(uri)
+        val path = StorageAccess.documentToPath(uri)
+        // ★ 持久化权限按**实际拿到的模式**取（2026-11-13）：以前固定要 READ|WRITE，
+        //   provider 只给 READ 时会抛 SecurityException 被吞掉 → 之后从「最近使用」
+        //   重开这个 uri 只剩读权限，写操作就永远失败。现在只拿到读就只声明读。
         runCatching {
             ctx.contentResolver.takePersistableUriPermission(
                 uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                if (fd?.second == true) {
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                } else {
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                },
             )
         }
-        val path = StorageAccess.documentToPath(uri)
         val name = StorageAccess.queryName(ctx, uri)
             ?: path?.substringAfterLast('/')
             ?: uri.lastPathSegment?.substringAfterLast('/')
@@ -97,9 +105,14 @@ fun PickImagePage(
             onToastPlaceholder(s.partsNotQcow2)
             return@rememberLauncherForActivityResult
         }
-        val fd = openFd(uri)
-        // 只读 fd 也记下来（只读提示要用），但**不再顶掉真实路径**
-        ImageRepo.setPickedFd(fd?.first, writable = fd?.second ?: true)
+        // 只读 fd 也记下来，但**不再顶掉真实路径**；有路径就不算"只读映像"（P3）
+        ImageRepo.setPickedFd(fd?.first, writable = fd?.second == true, pathKnown = path != null)
+        // 诊断日志（用户复现「自己建的盘报只读」时用 `adb logcat -s IcdqcowPick` 看）
+        android.util.Log.i(
+            "IcdqcowPick",
+            "pick uri=$uri path=${path ?: "(null)"} fd=${fd?.second} " +
+                "imageReadonly=${ImageRepo.imageReadonly.value}",
+        )
         scope.launch {
             val r = ImageRepo.info(path)
             if (!r.ok) {
@@ -138,7 +151,16 @@ fun PickImagePage(
                             val fd = u?.let { openFd(it) }
                             // 拿不到 fd 也要清掉上一个文件的 fd —— 否则会拿着**别人的** fd
                             // 去开这个文件（2026-11-12 批次 A 顺手修的串文件隐患）
-                            ImageRepo.setPickedFd(fd?.first, writable = fd?.second ?: true)
+                            ImageRepo.setPickedFd(
+                                fd?.first,
+                                writable = fd?.second == true,
+                                pathKnown = e.path != null,
+                            )
+                            android.util.Log.i(
+                                "IcdqcowPick",
+                                "pick(history) path=${e.path} fd=${fd?.second} " +
+                                    "imageReadonly=${ImageRepo.imageReadonly.value}",
+                            )
                             val r = ImageRepo.info(e.path)
                             if (!r.ok) {
                                 onToastPlaceholder(s.partsBadImage(toolErrorText(s, r)))

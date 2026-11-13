@@ -3,11 +3,6 @@
 
     <!-- 方案 A：写盘必须走真实路径（SAF 只能读） -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- P2③：批量任务的前台服务（后台跑压缩/释放，通知栏显示进度） -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!--
       包可见性（Android 11+）：设置页要判断"装没装 Telegram"，
@@ -49,12 +44,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- P2③：批量任务前台服务（息屏/切走应用都继续跑；通知栏显示进度与停止按钮） -->
-        <service
-            android:name=".core.BatchService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.files"

@@ -473,7 +473,8 @@ fun BlockingProgressCard(
     item: String? = null,
     remainBytes: Long = 0L,
     elapsedMs: Long = 0L,
-    etaSec: Int = -1,
+    doneBytes: Long = 0L,
+    totalBytes: Long = 0L,
     dstItem: String? = null,
     filesCur: Long = 0L,
     filesTotal: Long = 0L,
@@ -507,22 +508,22 @@ fun BlockingProgressCard(
             Column(Modifier.fillMaxWidth()) {
                 Text(title, style = MiuixTheme.textStyles.title4, color = colors.onSurface)
                 Spacer(Modifier.height(14.dp))
-                RunProgressBlock(
+                // ★ 与功能页同一个进度模板（用户 2026-11-13）；这里只是外面多一层卡片和取消按钮
+                TaskProgressView(
                     pct = pct,
-                    timeText = progressTimeText(elapsedMs, etaSec),
-                    // detail 里可能有"解压后"之类的口径标注 → 并进 counts 那行；
-                    // 剩余大小（工具端给了字节口径时）也并在这里
-                    countsText = listOf(
-                        detail.takeIf { it.isNotBlank() && item != null },
-                        counts,
-                        if (remainBytes > 0L) s.progRemaining(fmtBytes(remainBytes)) else null,
-                    )
+                    doneBytes = doneBytes,
+                    totalBytes = totalBytes,
+                    elapsedMs = elapsedMs,
+                    remainBytes = remainBytes,
+                    // detail 里可能有"解压后"之类的口径标注 → 并进 counts 那行
+                    countsText = listOf(detail.takeIf { it.isNotBlank() && item != null }, counts)
                         .filterNotNull()
                         .joinToString(" · ")
                         .ifEmpty { null },
                     item = item,
-                    dstText = dstItem,
-                    filesText = if (filesTotal > 0L) s.progFiles(filesCur.toString(), filesTotal.toString()) else null,
+                    dst = dstItem,
+                    filesCur = filesCur,
+                    filesTotal = filesTotal,
                     ringSize = 148.dp,
                 )
                 if (onCancel != null) {

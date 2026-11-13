@@ -1923,8 +1923,11 @@ fun FilesScreen(
                 pv.totalBytes > 0L -> (pv.totalBytes - pv.curBytes).coerceAtLeast(0L)
                 else -> 0L
             },
-            elapsedMs = pv?.elapsedMs ?: 0L,
-            etaSec = pv?.eta ?: -1,
+            // ★ 与功能页同一套：已用时间用 **App 本地计时**（工具端 elapsed 会累计上一轮）
+            elapsedMs = org.icdqcow2.ui.pages.rememberElapsedMs(busy != null),
+            // 圈内「已完成 / 总大小」：和 counts 同一口径
+            doneBytes = if (pv != null && pv.totalBytes > 0) pv.curBytes else opBytes,
+            totalBytes = if (pv != null && pv.totalBytes > 0) pv.totalBytes else opBytesTotal,
             dstItem = pv?.dstItem?.takeIf { it.isNotBlank() },
             filesCur = pv?.filesCur ?: 0L,
             filesTotal = pv?.filesTotal ?: 0L,

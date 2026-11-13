@@ -426,28 +426,6 @@ class Strings(val code: String) {
     fun trimBackupFailed(reason: String) = tpl("trim.backupFailed", reason)
     fun trimBackupMade(name: String) = tpl("trim.backupMade", name)
 
-    /** P2②：批量任务页。 */
-    val batchTitle get() = raw("batch.title")
-    val batchOp get() = raw("batch.op")
-    val batchOpCompact get() = raw("batch.opCompact")
-    val batchOpCompactSummary get() = raw("batch.opCompactSummary")
-    val batchOpReclaim get() = raw("batch.opReclaim")
-    val batchOpReclaimSummary get() = raw("batch.opReclaimSummary")
-    val batchImages get() = raw("batch.images")
-    val batchAdd get() = raw("batch.add")
-    val batchClear get() = raw("batch.clear")
-    val batchEmpty get() = raw("batch.empty")
-    val batchTapRemove get() = raw("batch.tapRemove")
-    val batchStart get() = raw("batch.start")
-    val batchStop get() = raw("batch.stop")
-    val batchStopping get() = raw("batch.stopping")
-    val batchResult get() = raw("batch.result")
-    val batchNoNotif get() = raw("batch.noNotif")
-    val batchRemoveTitle get() = raw("batch.removeTitle")
-    val batchRemove get() = raw("batch.remove")
-    fun batchRemoveBody(name: String) = tpl("batch.removeBody", name)
-    fun batchProgress(cur: Int, total: Int, name: String) = tpl("batch.progress", cur, total, name)
-    fun batchFailed(n: Int) = tpl("batch.failed", n)
     val compactRun get() = raw("compact.run")
     val compactRunning get() = raw("compact.running")
     fun compactDone(name: String, before: String, after: String) = tpl("compact.done", name, before, after)
@@ -601,8 +579,8 @@ class Strings(val code: String) {
     fun progFiles(cur: String, total: String) = tpl("prog.files", cur, total)
     /** 任务运行时误触返回 → 顶部 toast。 */
     val progBlocked get() = raw("prog.blocked")
-    /** 浮层底部：没有取消按钮，得说明白。 */
-    val progNoCancel get() = raw("prog.noCancel")
+    /** 进度模板：圈外的「实际已用」。 */
+    fun progUsed(t: String) = tpl("prog.used", t)
     /** 开始前的确认框（不允许取消）。 */
     val progConfirmTitle get() = raw("prog.confirmTitle")
     val progConfirmBody get() = raw("prog.confirmBody")
@@ -1197,8 +1175,6 @@ class Strings(val code: String) {
     val progPhasePack get() = raw("prog.phase.pack")
     val progPhaseWrite get() = raw("prog.phase.write")
     val progPhaseCopy get() = raw("prog.phase.copy")
-    fun progTime(used: String, left: String) = tpl("prog.time", used, left)
-    fun progTimeUnknown(used: String) = tpl("prog.timeUnknown", used)
     val capSkippedTitle get() = raw("cap.skippedTitle")
     fun capSkipped(n: Long) = tpl("cap.skipped", n.toString())
     val capInOut get() = raw("cap.inOut")
