@@ -221,7 +221,7 @@ private suspend fun searchPane(
     onFind: (List<SearchHit>, Boolean) -> Unit,
 ) {
     val needle = q.lowercase()
-    val out = ArrayList<SearchHit>()
+    val out = ArrayList<SearchHit>(SEARCH_MAX)
     var truncated = false
     if (p.loc.kind == Kind.HOST) {
         withContext(Dispatchers.IO) {
@@ -247,6 +247,54 @@ private suspend fun searchPane(
                     if (seen > 100_000) { truncated = true; break }
                 }
             }
+        }
+    } else if (p.loc.kind == Kind.WIM && p.wToken != null) {
+        // ★ 2026-11-18（REPLY P1）：会话内搜索（工具端内存扫描，5000 条 <5ms），
+        //   不用像下面那样逐目录遍历。会话 60 秒过期 → TOKEN-EXPIRED 时重开一次。
+        var rr = ToolRunner.exec("wim.search", buildMap {
+            put("token", p.wToken ?: "")
+            put("q", q)
+            put("offset", "0")
+            put("limit", SEARCH_MAX.toString())
+        }, imagePath = null, writable = false, imageFd = -1)
+        if (!rr.ok && (rr.code ?: "").contains("TOKEN-EXPIRED")) {
+            val openR = ToolRunner.exec("wim.ls", buildMap {
+                put("open", "true")
+                put("wim", p.loc.wim ?: "")
+                put("index", p.loc.index.toString())
+                put("path", p.path)
+            }, imagePath = null, writable = false, imageFd = -1)
+            if (openR.ok) {
+                val tok = openR.data?.optString("token")?.takeIf { it.isNotBlank() &&
+                    openR.data?.optBoolean("cached", true) != false }
+                p.wToken = tok
+                if (tok != null) {
+                    rr = ToolRunner.exec("wim.search", mapOf(
+                        "token" to tok, "q" to q,
+                        "offset" to "0", "limit" to SEARCH_MAX.toString(),
+                    ), imagePath = null, writable = false, imageFd = -1)
+                }
+            }
+        }
+        if (rr.ok) {
+            rr.data?.optJSONArray("entries")?.let { arr ->
+                (0 until arr.length()).mapNotNull { arr.optJSONObject(it) }.forEach { o ->
+                    val nm = o.optString("name", "").ifEmpty {
+                        o.optString("path", "").substringAfterLast('/')
+                    }
+                    if (nm.isNotEmpty()) {
+                        out += SearchHit(
+                            name = nm,
+                            dir = o.optString("dir", p.path),
+                            isDir = o.optBoolean("dir", false),
+                            size = o.optLong("size", 0L),
+                            mtime = o.optLong("mtime", 0L) / 1000,
+                        )
+                        if (out.size >= SEARCH_MAX) { truncated = true; return@forEach }
+                    }
+                }
+            }
+            if (rr.data?.optBoolean("has_more", false) == true) truncated = true
         }
     } else {
         val queue = ArrayDeque<String>()
@@ -387,6 +435,13 @@ private class PaneState(loc: Loc, path: String) {
 
     /** 压缩包的 `index_token`（10 分钟有效，省一次全包扫描）。 */
     var arcToken: String? = null
+
+    /**
+     * ★ 2026-11-18（REPLY P0）：WIM 目录会话的 `token`（`wim.ls --open` 拿到）。
+     *   翻页只带 token，O(1)；会话在工具端进程内存，60 秒不用过期。
+     *   离开目录/换目录时清掉（不清理也会自己过期，做了更干净）。
+     */
+    var wToken: String? = null
 
     /** 进 qcow2 之后那层分区列表。 */
     var parts by mutableStateOf<List<PartRow>>(emptyList())
@@ -2838,10 +2893,12 @@ private suspend fun reload(p: PaneState, s: Strings, more: Boolean = false) {
     p.err = null
     val offset = if (more) p.entries.size else 0
     if (!more) {
-        p.entries = emptyList()
-        p.total = 0
-        p.hasMore = false
-    }
+                p.entries = emptyList()
+                p.total = 0
+                p.hasMore = false
+                // ★ 2026-11-18（REPLY P0）：进目录/刷新时开新会话（旧 token 作废，重新 --open）
+                p.wToken = null
+            }
     runCatching { query(p, offset, s) }
         .onSuccess { l ->
             p.entries = if (more) p.entries + l.list else l.list
@@ -3047,7 +3104,6 @@ private suspend fun query(
         )
         Kind.WIM -> {
             val args = mutableMapOf(
-                "wim" to (loc.wim ?: ""),
                 "index" to loc.index.toString(),
                 "path" to path,
                 // ★ REPLY-80：wim.ls 已支持分页（口径与 ntfs.list/archive.ls 一致）
@@ -3056,10 +3112,44 @@ private suspend fun query(
             )
             val inn = loc.inner
             if (!inn.isNullOrEmpty()) args["inner"] = inn
-            parse(
-                ToolRunner.exec("wim.ls", args, imagePath = null, writable = false, imageFd = -1),
-                s,
+
+            // ★ 2026-11-18（REPLY P0）：目录会话缓存 —— 首次 --open 开会话拿 token，
+            //   翻页只带 token（连 --wim 都不用传，O(1) 出数，不重复遍历全目录）。
+            //   会话在工具端进程内存（App 是常驻进程，CLI 跨进程用不了是设计行为）；
+            //   60 秒不用过期 → TOKEN-EXPIRED → 这里自动重开一次。
+            //   目录太大（>64MB 缓存）工具端回 cached:false → 不存 token，退回老路径。
+            suspend fun open(): ToolRunner.Result = ToolRunner.exec(
+                "wim.ls", args + mapOf<String, String>("wim" to (loc.wim ?: ""), "open" to "true"),
+                imagePath = null, writable = false, imageFd = -1,
             )
+            suspend fun page(tok: String): ToolRunner.Result {
+                args.remove("wim"); args.remove("inner")
+                args["token"] = tok
+                return ToolRunner.exec("wim.ls", args, imagePath = null, writable = false, imageFd = -1)
+            }
+            fun rememberToken(r: ToolRunner.Result) {
+                if (r.ok) {
+                    p.wToken = r.data?.optString("token")?.takeIf { it.isNotBlank() &&
+                        (r.data?.optBoolean("cached", true) != false) }
+                } else p.wToken = null
+            }
+            val tok = p.wToken
+            val r = if (tok != null && offset > 0) {
+                val x = page(tok)
+                if (!x.ok && (x.code ?: "").contains("TOKEN-EXPIRED")) {
+                    p.wToken = null
+                    val y = open()
+                    rememberToken(y)
+                    val wt = p.wToken
+                    if (wt != null) page(wt) else y
+                } else x
+            } else {
+                val y = open()
+                rememberToken(y)
+                val wt = p.wToken
+                if (wt != null) page(wt) else y
+            }
+            parse(r, s)
         }
         Kind.ARCHIVE -> {
             suspend fun run(token: String?): ToolRunner.Result {
