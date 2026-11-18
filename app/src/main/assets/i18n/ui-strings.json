@@ -1978,7 +1978,7 @@
       "note": "错误映射 · 文案位 · err.hostOpen"
     },
     "err.hostNoSpace": {
-      "zh": "手机存储空间不够",
+      "zh": "手机存储空间不足",
       "en": "Not enough free space on this device",
       "note": "错误映射 · 文案位 · err.hostNoSpace"
     },
@@ -2418,7 +2418,7 @@
       "note": "分区管理 · 文案位 · parts.delEspPair"
     },
     "parts.needFront": {
-      "zh": "最前方只有 {0}，不够 144 MB",
+      "zh": "最前方只有 {0}，不足 144 MB",
       "en": "Front has only {0}, needs 144 MB",
       "note": "分区管理 · 提示行 · parts.needFront"
     },
@@ -3863,7 +3863,7 @@
       "note": "错误映射 · 文案位 · err.errCopyIntoSelf"
     },
     "err.errCopyNoSpace": {
-      "zh": "目标空间不够",
+      "zh": "目标空间不足",
       "en": "Not enough space at the destination",
       "note": "错误映射 · 文案位 · err.errCopyNoSpace"
     },
@@ -5267,6 +5267,11 @@
       "en": "The bundled library cannot compress yet; use Compact for now",
       "note": "压缩映像页 · 压缩项禁用说明"
     },
+    "compact.spaceEst": {
+      "zh": "输出约需 {0}，输出目录可用 {1}",
+      "en": "Output needs about {0}; {1} free in the target folder",
+      "note": "压缩映像 · 空间预估（按已分配字节算；工具端预检按逻辑大小会误报，见 REQ-81）"
+    },
     "compact.outNote": {
       "zh": "将另存为 {0}",
       "en": "Will be saved as {0}",
@@ -5359,7 +5364,7 @@
       "note": "自动副本的空间代价（必须说清）"
     },
     "trim.backupNoSpace": {
-      "zh": "空间不够：副本需要 {0}，当前只剩 {1}",
+      "zh": "空间不足：副本需要 {0}，当前只剩 {1}",
       "en": "Not enough space: the copy needs {0}, only {1} left",
       "note": "自动副本：空间预检失败"
     },

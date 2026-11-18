@@ -2641,6 +2641,14 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 }
                 outFile?.let { Note(s.compactOutNote(it.absolutePath)) }
                 if (!StorageAccess.canWrite(File(outDir))) Note(s.compactOutUnwritable, warn = true)
+                // ★ 2026-11-18（用户：明明有 30GB 还报空间不足）：把「要多少 / 有多少」直接摆出来。
+                //   用**已分配字节**估（qcow2 压缩输出只占已用块）；工具端预检按逻辑大小会误报，已发 REQ-81。
+                if (usedBytes > 0L) {
+                    val freeNow = runCatching {
+                        android.os.StatFs(outDir).availableBytes
+                    }.getOrDefault(0L)
+                    Note(s.compactSpaceEst(fmtBytes(usedBytes), if (freeNow > 0L) fmtBytes(freeNow) else "—"))
+                }
             }
 
             BlockEnter(2) {

@@ -401,6 +401,7 @@ class Strings(val code: String) {
     val compactModeZipSummary get() = raw("compact.modeZipSummary")
     val compactModeZipOff get() = raw("compact.modeZipOff")
     fun compactOutNote(name: String) = tpl("compact.outNote", name)
+    fun compactSpaceEst(need: String, free: String) = tpl("compact.spaceEst", need, free)
     /** 输出文件名输入框（用户 2026-11-12 追加）。 */
     val compactOutName get() = raw("compact.outName")
     /** 保存位置选项卡（用户 2026-11-12 追加；与创建磁盘页各存各的）。 */

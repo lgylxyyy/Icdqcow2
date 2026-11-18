@@ -41,7 +41,14 @@ internal fun toolErrorText(s: Strings, r: ToolRunner.Result): String {
         "QC-OPEN-FAIL" -> s.errQcOpen
         "IMG-FORMAT" -> s.errImgFormat
         "HOST-OPEN-FAIL" -> s.errHostOpen
-        "HOST-ENOSPC" -> s.errHostNoSpace
+        // ★ 2026-11-18（用户：明明有 30GB 还报空间不足）：工具端 detail 里带真实数字
+        //   （「宿主剩余 X MB，本次预计需要 Y MB」），必须带出来 —— 否则只看到"不足"，
+        //   不知道差多少、也不知道是谁算错的。detail 只有中文，英文界面不拼。
+        "HOST-ENOSPC" -> {
+            val h = r.hint
+            if (!h.isNullOrBlank() && s.code == "zh") s.errHostNoSpace + "（" + h + "）"
+            else s.errHostNoSpace
+        }
         "PART-WRITE-FAIL" -> s.errPartWrite
         "PART-JSON-FAIL" -> s.errPartJson
         "PART-FS-BAD" -> s.errFsBad

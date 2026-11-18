@@ -587,6 +587,11 @@ fun CurrentFileCard(
     BlockEnter(0) {
         val head = title ?: s.curDisk
         if (head.isNotBlank()) GroupTitle(head)
+        // 诊断日志（用户复现「还报只读」时用 `adb logcat -s IcdqcowPick` 看这一行）
+        android.util.Log.i(
+            "IcdqcowPick",
+            "fileCard writable=$writable readonly=$readonly name=$name path=${real ?: "(null)"}",
+        )
         // ★ 统一显示格式（用户 2026-11-13 定稿）：
         //   标题 = 当前文件：“文件名”.“后缀名”；副标题 = “完整路径”。
         //   点击只留按压涟漪，**不再跳文件管理器**（有的机器没有文件管理器，
