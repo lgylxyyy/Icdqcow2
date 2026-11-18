@@ -1,4 +1,6 @@
 import java.security.MessageDigest
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Properties
 import java.util.zip.ZipFile
 
@@ -17,9 +19,29 @@ android {
         // 33：miuix-blur 要求（RuntimeShader / RenderEffect 那套），kill 掉 28 的想法
         minSdk = 33
         targetSdk = 35
-        // versionCode 每次发布 +1：Android 只允许用更大的版本号覆盖安装
-        versionCode = 7
-        versionName = "0.1.0"
+        // ── 版本规则（2026-11-18 定，完整规则见 docs/VERSIONING.md）────────────
+        //   versionName = 语义化版本（**手工**维护：新功能 +MINOR，修 bug/文案 +PATCH）
+        //   versionCode = **git 提交数**（自动，单调递增，覆盖安装永远合法，不用手改）
+        //   构建号      = 提交短哈希 + 构建时间（自动注入，设置页显示）
+        //   → 每次提交后构建，三个值必然跟着变；"忘记更新版本号"这件事不可能发生。
+        fun git(vararg a: String): String = runCatching {
+            val p = ProcessBuilder(listOf("git") + a)
+                .directory(rootDir)
+                .redirectErrorStream(true)
+                .start()
+            p.inputStream.bufferedReader().use { it.readText() }.trim()
+        }.getOrDefault("")
+
+        val gitCommit = git("rev-parse", "--short", "HEAD").ifEmpty { "nogit" }
+        val gitDirty = git("status", "--porcelain").isNotEmpty()
+        val gitCount = git("rev-list", "--count", "HEAD").toIntOrNull()?.coerceAtLeast(1) ?: 1
+        val buildTime = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Date())
+
+        versionCode = gitCount
+        versionName = "0.2.0"
+
+        buildConfigField("String", "BUILD_COMMIT", "\"$gitCommit${if (gitDirty) "-dirty" else ""}\"")
+        buildConfigField("String", "BUILD_TIME", "\"$buildTime\"")
 
         // CI 构建时由 workflow 传 -PciRun=<run_number>，本地构建则是 local。
         // 配合「设置 · 关于」里的签名指纹，能直接分辨手上这个包是哪儿来的。

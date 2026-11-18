@@ -81,6 +81,25 @@ fun SettingsScreen(
         else ->
             s.signatureOther + " · " + Signing.prettyShort(apkSha)
     }
+    // 工具版本：运行 img.version 现查（工具端回 commit + 构建日期 + abi）
+    var toolVer by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        val r = org.icdqcow2.core.ToolRunner.exec(
+            "version", emptyMap(), imagePath = null, writable = false, imageFd = -1,
+        )
+        toolVer = if (r.ok) {
+            r.data?.let { d ->
+                buildString {
+                    append("imgtool ")
+                    append(d.optString("build_date").ifBlank { "?" })
+                    val c = d.optString("commit")
+                    if (c.isNotBlank()) append(" (").append(c).append(")")
+                    val abi = d.optString("abi")
+                    if (abi.isNotBlank()) append(" · ").append(abi)
+                }
+            }
+        } else null
+    }
     var confirmDelete by remember { mutableStateOf(settings.confirmDelete) }
     var showHidden by remember { mutableStateOf(settings.showHidden) }
     val historyCount by settings.historyCount.collectAsState()
@@ -318,11 +337,19 @@ fun SettingsScreen(
         }
 
         section(s.secAbout)
+        // ★ 2026-11-18：版本/构建号全部由 gradle 自动注入（规则见 docs/VERSIONING.md），
+        //   工具版本运行 `img.version` 现查（工具端会回 commit + 构建日期）。
         card {
-            BasicComponent(title = s.version, summary = s.versionSummary)
-            BasicComponent(title = s.buildStamp, summary = BuildConfig.BUILD_STAMP)
+            BasicComponent(
+                title = s.version,
+                summary = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+            )
+            BasicComponent(
+                title = s.buildStamp,
+                summary = "${BuildConfig.BUILD_COMMIT} · ${BuildConfig.BUILD_TIME}",
+            )
             BasicComponent(title = s.signature, summary = signatureSummary)
-            BasicComponent(title = s.toolVersion, summary = s.toolVersionSummary)
+            BasicComponent(title = s.toolVersion, summary = toolVer ?: s.toolVerLoading)
             BasicComponent(title = s.license, summary = s.licenseSummary, onClick = { onOpen("licenses") })
             BasicComponent(title = s.privacy, summary = s.privacySummary)
         }

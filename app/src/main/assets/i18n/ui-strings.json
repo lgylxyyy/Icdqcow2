@@ -840,22 +840,17 @@
     "settings.version": {
       "zh": "版本",
       "en": "Version",
-      "note": "文件页、设置 · 文案位 · settings.version"
-    },
-    "settings.versionSummary": {
-      "zh": "0.1.0 · arm64-v8a",
-      "en": "0.1.0 · arm64-v8a",
-      "note": "设置 · 文案位 · settings.versionSummary"
+      "note": "设置 · 关于 · 标题（值由 gradle 注入 versionName/versionCode，用户 2026-11-18）"
     },
     "settings.toolVersion": {
       "zh": "工具版本",
       "en": "Tool version",
-      "note": "设置 · 文案位 · settings.toolVersion"
+      "note": "设置 · 关于 · 标题（值运行 img.version 现查）"
     },
-    "settings.toolVersionSummary": {
-      "zh": "imgtool 2026.10.23 · 47 条命令",
-      "en": "imgtool 2026.10.23 · 47 commands",
-      "note": "设置 · 文案位 · settings.toolVersionSummary"
+    "settings.toolVerLoading": {
+      "zh": "查询中…",
+      "en": "Checking…",
+      "note": "设置 · 关于 · 工具版本查询中（img.version 还没返回）"
     },
     "settings.license": {
       "zh": "开源许可证",
