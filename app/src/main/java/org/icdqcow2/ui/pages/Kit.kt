@@ -587,18 +587,18 @@ fun CurrentFileCard(
     BlockEnter(0) {
         val head = title ?: s.curDisk
         if (head.isNotBlank()) GroupTitle(head)
+        // ★ 统一显示格式（用户 2026-11-13 定稿）：
+        //   标题 = 当前文件：“文件名”.“后缀名”；副标题 = “完整路径”。
+        //   点击只留按压涟漪，**不再跳文件管理器**（有的机器没有文件管理器，
+        //   点了弹「没有可打开此文件夹的应用」，用户嫌吵）。
+        val dot = name.lastIndexOf('.')
+        val base = if (dot > 0) name.substring(0, dot) else name
+        val ext = if (dot > 0 && dot < name.length - 1) name.substring(dot + 1) else null
         GroupCard {
             Item(
-                title = s.fileCard(name),
-                summary = dir ?: s.filePathUnknown,
-                onClick = {
-                    when {
-                        dir == null -> onToast(s.filePathUnknown)
-                        // 应用私有目录（默认保存位置）文件管理器进不去，说清楚而不是弹个失败
-                        dir.startsWith("/data/") -> onToast(s.filePrivateDir)
-                        !StorageAccess.openFolder(ctx, dir) -> onToast(s.fileOpenFailed)
-                    }
-                },
+                title = if (ext != null) s.fileCardNameExt(base, ext) else s.fileCardName(base),
+                summary = real?.let { s.fileCardPath(it) } ?: s.filePathUnknown,
+                onClick = { /* 保留按压反馈，无动作 */ },
             )
         }
         // F1（2026-11-12）：SAF 只拿到只读 fd 时，在路径下方说明白"改不了"。

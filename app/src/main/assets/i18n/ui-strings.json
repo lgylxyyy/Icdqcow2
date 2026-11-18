@@ -22,10 +22,20 @@
       "en": "Files",
       "note": "底栏 · 信息行 · common.files"
     },
-    "file.card": {
-      "zh": "当前操作的文件：{0}",
-      "en": "Current file: {0}",
-      "note": "Kit.kt · 文案位 · file.card"
+    "file.cardName": {
+      "zh": "当前文件：“{0}”",
+      "en": "Current file: “{0}”",
+      "note": "当前文件卡 · 标题（无扩展名时；用户 2026-11-13 定稿统一格式）"
+    },
+    "file.cardNameExt": {
+      "zh": "当前文件：“{0}”.“{1}”",
+      "en": "Current file: “{0}”.“{1}”",
+      "note": "当前文件卡 · 标题（文件名与扩展名分别引号；用户 2026-11-13 定稿统一格式）"
+    },
+    "file.cardPath": {
+      "zh": "“{0}”",
+      "en": "“{0}”",
+      "note": "当前文件卡 · 副标题（完整路径，整体引号；用户 2026-11-13 定稿）"
     },
     "file.pathUnknown": {
       "zh": "路径未知",

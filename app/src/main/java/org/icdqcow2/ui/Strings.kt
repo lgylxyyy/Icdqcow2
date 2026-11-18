@@ -42,7 +42,10 @@ class Strings(val code: String) {
     val tabSettings get() = raw("common.settings")
 
     // ── 「当前操作的文件」卡片（所有页共用一套） ──
-    fun fileCard(name: String) = tpl("file.card", name)
+    /** 当前文件卡标题（统一格式，用户 2026-11-13）。 */
+    fun fileCardName(name: String) = tpl("file.cardName", name)
+    fun fileCardNameExt(base: String, ext: String) = tpl("file.cardNameExt", base, ext)
+    fun fileCardPath(path: String) = tpl("file.cardPath", path)
     val filePathUnknown get() = raw("file.pathUnknown")
     val fileOpenFailed get() = raw("file.openFailed")
     val filePrivateDir get() = raw("file.privateDir")
