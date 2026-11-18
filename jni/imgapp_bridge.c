@@ -164,19 +164,35 @@ void imgapp_shutdown(void){
 }
 
 /* ---------------- 执行 ---------------- */
+/**
+ * 渲染结果 JSON。
+ *
+ * ★ 2026-11-18（REPLY-81）：**逐步倍增**而不是一步跳 4MB。
+ *   真机内存紧张时，一步 malloc 4MB 会失败 → render_result 返回 NULL →
+ *   imgapp_exec 返回 IMG_ENOMEM → App 收到空串，只能报「返回不是合法 JSON」（RESULT-BAD）。
+ *   256KB 起试，装不下就 ×2，找到刚好装得下的那一档，峰值才可控。
+ *   都失败时给一个**合法**的错误信封（RESULT-TOO-BIG），App 显示的是可读错误。
+ */
 static char *render_result(const img_result *r){
-    int cap = 256 * 1024;
-    char *buf = malloc((size_t)cap);
-    if(!buf) return NULL;
-    int n = img_result_json(r, buf, cap);
-    if(n < 0){                              /* img_result_json 顶满返回 -(cap)：换大缓冲重渲 */
-        free(buf); cap = 4 * 1024 * 1024;
-        buf = malloc((size_t)cap);
-        if(!buf) return NULL;
-        n = img_result_json(r, buf, cap);
-        if(n < 0){ free(buf); return NULL; }
+    size_t cap = 256 * 1024;
+    for(;;){
+        char *buf = malloc(cap);
+        if(buf){
+            int n = img_result_json(r, buf, (int)cap);
+            if(n >= 0) return buf;
+            free(buf);
+        }
+        if(cap >= 4u * 1024u * 1024u) break;
+        cap *= 2;
     }
-    return buf;
+    /* 兜底：合法信封，别让 App 报「返回不是合法 JSON」 */
+    char *b = malloc(256);
+    if(!b) return NULL;
+    snprintf(b, 256,
+             "{\"ok\":false,\"cmd\":\"%s\",\"version\":1,\"err\":{\"rc\":-10,"
+             "\"error_code\":\"RESULT-TOO-BIG\"}}\n",
+             r->cmd ? r->cmd : "");
+    return b;
 }
 
 int imgapp_exec(const imgapp_req *req, imgapp_reply *out, char *err, size_t errcap){

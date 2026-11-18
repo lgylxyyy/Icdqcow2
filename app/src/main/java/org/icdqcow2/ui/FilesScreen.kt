@@ -103,7 +103,10 @@ import top.yukonga.miuix.kmp.window.WindowDialog
  *   · ISO / WIM / 压缩包只读：粘贴/删除按钮灰着**但能点**，点了说原因；
  *   · 返回键 = 上一级，到 `/` 才交给系统退到桌面。
  */
-private const val PAGE = 2000
+// ★ 2026-11-18（REPLY-81）：单页 500 条 ≈ 80KB，JNI 首渲 256KB 直接装下，
+//   **永远不触发 4MB 重渲**（真机 malloc 失败 → RESULT-BAD「返回不是合法 JSON」的根因）。
+//   wim.ls / ntfs.list / archive.ls 都有 offset 分页，翻页照常。
+private const val PAGE = 500
 
 /** 认成"纯文本"的扩展名（点了直接进编辑器，不再问）。 */
 private val TEXT_EXTS = setOf(
