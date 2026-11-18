@@ -175,11 +175,16 @@ fun CapturePage(
             // 整页只留进度：与其它功能页同一个模板（用户 2026-11-13）
             BlockEnter(0) {
                 val rawPct = prog?.pct?.takeIf { it in 0..100 }
+                // ★ 2026-11-18：有字节就按字节算（与浮层同一规则）
+                val tb = prog?.totalBytes ?: 0L
+                val cb = prog?.curBytes ?: 0L
+                val bytePct = if (tb > 0L) ((cb * 100) / tb).toInt().coerceIn(0, 100) else -1
+                val pct0 = if (bytePct in 0..100) bytePct else (rawPct ?: -1)
                 TaskProgressView(
                     // 100% 但还在跑（工具端只在收尾时报 100）→ 不定态转圈
-                    pct = if (rawPct == null || rawPct >= 100) -1 else rawPct,
-                    doneBytes = prog?.curBytes ?: 0L,
-                    totalBytes = prog?.totalBytes ?: 0L,
+                    pct = if (pct0 >= 100) -1 else pct0,
+                    doneBytes = cb,
+                    totalBytes = tb,
                     elapsedMs = elapsedMine,   // App 本地计时（不再信工具端 elapsed）
                     phase = progressPhaseText(prog?.phase),
                     item = prog?.item?.takeIf { it.isNotBlank() },

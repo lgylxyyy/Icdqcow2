@@ -794,16 +794,14 @@ fun DeployPage(
                         org.icdqcow2.core.ToolEvents.clear()
                         // ② 写系统：ISO 里的 WIM **直读**（REPLY-29 起 `--inner` 不落临时文件）
                         val wimSrc = wimPath
-                        // 灌盘前先判两件事（架构位数、有没有 WinRE），别让用户白等 40 秒才失败
+                        // ── 这一步：系统写入前，不再在 App 侧硬拦 32 位系统 ──
+                        //   ★ 2026-11-18（用户：「我们已经有兼容 32 位的固件了，为什么还失败」）：
+                        //     这里以前有 `if (isGpt && arch == x86) failure = dep.bit32`，
+                        //     是早期给 Win7 x86 写的限制；REPLY-54 之后工具端已经能判了：
+                        //       Vista/Win7 x86 + GPT → BOOT-ARCH-NO-UEFI（物理上没有 EFI 引导）
+                        //       Win8+ x86 + GPT      → BOOT-GPT-X86-NEEDS-CONFIRM（带 force 放行）
+                        //     所以这里只留 WinRE 检查，架构的事交给工具端（它读得到真实版本号）。
                         if (failure == null && wimSrc != null) {
-                            if (isGpt) {
-                                val probe = ImageRepo.wimIdentify(wimSrc, inner = wimInner)
-                                val archNow = probe.data?.optJSONArray("images")?.let { arr ->
-                                    (0 until arr.length()).mapNotNull { arr.optJSONObject(it) }
-                                        .firstOrNull { it.optInt("index", -1) == wimIndex }
-                                }?.optString("arch").orEmpty()
-                                if (archNow.equals("x86", true)) failure = s.depBit32
-                            }
                             if (failure == null && (writeRec || writeScript) && reSrcPath == null) {
                                 val has = ImageRepo.winreProbe(wimSrc, wimInner, wimIndex)
                                 if (has.empty) failure = s.depWinreNote

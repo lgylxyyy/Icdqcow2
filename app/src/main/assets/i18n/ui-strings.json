@@ -2540,7 +2540,42 @@
     "files.doneN": {
       "zh": "完成 {0} 项",
       "en": "{0} done",
-      "note": "文件页 · 提示气泡 · files.doneN"
+      "note": "文件页 · 提示气泡 · files.doneN（旧版笼统文案，保留兼容）"
+    },
+    "files.doneCopy": {
+      "zh": "复制 {0} 个文件",
+      "en": "Copied {0} file(s)",
+      "note": "文件页 · 完成通知（用户 2026-11-18：说清楚执行了什么操作）"
+    },
+    "files.doneMove": {
+      "zh": "移动 {0} 个文件",
+      "en": "Moved {0} file(s)",
+      "note": "文件页 · 完成通知 · 移动"
+    },
+    "files.doneDirs": {
+      "zh": "、{0} 个文件夹",
+      "en": ", {0} folder(s)",
+      "note": "文件页 · 完成通知 · 追加文件夹数（有才追加）"
+    },
+    "files.doneFail": {
+      "zh": "，失败 {0} 个",
+      "en": ", {0} failed",
+      "note": "文件页 · 完成通知 · 追加失败数（有错误才追加）"
+    },
+    "files.doneDelete": {
+      "zh": "删除 {0} 项",
+      "en": "Deleted {0} item(s)",
+      "note": "文件页 · 完成通知 · 删除（项=文件+文件夹）"
+    },
+    "files.renamed": {
+      "zh": "重命名完成：{0}",
+      "en": "Renamed to {0}",
+      "note": "文件页 · 完成通知 · 重命名"
+    },
+    "files.saved": {
+      "zh": "已保存 1 个文件",
+      "en": "Saved 1 file",
+      "note": "文件页 · 完成通知 · 编辑器副本存到对面栏"
     },
     "files.doneSkip": {
       "zh": "已完成 {0} 项，跳过 {1} 个回收站文件",
@@ -4438,9 +4473,9 @@
       "note": "引导修复/恢复环境 · 确认按钮 · br.healthy.go"
     },
     "dep.bit32Warn": {
-      "zh": "此系统需要 32 位的 UEFI 固件，最低要求 Windows 8",
-      "en": "This system requires 32-bit UEFI firmware; Windows 8 or later",
-      "note": "释放映像 · 提示行 · dep.bit32Warn"
+      "zh": "32 位系统 + GPT：引导将按 32 位 UEFI 写入（虚拟机需用 32 位 UEFI 固件启动）",
+      "en": "32-bit system on GPT: boot files will be written for 32-bit UEFI (the VM needs 32-bit UEFI firmware to boot)",
+      "note": "释放映像 · 提示行（用户 2026-11-18：旧文案「此系统需要 32 位的 UEFI 固件」被当成失败原因，改成说明性文字）"
     },
     "fc.arch32": {
       "zh": "32 位 PE（x86）",

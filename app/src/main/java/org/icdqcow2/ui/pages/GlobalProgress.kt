@@ -76,12 +76,17 @@ fun GlobalProgressOverlay(onToast: (String) -> Unit) {
         }
     }
     val elapsedMs = (nowMs - startedAt).coerceAtLeast(0L)
-    // ★ 工具端只在分区完成时报 100（img.compact）——任务还在跑就别画假 100%，转圈更诚实
-    val rawPct = p?.pct?.takeIf { it in 0..100 }
-    val pct = if (rawPct == null || rawPct >= 100) -1 else rawPct
-    // 字节口径：overall 是"整件事的总账"（多段任务），没有才退到本段
+    // ★ 字节口径：overall 是"整件事的总账"（多段任务），没有才退到本段
     val doneBytes = if (p != null && p.overallTotalBytes > 0L) p.overallCurBytes else (p?.curBytes ?: 0L)
     val totalBytes = if (p != null && p.overallTotalBytes > 0L) p.overallTotalBytes else (p?.totalBytes ?: 0L)
+    // ★ 2026-11-18（用户第 4 条）：**有字节就按字节算百分比**。
+    //   工具端 compact 只在分区完成时报 100、中间全是 -1，以前就一直转圈（截图里
+    //   明明有 4.1 / 15.8 GB 却显示"—"）。字节算不出来才退回工具端 pct。
+    val rawPct = p?.pct?.takeIf { it in 0..100 }
+    val bytePct = if (totalBytes > 0L) ((doneBytes * 100) / totalBytes).toInt().coerceIn(0, 100) else -1
+    val pct0 = if (bytePct in 0..100) bytePct else (rawPct ?: -1)
+    // 100% 但任务还在跑（工具端只在收尾报 100）→ 转圈，不画假 100%
+    val pct = if (pct0 >= 100) -1 else pct0
     val remain = when {
         p == null -> 0L
         p.overallTotalBytes > 0 -> (p.overallTotalBytes - p.overallCurBytes).coerceAtLeast(0L)

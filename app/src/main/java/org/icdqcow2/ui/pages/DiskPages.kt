@@ -2300,7 +2300,11 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
         }
     }
 
-    SmallTitlePage(title = s.trimTitle, onBack = onBack) {
+    SmallTitlePage(
+        title = s.trimTitle,
+        // ★ 2026-11-18（用户第 5 条）：分析/释放进行中点左上角返回 → 拦（与系统返回键一致，toast 提示）
+        onBack = { if (busy) onToast(s.progBlocked) else onBack() },
+    ) {
         if (image == null) {
             Note(s.trimNeedImage)
             PickImagePage(onPicked = { path, uri -> image = path ?: uri })
@@ -2308,15 +2312,19 @@ fun ReclaimPage(onBack: () -> Unit, onToast: (String) -> Unit) {
         }
         // ★ 第 1 条（用户 2026-11-12）：选完映像后正文块错峰弹入
         BlockEnter(0) {
+            // ★ 2026-11-18（用户：统一成"当前文件 + 完整路径"）：和其它页同一个卡
+            CurrentFileCard(
+                name = pickName(image.orEmpty()),
+                path = image,
+                onToast = onToast,
+                writable = true,
+            )
             GroupCard {
-                Item(s.trimSource, pickName(image.orEmpty()))
                 Item(
                     s.trimDisk,
                     s.trimUsage(fmtBytes(capBytes), if (allocKnown) fmtBytes(usedBytes) else "—"),
                 )
             }
-            // F1：映像是只读打开的（SAF 只拿到 "r"）→ 说明白改不了
-            ReadonlyImageNote()
         }
         Note(s.trimNote)
         if (fmt == "raw") Note(s.trimRawNote)
@@ -2437,7 +2445,6 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
     var outDirMode by remember { mutableIntStateOf(0) }    // 0 = 原文件所在目录，1 = 自定义
     var outCustomDir by remember { mutableStateOf<String?>(null) }
 
-    var doneText by remember { mutableStateOf<String?>(null) }
     var err by remember { mutableStateOf<String?>(null) }
     /** 开始前的确认框（用户 2026-11-12 拍板 Q4：开始后不可取消）。 */
     var confirmStart by remember { mutableStateOf(false) }
@@ -2487,7 +2494,6 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
 
     LaunchedEffect(image) {
         mode = 0
-        doneText = null
         err = null
         capBytes = 0L
         usedBytes = 0L
@@ -2534,7 +2540,6 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
         scope.launch {
             busy = true
             err = null
-            doneText = null
             // ★ 统一进度浮层（用户 2026-11-12）：登记任务，浮层挂在 AppRoot 层，
             //   页面自己不用管；期间系统返回被吃掉，不能中途退出。
             ToolRun.start(s.compactTitle)
@@ -2557,11 +2562,13 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 }
                 val before = runCatching { File(img).length() }.getOrDefault(0L)
                 val after = runCatching { out.length() }.getOrDefault(0L)
-                doneText = s.compactDone(out.name, fmtBytes(before), fmtBytes(after))
-                // ★ 用户 2026-11-13：跑完把输出名**重置回基于源名的默认名** ——
-                //   以前连续压缩同一文件时，下一轮把「上一轮的输出名」当基名，
-                //   于是一路 (1)(1)(1)。重置后第二轮撞名自然顺延成 (2)。
+                // ★ 2026-11-18（用户第 1 条）：完成通知走**屏幕上方 toast**，页面里不再留一行
+                onToast(s.compactDone(out.name, fmtBytes(before), fmtBytes(after)))
+                // ★ 用户 2026-11-13：跑完把输出名**重置回基于源名的默认名**，并立刻顺延
+                //   （用户 2026-11-18：输入框也要像创建页一样自动加括号 ——
+                //   所以这里直接走 dedupeOutName()，显示下一轮真正会用的名字）
                 outName = defaultCompactName(image)
+                dedupeOutName()
             } finally {
                 busy = false
                 ToolRun.finish()
@@ -2569,7 +2576,11 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
         }
     }
 
-    SmallTitlePage(title = s.compactTitle, onBack = onBack) {
+    SmallTitlePage(
+        title = s.compactTitle,
+        // ★ 2026-11-18：压缩进行中点左上角返回 → 拦（与系统返回键一致）
+        onBack = { if (busy) onToast(s.progBlocked) else onBack() },
+    ) {
         if (image == null) {
             Note(s.compactNeedImage)
             PickImagePage(onPicked = { path, uri -> image = path ?: uri })
@@ -2577,15 +2588,19 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
         }
         // ★ 第 1 条（用户 2026-11-12）：选完映像后正文块错峰弹入
         BlockEnter(0) {
+            // ★ 2026-11-18（用户：统一成"当前文件 + 完整路径"）：和其它页同一个卡
+            CurrentFileCard(
+                name = pickName(image.orEmpty()),
+                path = image,
+                onToast = onToast,
+                writable = true,
+            )
             GroupCard {
-                Item(s.compactSource, pickName(image.orEmpty()))
                 Item(
                     s.compactDisk,
                     s.compactUsage(fmtBytes(capBytes), if (allocKnown) fmtBytes(usedBytes) else "—"),
                 )
             }
-            // F1：映像是只读打开的（SAF 只拿到 "r"）→ 说明白改不了
-            ReadonlyImageNote()
         }
         Note(s.compactNote)
         if (fmt == "raw") Note(s.compactRawNote)
@@ -2652,7 +2667,6 @@ fun CompactPage(onBack: () -> Unit, onToast: (String) -> Unit) {
                 if (!zstdOk) Note(s.compactModeZstdOff)
             }
 
-            doneText?.let { Note(it) }
             err?.let { Note(it, warn = true) }
 
             Action(

@@ -169,8 +169,7 @@ static char *render_result(const img_result *r){
     char *buf = malloc((size_t)cap);
     if(!buf) return NULL;
     int n = img_result_json(r, buf, cap);
-    if(n < 0){ free(buf); return NULL; }
-    if(n >= cap - 1){                       /* 保险：超大结果换大缓冲重渲 */
+    if(n < 0){                              /* img_result_json 顶满返回 -(cap)：换大缓冲重渲 */
         free(buf); cap = 4 * 1024 * 1024;
         buf = malloc((size_t)cap);
         if(!buf) return NULL;

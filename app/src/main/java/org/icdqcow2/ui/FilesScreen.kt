@@ -500,6 +500,19 @@ fun FilesScreen(
     // 多选集原地不动 —— 这样才腾得出手去对面翻到目标目录（用户 2026-10-29 要求）。
     var multiPane by remember { mutableIntStateOf(0) }
     var busy by remember { mutableStateOf<String?>(null) }
+    // ★ 2026-11-18（用户）：小任务不闪进度卡 ——
+    //   · 400ms 内跑完的不显示（短任务这期间就结束了）
+    //   · 少量小文件（≤3 项且 <32MB）直接豁免（见 runTransfer），删除 ≤5 项豁免
+    var quickJob by remember { mutableStateOf(false) }
+    var cardShown by remember { mutableStateOf(false) }
+    LaunchedEffect(busy, quickJob) {
+        if (busy == null || quickJob) {
+            cardShown = false
+            return@LaunchedEffect
+        }
+        kotlinx.coroutines.delay(400)
+        if (busy != null) cardShown = true
+    }
     var confirmDel by remember { mutableStateOf(false) }
     // 长按一行的动作菜单（复制/剪切/重命名/删除/压缩/属性）
     var menuFor by remember { mutableStateOf<Pair<Int, Entry>?>(null) }
@@ -559,7 +572,8 @@ fun FilesScreen(
         val pg = if (pend?.first == 0) left else right
         if (res.resultCode == android.app.Activity.RESULT_OK && pend != null) {
             pg.sel = emptySet()
-            onToast(s.filesDone(pend.second))
+            // ★ 2026-11-18：说清楚是"移入回收站"
+            onToast(s.filesTrashed(pend.second))
             scope.launch { reload(pg, s) }
         } else {
             onToast(s.cancel)
@@ -645,7 +659,7 @@ fun FilesScreen(
                 imageFd = -1,
             )
             busy = null
-            onToast(if (r.ok) s.filesDone(1) else toolErrorText(s, r))
+            onToast(if (r.ok) s.filesRenamed(clean) else toolErrorText(s, r))
             reload(p, s)
         }
     }
@@ -723,6 +737,10 @@ fun FilesScreen(
                 }
                 if (anyDir) 0L else known
             }
+            // ★ 2026-11-18（用户）：少量小文件不显示进度卡（只报通知）——项数 ≤3 且总量 <32MB。
+            //   目录在其中（总量不可知）不豁免；超阈值才挂卡片。
+            quickJob = job.items.size <= 3 &&
+                opBytesTotal > 0L && opBytesTotal < 32L * 1024 * 1024
             var ok = 0
             var skippedTrash = 0
             var skippedName = 0
@@ -730,6 +748,9 @@ fun FilesScreen(
             var sparseLostBytes = 0L
             var movedByRename = 0
             var fail: String? = null
+            // ★ 2026-11-18（用户）：完成通知要说清楚"几个文件、几个文件夹"
+            var filesOk = 0
+            var dirsOk = 0
             for ((srcAbs, dstAbs) in job.items) {
                 if (!isActive) break
                 val ent0 = src.entries.firstOrNull { it.name == srcAbs.substringAfterLast('/') }
@@ -772,6 +793,7 @@ fun FilesScreen(
                     }
                     ok++
                     opDone++
+                    if (srcIsDir) dirsOk++ else filesOk++
                     if (ent0 != null && !ent0.dir) opBytes += ent0.size
                     if (job.move) {
                         // 复制成功才删包内条目（删失败不算失败，包还在）
@@ -840,6 +862,7 @@ fun FilesScreen(
                     r.ok -> {
                         ok++
                         opDone++
+                        if (ent0 != null && !ent0.dir) filesOk++ else dirsOk++
                         if (ent0 != null && !ent0.dir) opBytes += ent0.size
                         skippedTrash += r.data?.optInt("skipped_trashed", 0) ?: 0
                         // ★ A3：源是稀疏 raw 而目标没保住洞 → 必须如实说出来（别让用户
@@ -862,14 +885,23 @@ fun FilesScreen(
             }
             busy = null
             opJob = null
+            quickJob = false
             src.sel = emptySet()
+            // ★ 2026-11-18（用户）：通知说清楚操作 + 文件/文件夹数，失败才追加失败数
             onToast(
-                fail ?: when {
-                    sparseLost > 0 -> s.filesSparseLost(sizeText(sparseLostBytes))
-                    skippedTrash > 0 -> s.filesDoneSkip(ok, skippedTrash)
-                    skippedName > 0 -> s.filesDoneSkipName(ok, skippedName)
-                    job.move && movedByRename == ok && ok > 0 -> s.filesMovedByRename
-                    else -> s.filesDone(ok)
+                buildString {
+                    append(
+                        if (job.move) s.filesDoneMove(filesOk) else s.filesDoneCopy(filesOk),
+                    )
+                    if (dirsOk > 0) append(s.filesDoneDirs(dirsOk))
+                    if (fail != null) {
+                        append(s.filesDoneFail(1))
+                    } else when {
+                        sparseLost > 0 -> append(" ").append(s.filesSparseLost(sizeText(sparseLostBytes)))
+                        skippedTrash > 0 -> append(" ").append(s.filesDoneSkip(ok, skippedTrash))
+                        skippedName > 0 -> append(" ").append(s.filesDoneSkipName(ok, skippedName))
+                        job.move && movedByRename == ok && ok > 0 -> append(" ").append(s.filesMovedByRename)
+                    }
                 },
             )
             if (ok > 0) {
@@ -909,7 +941,7 @@ fun FilesScreen(
             busy = null
             org.icdqcow2.ui.EditorBridge.saveTo = null
             if (r.ok) {
-                onToast(s.filesDone(1))
+                onToast(s.filesSaved)
                 reload(dstPane, s)
             } else {
                 onToast(toolErrorText(s, r))
@@ -1076,6 +1108,8 @@ fun FilesScreen(
 
         opJob = scope.launch {
             busy = s.filesDeleting
+            // ★ 2026-11-18（用户）：少量删除（≤5 项）不显示进度卡，跑完只报通知
+            quickJob = names.size <= 5
             opTotal = names.size
             opDone = 0
             opBytes = 0L
@@ -1129,12 +1163,14 @@ fun FilesScreen(
             }
             busy = null
             opJob = null
+            quickJob = false
             p.sel = emptySet()
+            // ★ 2026-11-18（用户）：说清楚操作 + 数量，失败才追加失败数
             onToast(
-                fail ?: when {
-                    trashedOk > 0 && purgedOk > 0 -> s.filesDone(trashedOk + purgedOk)
-                    trashedOk > 0 -> s.filesTrashed(trashedOk)
-                    else -> s.filesDone(purgedOk)
+                buildString {
+                    if (trashedOk > 0 && purgedOk == 0) append(s.filesTrashed(trashedOk))
+                    else append(s.filesDoneDelete(trashedOk + purgedOk))
+                    if (fail != null) append(s.filesDoneFail(1))
                 },
             )
             reload(p, s)
@@ -1883,7 +1919,7 @@ fun FilesScreen(
 
     // ── 长任务：阻塞式进度卡 ──
     //   进度条 + "N / M 项 · x GB / y GB"；这一层把底下所有点击都吃掉，只能点"取消"。
-    if (busy != null) {
+    if (busy != null && cardShown) {
         val pv = prog
         val pct = pv?.pct?.takeIf { it >= 0 }
             ?: (if (opTotal > 0) opDone * 100 / opTotal else 0)
@@ -3011,6 +3047,8 @@ private suspend fun query(
                 "wim" to (loc.wim ?: ""),
                 "index" to loc.index.toString(),
                 "path" to path,
+                // ★ REPLY-80：wim.ls 已支持分页（口径与 ntfs.list/archive.ls 一致）
+                "offset" to offset.toString(),
                 "limit" to PAGE.toString(),
             )
             val inn = loc.inner

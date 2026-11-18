@@ -1,17 +1,19 @@
-# native 库版本与来源（2026-11-12）
+# native 库版本与来源（2026-11-18）
 #
 # 这两个库必须随仓库入库：App 的全部工具命令都经由 libimgapp.so → libimgtool.so，
 # 缺任一个，APK 装到机器上就完全不可用（所有命令 UnsatisfiedLinkError）。
 #
 # 校验：md5sum app/src/main/jniLibs/arm64-v8a/*.so
 
-28ce62741c70c415331a686eb4fad2f8  app/src/main/jniLibs/arm64-v8a/libimgtool.so
-c27a4d904318245fb39ee74eeec984c5  app/src/main/jniLibs/arm64-v8a/libimgapp.so
+14286f9f88f28bd4a29d74de4d38b8c0  app/src/main/jniLibs/arm64-v8a/libimgtool.so
+7c556ac31c93c2154a86b0546d48a63e  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 
 # ── 来源 ──
-# libimgtool.so （7,197,048 B）
+# libimgtool.so （7,197,664 B）
 #   仓库：https://github.com/lgylxyyy/imgtool
-#   提交：1f31fcf「fix(REQ-78): qcow2 的 alloc_known 不再被『矛盾②』误伤」
+#   提交：b1410ac「fix(2026-11-13): wim.ls 分页 + 大结果重渲 —— System32 不再 RESULT-TOO-BIG」
+#         （含 c6637c3「REQ-79: compact 进度按字节单调推进 + 输出路径 + 进程级进度对象命令间清零」、
+#           1f31fcf「REQ-78 alloc_known」、8e63a34「zstd 写压缩」等）
 #         （含 8e63a34「P2①: qcow2 zstd 写压缩 —— img.compact --compress=zstd」、
 #           2390a45「CodeQL 四个 TOCTOU 告警修复」、
 #           0115b27「REQ-77 进度事件加 files_cur/files_total/dst_item」、
@@ -21,11 +23,15 @@ c27a4d904318245fb39ee74eeec984c5  app/src/main/jniLibs/arm64-v8a/libimgapp.so
 #     img_progress_t 布局变了，libimgapp.so 一起重编）→
 #     6（1f31fcf，REQ-78 alloc_known + zstd 写压缩 + TOCTOU）。
 #     versionCode ≤5 的包都作废，BP 用 versionCode 6 测。
-#   ★ 本批（1f31fcf）img_progress_t **没动** → libimgapp.so 不用换（md5 不变）。
+#   ★ 2026-11-18 换库（versionCode 7）：b1410ac（REQ-79 + REPLY-80）。
+#     img_progress_t 结构没动，但 img_result_json 的"顶满返回 -(cap)"和 wim.ls 分页
+#     要靠 libimgapp.so 的负数触发重渲配合 → **libimgapp.so 一起重编**（27,792 B）。
 #   ★ zstd 能力由 cmd.list 的 features.zstd 探测（ToolCaps.ZSTD），
 #     本 so 已编入 libzstd → features.zstd=true。
 #
-# libimgapp.so （27,808 B）
+# libimgapp.so （27,792 B）
 #   来源：本仓库 jni/（App 的 JNI 桥）。
 #   ★ 0115b27 同步：progress 事件的 JSON 由 jni/imgapp_bridge.c 自己拼（不走
 #     img_prog_json），files_cur/files_total/dst_item 在 bridge 里加。
+#   ★ 2026-11-18（REPLY-80）：render_result 的 4MB 重渲触发条件从「顶满」改成「负数」
+#     —— 以前 n<0 直接 return NULL，重渲代码从没生效过（System32 RESULT-TOO-BIG 的根因之三）。
