@@ -49,6 +49,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
@@ -208,6 +212,12 @@ private data class SearchHit(
 private const val SEARCH_MAX = 500
 
 /**
+ * 手机目录（HOST）搜索上限：本地 `listFiles()` 比容器快得多，500 条对手机来说太少了
+ * （用户 2026-11-19：手机上搜东西也希望搜全）。容器翻页仍用 [SEARCH_MAX]（工具端每页 500）。
+ */
+private const val SEARCH_MAX_LOCAL = 5000
+
+/**
  * 在**聚焦栏的当前目录**里递归找名字（不分大小写）。
  *
  * - 宿主目录：Java `listFiles()` 广度遍历，纯本地、很快；
@@ -230,7 +240,7 @@ private suspend fun searchPane(
             val queue = ArrayDeque<File>()
             queue.add(File(p.path))
             var seen = 0
-            while (queue.isNotEmpty() && out.size < SEARCH_MAX) {
+            while (queue.isNotEmpty() && out.size < SEARCH_MAX_LOCAL) {
                 val d = queue.removeFirst()
                 val kids = runCatching { d.listFiles() }.getOrNull() ?: continue
                 for (f in kids) {
@@ -243,10 +253,10 @@ private suspend fun searchPane(
                             size = if (f.isDirectory) 0L else f.length(),
                             mtime = f.lastModified() / 1000,
                         )
-                        if (out.size >= SEARCH_MAX) { truncated = true; break }
+                        if (out.size >= SEARCH_MAX_LOCAL) { truncated = true; break }
                     }
                     if (f.isDirectory) queue.add(f)
-                    if (seen > 100_000) { truncated = true; break }
+                    if (seen > 500_000) { truncated = true; break }
                 }
             }
         }
@@ -2185,11 +2195,7 @@ fun FilesScreen(
                                     )
                                     Spacer(Modifier.width(7.dp))
                                     Column(Modifier.weight(1f)) {
-                                        Text(
-                                            h.name,
-                                            style = textStyles.body2,
-                                            color = MiuixTheme.colorScheme.onSurface,
-                                        )
+                                        HighlightedText(h.name, searchQ.trim(), textStyles.body2)
                                         Text(
                                             h.dir.ifEmpty { "/" },
                                             style = textStyles.footnote2,
@@ -2202,7 +2208,9 @@ fun FilesScreen(
                             if (searchTrunc) {
                                 item {
                                     Text(
-                                        s.filesSearchLimit(SEARCH_MAX),
+                                        s.filesSearchLimit(
+                                            if (p.loc.kind == Kind.HOST) SEARCH_MAX_LOCAL else SEARCH_MAX,
+                                        ),
                                         style = textStyles.footnote2,
                                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                         modifier = Modifier.padding(vertical = 4.dp),
@@ -3856,4 +3864,59 @@ private fun PackDialog(
             }
         }
     }
+}
+/**
+ * 搜索命中项的高亮：查询串在名字里出现的每一处都用主题色 + 底色标出来
+ * （用户 2026-11-19：「我需要搜索的关键字有高亮显示」）。
+ *
+ * 匹配规则和搜索本身一致：不区分大小写、子串。
+ */
+@Composable
+private fun HighlightedText(
+    text: String,
+    q: String,
+    style: TextStyle,
+) {
+    val needle = q.trim()
+    val colors = MiuixTheme.colorScheme
+    if (needle.isEmpty()) {
+        Text(
+            text,
+            style = style,
+            color = colors.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        return
+    }
+    val lowerText = text.lowercase()
+    val lowerNeedle = needle.lowercase()
+    val annotated = buildAnnotatedString {
+        var from = 0
+        while (true) {
+            val at = lowerText.indexOf(lowerNeedle, from)
+            if (at < 0) {
+                append(text.substring(from))
+                break
+            }
+            if (at > from) append(text.substring(from, at))
+            withStyle(
+                SpanStyle(
+                    color = colors.primary,
+                    fontWeight = FontWeight.SemiBold,
+                    background = colors.secondaryContainer,
+                ),
+            ) {
+                append(text.substring(at, at + lowerNeedle.length))
+            }
+            from = at + lowerNeedle.length
+        }
+    }
+    Text(
+        annotated,
+        style = style,
+        color = colors.onSurface,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
 }
