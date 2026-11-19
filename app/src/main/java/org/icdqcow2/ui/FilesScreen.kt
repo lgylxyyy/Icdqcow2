@@ -250,64 +250,76 @@ private suspend fun searchPane(
                 }
             }
         }
-    } else if (p.loc.kind == Kind.WIM && p.wToken != null) {
-        // ★ 2026-11-18（用户：无感翻页）：wim.search 支持 offset/limit/total ——
-        //   这里**后台把结果页拉完**再交给 UI，和目录列表「全部渲染」同一种体验，
-        //   用户不会看到"只显示前 500 条"。单页 500，总量上限 1 万条（防极端目录撑爆内存）。
-        //   会话 60 秒过期 → TOKEN-EXPIRED 时重开一次（透明）。
-        while (out.size < 10000) {
-            val off = out.size
-            suspend fun call(tok: String): ToolRunner.Result = ToolRunner.exec(
-                "wim.search", buildMap {
-                    put("token", tok)
-                    put("q", q)
-                    put("offset", off.toString())
-                    put("limit", SEARCH_MAX.toString())
-                },
-                imagePath = null, writable = false, imageFd = -1,
-            )
-            var rr = call(p.wToken ?: "")
-            if (!rr.ok && (rr.code ?: "").contains("TOKEN-EXPIRED")) {
-                val openR = ToolRunner.exec("wim.ls", buildMap {
-                    put("open", "true")
-                    put("wim", p.loc.wim ?: "")
-                    put("index", p.loc.index.toString())
-                    put("path", p.path)
-                }, imagePath = null, writable = false, imageFd = -1)
-                if (openR.ok) {
-                    val tok = openR.data?.optString("token")?.takeIf {
-                        it.isNotBlank() && openR.data?.optBoolean("cached", true) != false
-                    }
-                    p.wToken = tok
-                    if (tok != null) rr = call(tok)
-                }
-            }
-            if (!rr.ok) break
-            total = rr.data?.optInt("total", out.size) ?: out.size
-            val arr = rr.data?.optJSONArray("entries")
-            val before = out.size
-            if (arr != null) {
-                for (i in 0 until arr.length()) {
-                    if (out.size >= 10000) break
-                    val o = arr.optJSONObject(i) ?: continue
-                    val nm = o.optString("name", "").ifEmpty {
-                        o.optString("path", "").substringAfterLast('/')
-                    }
-                    if (nm.isEmpty()) continue
-                    out += SearchHit(
-                        name = nm,
-                        dir = o.optString("dir", p.path),
-                        isDir = o.optBoolean("dir", false),
-                        size = o.optLong("size", 0L),
-                        mtime = o.optLong("mtime", 0L) / 1000,
-                    )
-                }
-            }
-            val more = rr.data?.optBoolean("has_more", false) == true
-            // 服务端说没更多了，或这一页一条没多（防死循环）→ 收工
-            if (!more || out.size == before) break
+    } else if (p.loc.kind == Kind.WIM) {
+        // ★ 2026-11-18（用户：搜索只扫当前目录不扫子目录）：
+        //   目录翻页那个会话（p.wToken）是 `--open` **不带 recursive** 建的，只有一层；
+        //   拿它搜索自然漏掉子目录。所以这里**单独开一个 recursive 会话**（整棵子树），
+        //   不覆盖 p.wToken（那个还要给翻页用），搜完让工具端 60 秒自己过期。
+        suspend fun openSearchSession(): String? {
+            val r = ToolRunner.exec("wim.ls", buildMap {
+                put("open", "true")
+                put("recursive", "true")
+                put("wim", p.loc.wim ?: "")
+                put("index", p.loc.index.toString())
+                put("path", p.path)
+            }, imagePath = null, writable = false, imageFd = -1)
+            return if (r.ok) r.data?.optString("token")?.takeIf {
+                it.isNotBlank() && r.data?.optBoolean("cached", true) != false
+            } else null
         }
-        if (out.size >= 10000) truncated = true
+        suspend fun searchPage(tok: String, off: Int): ToolRunner.Result = ToolRunner.exec(
+            "wim.search", buildMap {
+                put("token", tok)
+                put("q", q)
+                put("offset", off.toString())
+                put("limit", SEARCH_MAX.toString())
+            },
+            imagePath = null, writable = false, imageFd = -1,
+        )
+        var tok = openSearchSession()
+        // 整棵子树太大缓存不下（>64MB）→ 退回一层会话：至少当前目录能搜（不报错、不空转）
+        if (tok == null) tok = p.wToken
+        val firstTok = tok ?: ""
+        if (firstTok.isNotEmpty()) {
+            var cur: String = firstTok
+            // ★ 无感翻页：后台把结果页拉完再交给 UI（和目录列表"全部渲染"同一体验）
+            while (out.size < 10000) {
+                val off = out.size
+                var rr = searchPage(cur, off)
+                if (!rr.ok && (rr.code ?: "").contains("TOKEN-EXPIRED")) {
+                    val nt = openSearchSession() ?: ""
+                    if (nt.isNotEmpty()) {
+                        cur = nt
+                        rr = searchPage(cur, off)
+                    }
+                }
+                if (!rr.ok) break
+                total = rr.data?.optInt("total", out.size) ?: out.size
+                val arr = rr.data?.optJSONArray("entries")
+                val before = out.size
+                if (arr != null) {
+                    for (i in 0 until arr.length()) {
+                        if (out.size >= 10000) break
+                        val o = arr.optJSONObject(i) ?: continue
+                        val nm = o.optString("name", "").ifEmpty {
+                            o.optString("path", "").substringAfterLast('/')
+                        }
+                        if (nm.isEmpty()) continue
+                        out += SearchHit(
+                            name = nm,
+                            dir = o.optString("dir", p.path),
+                            isDir = o.optBoolean("dir", false),
+                            size = o.optLong("size", 0L),
+                            mtime = o.optLong("mtime", 0L) / 1000,
+                        )
+                    }
+                }
+                val more = rr.data?.optBoolean("has_more", false) == true
+                // 服务端说没更多了，或这一页一条没多（防死循环）→ 收工
+                if (!more || out.size == before) break
+            }
+            if (out.size >= 10000) truncated = true
+        }
     } else {
         val queue = ArrayDeque<String>()
         queue.add(p.path)
