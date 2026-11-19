@@ -831,6 +831,7 @@ class Strings(val code: String) {
     val filesSearchEmpty get() = raw("files.searchEmpty")
     val filesSearching get() = raw("files.searching")
     fun filesSearchLimit(n: Int) = tpl("files.searchLimit", n)
+    fun filesSearchCount(n: Int) = tpl("files.searchCount", n)
     val filesExtracting get() = raw("files.extracting")
     val filesOpenNoEditor get() = raw("files.openNoEditor")
     val wimXmlRow get() = raw("wim.xmlRow")

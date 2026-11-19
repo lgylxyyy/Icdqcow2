@@ -218,11 +218,13 @@ private suspend fun searchPane(
     p: PaneState,
     q: String,
     s: Strings,
-    onFind: (List<SearchHit>, Boolean) -> Unit,
+    onFind: (List<SearchHit>, Boolean, Int) -> Unit,
 ) {
     val needle = q.lowercase()
     val out = ArrayList<SearchHit>(SEARCH_MAX)
     var truncated = false
+    /** 服务端报的总命中数（WIM 会话搜索有；其他路径没有，保持 0）。 */
+    var total = 0
     if (p.loc.kind == Kind.HOST) {
         withContext(Dispatchers.IO) {
             val queue = ArrayDeque<File>()
@@ -249,53 +251,63 @@ private suspend fun searchPane(
             }
         }
     } else if (p.loc.kind == Kind.WIM && p.wToken != null) {
-        // ★ 2026-11-18（REPLY P1）：会话内搜索（工具端内存扫描，5000 条 <5ms），
-        //   不用像下面那样逐目录遍历。会话 60 秒过期 → TOKEN-EXPIRED 时重开一次。
-        var rr = ToolRunner.exec("wim.search", buildMap {
-            put("token", p.wToken ?: "")
-            put("q", q)
-            put("offset", "0")
-            put("limit", SEARCH_MAX.toString())
-        }, imagePath = null, writable = false, imageFd = -1)
-        if (!rr.ok && (rr.code ?: "").contains("TOKEN-EXPIRED")) {
-            val openR = ToolRunner.exec("wim.ls", buildMap {
-                put("open", "true")
-                put("wim", p.loc.wim ?: "")
-                put("index", p.loc.index.toString())
-                put("path", p.path)
-            }, imagePath = null, writable = false, imageFd = -1)
-            if (openR.ok) {
-                val tok = openR.data?.optString("token")?.takeIf { it.isNotBlank() &&
-                    openR.data?.optBoolean("cached", true) != false }
-                p.wToken = tok
-                if (tok != null) {
-                    rr = ToolRunner.exec("wim.search", mapOf(
-                        "token" to tok, "q" to q,
-                        "offset" to "0", "limit" to SEARCH_MAX.toString(),
-                    ), imagePath = null, writable = false, imageFd = -1)
+        // ★ 2026-11-18（用户：无感翻页）：wim.search 支持 offset/limit/total ——
+        //   这里**后台把结果页拉完**再交给 UI，和目录列表「全部渲染」同一种体验，
+        //   用户不会看到"只显示前 500 条"。单页 500，总量上限 1 万条（防极端目录撑爆内存）。
+        //   会话 60 秒过期 → TOKEN-EXPIRED 时重开一次（透明）。
+        while (out.size < 10000) {
+            val off = out.size
+            suspend fun call(tok: String): ToolRunner.Result = ToolRunner.exec(
+                "wim.search", buildMap {
+                    put("token", tok)
+                    put("q", q)
+                    put("offset", off.toString())
+                    put("limit", SEARCH_MAX.toString())
+                },
+                imagePath = null, writable = false, imageFd = -1,
+            )
+            var rr = call(p.wToken ?: "")
+            if (!rr.ok && (rr.code ?: "").contains("TOKEN-EXPIRED")) {
+                val openR = ToolRunner.exec("wim.ls", buildMap {
+                    put("open", "true")
+                    put("wim", p.loc.wim ?: "")
+                    put("index", p.loc.index.toString())
+                    put("path", p.path)
+                }, imagePath = null, writable = false, imageFd = -1)
+                if (openR.ok) {
+                    val tok = openR.data?.optString("token")?.takeIf {
+                        it.isNotBlank() && openR.data?.optBoolean("cached", true) != false
+                    }
+                    p.wToken = tok
+                    if (tok != null) rr = call(tok)
                 }
             }
-        }
-        if (rr.ok) {
-            rr.data?.optJSONArray("entries")?.let { arr ->
-                (0 until arr.length()).mapNotNull { arr.optJSONObject(it) }.forEach { o ->
+            if (!rr.ok) break
+            total = rr.data?.optInt("total", out.size) ?: out.size
+            val arr = rr.data?.optJSONArray("entries")
+            val before = out.size
+            if (arr != null) {
+                for (i in 0 until arr.length()) {
+                    if (out.size >= 10000) break
+                    val o = arr.optJSONObject(i) ?: continue
                     val nm = o.optString("name", "").ifEmpty {
                         o.optString("path", "").substringAfterLast('/')
                     }
-                    if (nm.isNotEmpty()) {
-                        out += SearchHit(
-                            name = nm,
-                            dir = o.optString("dir", p.path),
-                            isDir = o.optBoolean("dir", false),
-                            size = o.optLong("size", 0L),
-                            mtime = o.optLong("mtime", 0L) / 1000,
-                        )
-                        if (out.size >= SEARCH_MAX) { truncated = true; return@forEach }
-                    }
+                    if (nm.isEmpty()) continue
+                    out += SearchHit(
+                        name = nm,
+                        dir = o.optString("dir", p.path),
+                        isDir = o.optBoolean("dir", false),
+                        size = o.optLong("size", 0L),
+                        mtime = o.optLong("mtime", 0L) / 1000,
+                    )
                 }
             }
-            if (rr.data?.optBoolean("has_more", false) == true) truncated = true
+            val more = rr.data?.optBoolean("has_more", false) == true
+            // 服务端说没更多了，或这一页一条没多（防死循环）→ 收工
+            if (!more || out.size == before) break
         }
+        if (out.size >= 10000) truncated = true
     } else {
         val queue = ArrayDeque<String>()
         queue.add(p.path)
@@ -315,7 +327,7 @@ private suspend fun searchPane(
         }
         if (dirs >= 400) truncated = true
     }
-    onFind(out, truncated)
+    onFind(out, truncated, total)
 }
 
 /** WIM/ESD 里的一个映像（`wim.identify` 的 `images[]`）。 */
@@ -594,6 +606,8 @@ fun FilesScreen(
     var searchHits by remember { mutableStateOf<List<SearchHit>>(emptyList()) }
     var searchRun by remember { mutableStateOf(false) }
     var searchTrunc by remember { mutableStateOf(false) }
+    /** 服务端报的总命中数（WIM 会话搜索有），>0 时显示「找到 N 项」。 */
+    var searchTotal by remember { mutableIntStateOf(0) }
     // ── 长任务：阻塞式进度卡（复制/移动/压缩/删除）──
     var opJob by remember { mutableStateOf<Job?>(null) }
     var opDone by remember { mutableIntStateOf(0) }
@@ -2089,9 +2103,10 @@ fun FilesScreen(
             }
             searchRun = true
             kotlinx.coroutines.delay(250)          // 打字防抖
-            searchPane(p, q, s) { hits, trunc ->
+            searchPane(p, q, s) { hits, trunc, total ->
                 searchHits = hits
                 searchTrunc = trunc
+                searchTotal = total
                 searchRun = false
             }
         }
@@ -2128,6 +2143,15 @@ fun FilesScreen(
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     )
                     else -> {
+                        // ★ 2026-11-18（用户：无感翻页）：WIM 会话搜索是**拉完所有页**再显示，
+                        //   所以这里给的是真实总数，不再是"只显示前 500 条"。
+                        if (searchTotal > 0) {
+                            Text(
+                                s.filesSearchCount(searchTotal),
+                                style = textStyles.footnote2,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            )
+                        }
                         LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 360.dp)) {
                             items(searchHits) { h ->
                                 Row(

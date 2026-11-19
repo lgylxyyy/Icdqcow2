@@ -4112,6 +4112,11 @@
       "en": "Searching",
       "note": "文件页 · 文案位 · files.searching"
     },
+    "files.searchCount": {
+      "zh": "找到 {0} 项",
+      "en": "{0} found",
+      "note": "文件页 · 搜索 · 命中总数（WIM 会话搜索会拉完所有页，所以这是全量）"
+    },
     "files.searchLimit": {
       "zh": "结果太多，只显示前 {0} 条",
       "en": "Too many hits, showing first {0}",
