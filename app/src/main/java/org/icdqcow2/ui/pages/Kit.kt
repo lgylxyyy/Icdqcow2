@@ -34,6 +34,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -1725,7 +1727,12 @@ private fun CardDropdownSurface(
     // 用户 2026-11-26 的方案：阴影不做独立图层，挂在**卡片节点自身**（RenderNode 的
     // shadowElevation）→ 与卡片是同一个绘制单元，缩放/渐隐天然同步，不存在"两图层对不齐"。
     // 上次这条路径看不见，是因为阴影色 alpha 只有 10%，这次按可见浓度给。
-    val sAlpha = if (dark) 0.85f else 0.44f
+    // 用户 2026-11-26：系统 elevation 阴影（ambient+spot）上下不均匀，改**自绘阴影**。
+    // 在卡片节点自己的 drawBehind 里按半径分层画圆角矩形（越外越淡、圆角同心），
+    // 四周完全等距；与卡片同一绘制单元，随缩放/位移/淡出一体变化，不闪、不脱节。
+    val shadowGrow = if (dark) 14.dp else 12.dp
+    val shadowBase = if (dark) 0.075f else 0.045f
+    val corner = 16.dp
 
     Box(
         Modifier
@@ -1745,14 +1752,24 @@ private fun CardDropdownSurface(
         Column(
             modifier = Modifier
                 .width(width)
-                // 阴影 = 本节点的 RenderNode 属性（不是单独的 RenderEffect 层）
-                .shadow(
-                    elevation = if (dark) 22.dp else 15.dp,
-                    shape = shape,
-                    clip = false,
-                    ambientColor = Color.Black.copy(alpha = sAlpha),
-                    spotColor = Color.Black.copy(alpha = sAlpha),
-                )
+                .drawBehind {
+                    // 自绘阴影：由外向内 12 层，外扩越大越淡（四周等距、圆角同心）
+                    val layers = 12
+                    val growPx = shadowGrow.toPx()
+                    val cornerPx = corner.toPx()
+                    for (i in layers downTo 1) {
+                        val f = i / layers.toFloat()          // 1.0 = 最外圈
+                        val grow = growPx * f
+                        val a = shadowBase * (1f - f) * (1f - f) * 2.2f
+                        if (a <= 0.001f) continue
+                        drawRoundRect(
+                            color = Color.Black.copy(alpha = a),
+                            topLeft = Offset(-grow, -grow),
+                            size = Size(size.width + grow * 2f, size.height + grow * 2f),
+                            cornerRadius = CornerRadius(cornerPx + grow, cornerPx + grow),
+                        )
+                    }
+                }
                 .clip(shape)
                 .background(cardColor)
                 .padding(vertical = 8.dp, horizontal = 7.dp),
