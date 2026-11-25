@@ -1729,6 +1729,19 @@ private fun CardDropdownSurface(
     Box(
         Modifier
             .onGloballyPositioned { onPlaced() }
+            // ★ 动画（缩放/位移/透明度）放在**含阴影的外层**：
+            //   上一版把 alpha 固定、动画只作用在内层卡片上，导致"阴影瞬间全显、卡片才渐入"。
+            //   现在阴影和卡片同一个图层渐入渐出，颜色又不会随进度变浓淡。
+            .graphicsLayer {
+                val s = 0.82f + 0.18f * p
+                scaleX = s
+                scaleY = s
+                val down = dir?.down ?: true
+                translationX = (1f - p) * drift
+                translationY = (1f - p) * drift * (if (down) -1f else 1f)
+                alpha = p
+                transformOrigin = TransformOrigin(1f, if (down) 0f else 1f)
+            }
             .dropShadow(
                 shape = shape,
                 shadow = androidx.compose.ui.graphics.shadow.Shadow(
@@ -1742,17 +1755,6 @@ private fun CardDropdownSurface(
         Column(
             modifier = Modifier
                 .width(width)
-                .graphicsLayer {
-                    val s = 0.82f + 0.18f * p
-                    scaleX = s
-                    scaleY = s
-                    // 方向决定"从哪一角长出来"：向下开 → 右上角；向上开 → 右下角。
-                    val down = dir?.down ?: true
-                    translationX = (1f - p) * drift
-                    translationY = (1f - p) * drift * (if (down) -1f else 1f)
-                    alpha = p
-                    transformOrigin = TransformOrigin(1f, if (down) 0f else 1f)
-                }
                 .clip(shape)
                 .background(cardColor)
                 .padding(vertical = 8.dp, horizontal = 7.dp),
