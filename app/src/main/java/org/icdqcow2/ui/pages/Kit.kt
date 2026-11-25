@@ -1732,7 +1732,9 @@ private fun CardDropdownSurface(
     // 改为真正的高斯模糊阴影：一块与卡片同形状的黑块做 blur，四角天然均匀。
     // 它和卡片同处在下面这个缩放层里，随缩放/位移/淡出一体变化。
     val shadowBlur = if (dark) 18.dp else 14.dp
-    val shadowAlpha = if (dark) 0.55f else 0.20f
+    val shadowAlpha = if (dark) 0.50f else 0.15f
+    // 阴影块圆角比卡片更大：圆角矩形的"凸角"做 blur 会在四角堆出尖感，摊平后角部与直边一致
+    val shadowShape = RoundedCornerShape(26.dp)
 
     Box(
         Modifier
@@ -1754,7 +1756,7 @@ private fun CardDropdownSurface(
             Modifier
                 .matchParentSize()
                 .blur(shadowBlur, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
-                .background(Color.Black.copy(alpha = shadowAlpha), shape),
+                .background(Color.Black.copy(alpha = shadowAlpha), shadowShape),
         )
         Column(
             modifier = Modifier
