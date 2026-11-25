@@ -1720,6 +1720,11 @@ private fun CardDropdownSurface(
     val cardColor = if (dark) Color(0xFF2E2E2E) else Color.White
     val pressedColor = if (dark) Color(0xFF3A3A3A) else Color(0x14000000)
     val drift = with(LocalDensity.current) { 10.dp.toPx() }
+    // 用户 2026-11-25：
+    //  · 阴影颜色不随动画变化（"点击的阴影颜色和点击卡片后的阴影颜色相同"）→ 不乘 p
+    //  · 亮色下阴影太黑 → 只留淡淡一圈轮廓；暗色背景本身黑，阴影几乎不可见，保持克制
+    val shadowAlpha = if (dark) 0.18f else 0.06f
+    val shadowRadius = if (dark) 14.dp else 9.dp
 
     Box(
         Modifier
@@ -1727,10 +1732,10 @@ private fun CardDropdownSurface(
             .dropShadow(
                 shape = shape,
                 shadow = androidx.compose.ui.graphics.shadow.Shadow(
-                    radius = 12.dp,
-                    spread = 8.dp,
+                    radius = shadowRadius,
+                    spread = 6.dp,
                     offset = androidx.compose.ui.unit.DpOffset.Zero,
-                    color = Color.Black.copy(alpha = 0.14f * p),
+                    color = Color.Black.copy(alpha = shadowAlpha),
                 ),
             ),
     ) {
