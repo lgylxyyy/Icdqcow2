@@ -1725,7 +1725,7 @@ private fun CardDropdownSurface(
     // 用户 2026-11-26 的方案：阴影不做独立图层，挂在**卡片节点自身**（RenderNode 的
     // shadowElevation）→ 与卡片是同一个绘制单元，缩放/渐隐天然同步，不存在"两图层对不齐"。
     // 上次这条路径看不见，是因为阴影色 alpha 只有 10%，这次按可见浓度给。
-    val sAlpha = if (dark) 0.55f else 0.22f
+    val sAlpha = if (dark) 0.72f else 0.34f
 
     Box(
         Modifier
@@ -1747,7 +1747,7 @@ private fun CardDropdownSurface(
                 .width(width)
                 // 阴影 = 本节点的 RenderNode 属性（不是单独的 RenderEffect 层）
                 .shadow(
-                    elevation = if (dark) 14.dp else 9.dp,
+                    elevation = if (dark) 18.dp else 12.dp,
                     shape = shape,
                     clip = false,
                     ambientColor = Color.Black.copy(alpha = sAlpha),
