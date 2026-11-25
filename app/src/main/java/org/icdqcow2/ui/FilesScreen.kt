@@ -95,7 +95,7 @@ import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles
-import top.yukonga.miuix.kmp.window.WindowDialog
+import org.icdqcow2.ui.pages.AppWindowDialog
 
 /**
  * 文件页（底部导航第二个 tab）：**双栏浏览 + 复制/剪切/粘贴**。
@@ -1909,7 +1909,7 @@ fun FilesScreen(
     // ── XML 元数据（索引列表最后一条）──
     if (wimXmlOpen) {
         val imgs = pane(focus).wimImages
-        WindowDialog(
+        AppWindowDialog(
             show = true,
             title = s.wimXmlRow,
             onDismissRequest = { wimXmlOpen = false },
@@ -1947,7 +1947,7 @@ fun FilesScreen(
     // ── 映像信息卡（长按索引行）──
     val wi = wimInfo
     if (wi != null) {
-        WindowDialog(
+        AppWindowDialog(
             show = true,
             title = wi.name.ifEmpty { s.wimIdxRow(wi.index) },
             onDismissRequest = { wimInfo = null },
@@ -2076,7 +2076,7 @@ fun FilesScreen(
     val ra = restoreAsk
     if (ra != null) {
         val (pi0, e0) = ra
-        WindowDialog(
+        AppWindowDialog(
             show = true,
             title = s.filesRestore,
             summary = s.filesRestoreAsk,
@@ -2132,7 +2132,7 @@ fun FilesScreen(
                 searchRun = false
             }
         }
-        WindowDialog(
+        AppWindowDialog(
             show = true,
             title = s.filesSearch,
             onDismissRequest = { searchOpen = false },
@@ -2336,7 +2336,7 @@ fun FilesScreen(
     // ── 属性卡 ──
     val ps = props
     if (ps != null) {
-        WindowDialog(
+        AppWindowDialog(
             show = true,
             title = ps.title,
             onDismissRequest = {
@@ -3817,7 +3817,7 @@ private fun PackDialog(
     LaunchedEffect(Unit) { show = true }
     val formats = listOf("zip", "7z", "iso")
 
-    WindowDialog(
+    AppWindowDialog(
         show = show,
         title = s.filesPackTitle(formats[fmt].uppercase()),
         summary = if (writable) null else s.filesZipReadonly,

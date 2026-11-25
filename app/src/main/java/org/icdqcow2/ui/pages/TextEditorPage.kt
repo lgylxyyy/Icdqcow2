@@ -448,7 +448,7 @@ fun TextEditorPage(
 
     // ── 保存卡 ──
     if (showSave) {
-        WindowDialog(
+        AppWindowDialog(
             show = true,
             title = s.edSaveTitle,
             onDismissRequest = { showSave = false },
@@ -511,7 +511,7 @@ fun TextEditorPage(
 
     // ── 未保存确认 ──
     if (askDiscard) {
-        WindowDialog(
+        AppWindowDialog(
             show = true,
             title = s.edUnsaved,
             summary = s.edDiscardAsk,

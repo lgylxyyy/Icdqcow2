@@ -919,7 +919,7 @@ private fun FixDialog(
     }
     LaunchedEffect(Unit) { show = true }
 
-    WindowDialog(
+    AppWindowDialog(
         show = show,
         title = s.fcFixTitle,
         summary = if (fixes.isEmpty()) s.fcFixNone else s.fcFixIntro,

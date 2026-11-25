@@ -15,6 +15,9 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.clickable
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
@@ -653,7 +656,7 @@ fun ChoiceDialog(
     var blocked by remember { mutableStateOf(-1) }
     LaunchedEffect(Unit) { show = true }
 
-    WindowDialog(
+    AppWindowDialog(
         show = show,
         title = title,
         summary = summary,
@@ -739,7 +742,7 @@ fun ConflictDialog(
     var remember by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { show = true }
 
-    WindowDialog(
+    AppWindowDialog(
         show = show,
         title = title,
         summary = summary,
@@ -861,7 +864,7 @@ fun LabelDialog(
         }
     }
 
-    WindowDialog(
+    AppWindowDialog(
         show = show,
         title = title,
         summary = hint,
@@ -1153,6 +1156,41 @@ fun RowScope.DropdownArrow() {
  * 卡片自己负责 `show` 的进出动画——取消/确认先播退场，`onDismissFinished`
  * 之后才回调，调用方那时再把状态置 false（否则会"啪"一下消失）。
  */
+/**
+ * 全 App 统一的弹窗卡片（用户 2026-11-19 从截图提取的样式）：
+ * - 暗色底 `#181818`（亮色模式白），圆角 13dp
+ * - 边缘 1dp 细亮线 `#313131`（与点按高亮同色系；用户："颜色与点击阴影一致"）
+ * - 阴影与卡片圆角同心（同一个 shape）
+ *
+ * 所有 `WindowDialog` 调用都走这里，样式只改一处。
+ */
+@Composable
+fun AppWindowDialog(
+    show: Boolean,
+    title: String? = null,
+    summary: String? = null,
+    onDismissRequest: (() -> Unit)? = null,
+    onDismissFinished: (() -> Unit)? = null,
+    content: @Composable () -> Unit,
+) {
+    val colors = MiuixTheme.colorScheme
+    val dark = colors.surface.luminance() <= 0.5f
+    val cardColor = if (dark) Color(0xFF181818) else Color.White
+    val lineColor = if (dark) Color(0xFF313131) else Color(0x14000000)
+    val shape = RoundedCornerShape(13.dp)
+    WindowDialog(
+        show = show,
+        modifier = Modifier.border(1.dp, lineColor, shape),
+        title = title,
+        summary = summary,
+        backgroundColor = cardColor,
+        onDismissRequest = onDismissRequest,
+        onDismissFinished = onDismissFinished,
+        cornerRadius = 13.dp,
+        content = content,
+    )
+}
+
 @Composable
 fun ConfirmDialog(
     /** null = 不显示标题，正文就是全部内容（只留一段话时用）。 */
@@ -1169,7 +1207,7 @@ fun ConfirmDialog(
     var accepted by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { show = true }
 
-    WindowDialog(
+    AppWindowDialog(
         show = show,
         title = title,
         summary = summary,
@@ -1273,7 +1311,7 @@ fun ConfirmCheckDialog(
     var checked by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { show = true }
 
-    WindowDialog(
+    AppWindowDialog(
         show = show,
         title = title,
         summary = summary,
@@ -1383,7 +1421,7 @@ fun NumberDialog(
         unit = target
     }
 
-    WindowDialog(
+    AppWindowDialog(
         show = show,
         title = title,
         summary = hint,
@@ -1674,15 +1712,24 @@ private fun CardDropdownSurface(
 ) {
     val colors = MiuixTheme.colorScheme
     val haptic = LocalHapticFeedback.current
-    val shape = RoundedCornerShape(16.dp)
+    // ★ 2026-11-19（用户截图提取的模板）：
+    //   · 圆角 13dp（阴影圆角与卡片同心 → 同一个 shape 画两层）
+    //   · 卡片四周留白一致（阴影与卡片边缘间距 = 上下 = 左右）→ 外层 Box padding
+    //   · 暗色卡片底色 #181818，边缘 1dp 细亮线 #313131（与点按高亮同色系）
+    //   · 条目之间 10dp（两张截图对比出来的行间距）
+    val shape = RoundedCornerShape(13.dp)
     val p = t.coerceIn(0f, 1f)
-    val cardColor = if (colors.surface.luminance() > 0.5f) Color.White
-    else colors.surfaceContainerHighest
+    val dark = colors.surface.luminance() <= 0.5f
+    val cardColor = if (dark) Color(0xFF181818) else Color.White
+    val lineColor = if (dark) Color(0xFF313131) else Color(0x14000000)
+    val pressedColor = if (dark) Color(0xFF333333) else Color(0x14000000)
     val drift = with(LocalDensity.current) { 10.dp.toPx() }
 
     Box(
+        // 阴影要在卡片外面有地方画（"不是顶到两边"）→ 四边同值 padding
         Modifier
             .onGloballyPositioned { onPlaced() }
+            .padding(8.dp)
             .dropShadow(
                 shape = shape,
                 shadow = androidx.compose.ui.graphics.shadow.Shadow(
@@ -1701,7 +1748,6 @@ private fun CardDropdownSurface(
                     scaleX = s
                     scaleY = s
                     // 方向决定"从哪一角长出来"：向下开 → 右上角；向上开 → 右下角。
-                    // 之前写死 (1,0) 且位移只往上，向上弹出的卡片看起来还是从右上角冒出来。
                     val down = dir?.down ?: true
                     translationX = (1f - p) * drift
                     translationY = (1f - p) * drift * (if (down) -1f else 1f)
@@ -1709,20 +1755,27 @@ private fun CardDropdownSurface(
                     transformOrigin = TransformOrigin(1f, if (down) 0f else 1f)
                 }
                 .clip(shape)
-                .background(cardColor),
+                .background(cardColor)
+                // 细亮线：1dp，与点击高亮同色系（用户 2026-11-19）
+                .border(1.dp, lineColor, shape)
+                .padding(vertical = 8.dp, horizontal = 7.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             items.forEachIndexed { i, label ->
                 val selected = i == selectedIndex
+                val interaction = remember { MutableInteractionSource() }
+                val pressed by interaction.collectIsPressedAsState()
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            // 选中一次震动（与打开那次一起，构成用户要求的两次）
+                        .clip(RoundedCornerShape(8.dp))
+                        // 点按高亮 #333333（截图里就是它，和细亮线同色系）
+                        .background(if (pressed) pressedColor else Color.Transparent)
+                        .clickable(interactionSource = interaction, indication = null) {
                             haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
                             onSelected(i)
                         }
-                        // 条目贴边：卡片上下不留白，否则首尾条目外会露出"白条"
-                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
