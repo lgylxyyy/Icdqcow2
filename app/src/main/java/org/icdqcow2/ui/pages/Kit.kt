@@ -1705,6 +1705,8 @@ private fun CardDropdownSurface(
     onSelected: (Int) -> Unit,
     onPlaced: () -> Unit = {},
     dir: CardDir? = null,
+    /** 收回阶段（show=false 且动画未跑完）→ 才做淡出；进入阶段不淡入，避免与阴影首帧不同步。 */
+    closing: Boolean = false,
 ) {
     val colors = MiuixTheme.colorScheme
     val haptic = LocalHapticFeedback.current
@@ -1720,11 +1722,11 @@ private fun CardDropdownSurface(
     val cardColor = if (dark) Color(0xFF2E2E2E) else Color.White
     val pressedColor = if (dark) Color(0xFF3A3A3A) else Color(0x14000000)
     val drift = with(LocalDensity.current) { 10.dp.toPx() }
-    // 用户 2026-11-25：阴影保留。dropShadow（RenderEffect）与 alpha 动画首帧不同步会"闪"，
-    // 改用 Modifier.shadow（系统 elevation 阴影）：同一渲染路径随图层渐入，不闪；
-    // 颜色固定不随进度变化（"点击的阴影颜色和点击卡片后的阴影颜色相同"）。
-    // 亮色只留淡淡一圈轮廓（8%），暗色加深一些。
-    val shadowAlpha = if (dark) 0.55f else 0.10f
+    // 用户 2026-11-25：
+    //  · 阴影必须可见 → 回到 dropShadow（Modifier.shadow 在这台机器上画不出来）
+    //  · "打开闪一下"的根因是阴影与 alpha 渐入不同步 → 这次整块不做透明度，只做放大+位移，
+    //    阴影与卡片同进同出；颜色固定（不随进度变浓淡）
+    val shadowAlpha = if (dark) 0.30f else 0.10f
 
     Box(
         Modifier
@@ -1736,15 +1738,18 @@ private fun CardDropdownSurface(
                 val down = dir?.down ?: true
                 translationX = (1f - p) * drift
                 translationY = (1f - p) * drift * (if (down) -1f else 1f)
-                alpha = p
+                // 进入：不透明（避免与阴影首帧不同步而闪）；退出：随 p 淡出（收回顺滑）
+                alpha = if (closing) p else 1f
                 transformOrigin = TransformOrigin(1f, if (down) 0f else 1f)
             }
-            .shadow(
-                elevation = if (dark) 12.dp else 6.dp,
+            .dropShadow(
                 shape = shape,
-                clip = false,
-                ambientColor = Color.Black.copy(alpha = shadowAlpha),
-                spotColor = Color.Black.copy(alpha = shadowAlpha),
+                shadow = androidx.compose.ui.graphics.shadow.Shadow(
+                    radius = 14.dp,
+                    spread = 6.dp,
+                    offset = androidx.compose.ui.unit.DpOffset.Zero,
+                    color = Color.Black.copy(alpha = shadowAlpha),
+                ),
             ),
     ) {
         Column(
@@ -1883,6 +1888,7 @@ fun CardDropdown(
                 },
                 onPlaced = { placed = true },
                 dir = dir,
+                closing = !show,
             )
         }
     }
@@ -1966,6 +1972,7 @@ fun CardDropdownTopEnd(
                     onDismiss()
                 },
                 onPlaced = { placed = true },
+                closing = !show,
             )
         }
     }
