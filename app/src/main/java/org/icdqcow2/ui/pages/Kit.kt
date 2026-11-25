@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -1727,12 +1728,11 @@ private fun CardDropdownSurface(
     // 用户 2026-11-26 的方案：阴影不做独立图层，挂在**卡片节点自身**（RenderNode 的
     // shadowElevation）→ 与卡片是同一个绘制单元，缩放/渐隐天然同步，不存在"两图层对不齐"。
     // 上次这条路径看不见，是因为阴影色 alpha 只有 10%，这次按可见浓度给。
-    // 用户 2026-11-26：系统 elevation 阴影（ambient+spot）上下不均匀，改**自绘阴影**。
-    // 在卡片节点自己的 drawBehind 里按半径分层画圆角矩形（越外越淡、圆角同心），
-    // 四周完全等距；与卡片同一绘制单元，随缩放/位移/淡出一体变化，不闪、不脱节。
-    val shadowGrow = if (dark) 14.dp else 12.dp
-    val shadowBase = if (dark) 0.075f else 0.045f
-    val corner = 16.dp
+    // 用户 2026-11-26：分层自绘在**四角**会叠得比四边浓（曲率大、层密度高），且总体偏黑。
+    // 改为真正的高斯模糊阴影：一块与卡片同形状的黑块做 blur，四角天然均匀。
+    // 它和卡片同处在下面这个缩放层里，随缩放/位移/淡出一体变化。
+    val shadowBlur = if (dark) 18.dp else 14.dp
+    val shadowAlpha = if (dark) 0.55f else 0.20f
 
     Box(
         Modifier
@@ -1749,27 +1749,16 @@ private fun CardDropdownSurface(
                 transformOrigin = TransformOrigin(1f, if (down) 0f else 1f)
             },
     ) {
+        // 阴影：与卡片同尺寸/同圆角的黑块，做高斯模糊（四周均匀）
+        Box(
+            Modifier
+                .matchParentSize()
+                .blur(shadowBlur, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
+                .background(Color.Black.copy(alpha = shadowAlpha), shape),
+        )
         Column(
             modifier = Modifier
                 .width(width)
-                .drawBehind {
-                    // 自绘阴影：由外向内 12 层，外扩越大越淡（四周等距、圆角同心）
-                    val layers = 12
-                    val growPx = shadowGrow.toPx()
-                    val cornerPx = corner.toPx()
-                    for (i in layers downTo 1) {
-                        val f = i / layers.toFloat()          // 1.0 = 最外圈
-                        val grow = growPx * f
-                        val a = shadowBase * (1f - f) * (1f - f) * 2.2f
-                        if (a <= 0.001f) continue
-                        drawRoundRect(
-                            color = Color.Black.copy(alpha = a),
-                            topLeft = Offset(-grow, -grow),
-                            size = Size(size.width + grow * 2f, size.height + grow * 2f),
-                            cornerRadius = CornerRadius(cornerPx + grow, cornerPx + grow),
-                        )
-                    }
-                }
                 .clip(shape)
                 .background(cardColor)
                 .padding(vertical = 8.dp, horizontal = 7.dp),
