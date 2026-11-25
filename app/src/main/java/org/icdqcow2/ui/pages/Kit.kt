@@ -1157,10 +1157,9 @@ fun RowScope.DropdownArrow() {
  * 之后才回调，调用方那时再把状态置 false（否则会"啪"一下消失）。
  */
 /**
- * 全 App 统一的弹窗卡片（用户 2026-11-19 从截图提取的样式）：
- * - 暗色底 `#181818`（亮色模式白），圆角 13dp
- * - 边缘 1dp 细亮线 `#313131`（与点按高亮同色系；用户："颜色与点击阴影一致"）
- * - 阴影与卡片圆角同心（同一个 shape）
+ * 全 App 统一的弹窗卡片（用户 2026-11-25 四张截图后的样式）：
+ * - 暗色底 `#181818`（亮色模式白），圆角 16dp（设置页模板同款）
+ * - **不画 1dp 细线**：阴影用透明度/颜色表达，暗色靠卡片与背景的色差
  *
  * 所有 `WindowDialog` 调用都走这里，样式只改一处。
  */
@@ -1175,18 +1174,15 @@ fun AppWindowDialog(
 ) {
     val colors = MiuixTheme.colorScheme
     val dark = colors.surface.luminance() <= 0.5f
-    val cardColor = if (dark) Color(0xFF181818) else Color.White
-    val lineColor = if (dark) Color(0xFF313131) else Color(0x14000000)
-    val shape = RoundedCornerShape(13.dp)
+    val cardColor = if (dark) Color(0xFF2E2E2E) else Color.White
     WindowDialog(
         show = show,
-        modifier = Modifier.border(1.dp, lineColor, shape),
         title = title,
         summary = summary,
         backgroundColor = cardColor,
         onDismissRequest = onDismissRequest,
         onDismissFinished = onDismissFinished,
-        cornerRadius = 13.dp,
+        cornerRadius = 16.dp,
         content = content,
     )
 }
@@ -1712,31 +1708,29 @@ private fun CardDropdownSurface(
 ) {
     val colors = MiuixTheme.colorScheme
     val haptic = LocalHapticFeedback.current
-    // ★ 2026-11-19（用户截图提取的模板）：
-    //   · 圆角 13dp（阴影圆角与卡片同心 → 同一个 shape 画两层）
-    //   · 卡片四周留白一致（阴影与卡片边缘间距 = 上下 = 左右）→ 外层 Box padding
-    //   · 暗色卡片底色 #181818，边缘 1dp 细亮线 #313131（与点按高亮同色系）
-    //   · 条目之间 10dp（两张截图对比出来的行间距）
-    val shape = RoundedCornerShape(13.dp)
+    // ★ 2026-11-25（用户四张截图后的修正）：
+    //   · 圆角 16dp（设置页模板的圆角，13dp 偏小）
+    //   · 删掉 1dp 细亮线：阴影用颜色/透明度表达，不用线描边
+    //   · 阴影减淡：alpha 0.22→0.14、半径 16→12dp（亮色下不"奇怪"）
+    //   · 不再给外层 Box 加 padding（会整体缩 8dp 让菜单位置偏、压不到下方按钮）
+    val shape = RoundedCornerShape(16.dp)
     val p = t.coerceIn(0f, 1f)
     val dark = colors.surface.luminance() <= 0.5f
-    val cardColor = if (dark) Color(0xFF181818) else Color.White
-    val lineColor = if (dark) Color(0xFF313131) else Color(0x14000000)
-    val pressedColor = if (dark) Color(0xFF333333) else Color(0x14000000)
+    // 用户 2026-11-25 实测：页面卡片 #252525、背景 #000，弹出卡片要比页面卡片**浅** → #2E2E2E
+    val cardColor = if (dark) Color(0xFF2E2E2E) else Color.White
+    val pressedColor = if (dark) Color(0xFF3A3A3A) else Color(0x14000000)
     val drift = with(LocalDensity.current) { 10.dp.toPx() }
 
     Box(
-        // 阴影要在卡片外面有地方画（"不是顶到两边"）→ 四边同值 padding
         Modifier
             .onGloballyPositioned { onPlaced() }
-            .padding(8.dp)
             .dropShadow(
                 shape = shape,
                 shadow = androidx.compose.ui.graphics.shadow.Shadow(
-                    radius = 16.dp,
-                    spread = 0.dp,
+                    radius = 12.dp,
+                    spread = 8.dp,
                     offset = androidx.compose.ui.unit.DpOffset.Zero,
-                    color = Color.Black.copy(alpha = 0.22f * p),
+                    color = Color.Black.copy(alpha = 0.14f * p),
                 ),
             ),
     ) {
@@ -1756,8 +1750,6 @@ private fun CardDropdownSurface(
                 }
                 .clip(shape)
                 .background(cardColor)
-                // 细亮线：1dp，与点击高亮同色系（用户 2026-11-19）
-                .border(1.dp, lineColor, shape)
                 .padding(vertical = 8.dp, horizontal = 7.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
