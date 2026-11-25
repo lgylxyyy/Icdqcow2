@@ -1720,11 +1720,11 @@ private fun CardDropdownSurface(
     val cardColor = if (dark) Color(0xFF2E2E2E) else Color.White
     val pressedColor = if (dark) Color(0xFF3A3A3A) else Color(0x14000000)
     val drift = with(LocalDensity.current) { 10.dp.toPx() }
-    // 用户 2026-11-25：
-    //  · dropShadow 是 RenderEffect 阴影，和 graphicsLayer 的 alpha 动画首帧不同步 → 打开会"闪一下"。
-    //    改为 1dp 极淡描边：普通绘制，跟着同一图层渐入，绝不闪。
-    //  · 亮色：#000000 8% 的淡线，只勾一圈轮廓；暗色：卡片 #2E2E2E 与背景 #000 的色差已是轮廓，不描边。
-    val lineColor = Color(0x14000000)
+    // 用户 2026-11-25：阴影保留。dropShadow（RenderEffect）与 alpha 动画首帧不同步会"闪"，
+    // 改用 Modifier.shadow（系统 elevation 阴影）：同一渲染路径随图层渐入，不闪；
+    // 颜色固定不随进度变化（"点击的阴影颜色和点击卡片后的阴影颜色相同"）。
+    // 亮色只留淡淡一圈轮廓（8%），暗色加深一些。
+    val shadowAlpha = if (dark) 0.55f else 0.10f
 
     Box(
         Modifier
@@ -1738,14 +1738,20 @@ private fun CardDropdownSurface(
                 translationY = (1f - p) * drift * (if (down) -1f else 1f)
                 alpha = p
                 transformOrigin = TransformOrigin(1f, if (down) 0f else 1f)
-            },
+            }
+            .shadow(
+                elevation = if (dark) 12.dp else 6.dp,
+                shape = shape,
+                clip = false,
+                ambientColor = Color.Black.copy(alpha = shadowAlpha),
+                spotColor = Color.Black.copy(alpha = shadowAlpha),
+            ),
     ) {
         Column(
             modifier = Modifier
                 .width(width)
                 .clip(shape)
                 .background(cardColor)
-                .then(if (dark) Modifier else Modifier.border(1.dp, lineColor, shape))
                 .padding(vertical = 8.dp, horizontal = 7.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
