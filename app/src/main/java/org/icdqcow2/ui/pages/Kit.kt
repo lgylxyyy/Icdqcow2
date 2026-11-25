@@ -1721,17 +1721,14 @@ private fun CardDropdownSurface(
     val pressedColor = if (dark) Color(0xFF3A3A3A) else Color(0x14000000)
     val drift = with(LocalDensity.current) { 10.dp.toPx() }
     // 用户 2026-11-25：
-    //  · 阴影颜色不随动画变化（"点击的阴影颜色和点击卡片后的阴影颜色相同"）→ 不乘 p
-    //  · 亮色下阴影太黑 → 只留淡淡一圈轮廓；暗色背景本身黑，阴影几乎不可见，保持克制
-    val shadowAlpha = if (dark) 0.18f else 0.06f
-    val shadowRadius = if (dark) 14.dp else 9.dp
+    //  · dropShadow 是 RenderEffect 阴影，和 graphicsLayer 的 alpha 动画首帧不同步 → 打开会"闪一下"。
+    //    改为 1dp 极淡描边：普通绘制，跟着同一图层渐入，绝不闪。
+    //  · 亮色：#000000 8% 的淡线，只勾一圈轮廓；暗色：卡片 #2E2E2E 与背景 #000 的色差已是轮廓，不描边。
+    val lineColor = Color(0x14000000)
 
     Box(
         Modifier
             .onGloballyPositioned { onPlaced() }
-            // ★ 动画（缩放/位移/透明度）放在**含阴影的外层**：
-            //   上一版把 alpha 固定、动画只作用在内层卡片上，导致"阴影瞬间全显、卡片才渐入"。
-            //   现在阴影和卡片同一个图层渐入渐出，颜色又不会随进度变浓淡。
             .graphicsLayer {
                 val s = 0.82f + 0.18f * p
                 scaleX = s
@@ -1741,22 +1738,14 @@ private fun CardDropdownSurface(
                 translationY = (1f - p) * drift * (if (down) -1f else 1f)
                 alpha = p
                 transformOrigin = TransformOrigin(1f, if (down) 0f else 1f)
-            }
-            .dropShadow(
-                shape = shape,
-                shadow = androidx.compose.ui.graphics.shadow.Shadow(
-                    radius = shadowRadius,
-                    spread = 6.dp,
-                    offset = androidx.compose.ui.unit.DpOffset.Zero,
-                    color = Color.Black.copy(alpha = shadowAlpha),
-                ),
-            ),
+            },
     ) {
         Column(
             modifier = Modifier
                 .width(width)
                 .clip(shape)
                 .background(cardColor)
+                .then(if (dark) Modifier else Modifier.border(1.dp, lineColor, shape))
                 .padding(vertical = 8.dp, horizontal = 7.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
